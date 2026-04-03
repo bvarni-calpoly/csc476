@@ -15,7 +15,7 @@
 #include "stb_image.h"
 #include "math/Bezier.h"
 #include "math/Spline.h"
-#include "physics/CameraMovement.h"
+#include "physics/Camera.h"
 #include "GameObject.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -65,7 +65,7 @@ public:
 	shared_ptr<Texture> texture0;
 	shared_ptr<Texture> texture1;
 
-	int windowWidth = 1280;
+	int windowWidth = 1280; // FIXME
 	int windowHeight = 960;
 
 	//animation data
@@ -78,8 +78,6 @@ public:
 
 	//camera
 	int cameraControl = 0;
-	double g_phi, g_theta;
-	double lastX, lastY;
 
 	//player
 	Spline splinepath[4];
@@ -98,8 +96,6 @@ public:
 		glClearColor(.72f, .84f, 1.06f, 1.0f);
 		// Enable z-buffer test.
 		glEnable(GL_DEPTH_TEST);
-
-		g_theta = -PI/2.0;
 
 		// Initialize the GLSL program that we will use for local shading
 		prog = make_shared<Program>();
@@ -456,7 +452,7 @@ public:
 		hTheta = std::max(0.0f, (float)cos(glfwGetTime()));
 
 		// save previous camera position for collision
-		g_eye_prev = g_eye;
+		eye_prev = eye;
 
 		// camera movements
 		if(cameraControl == 0)
@@ -464,7 +460,7 @@ public:
 		else
 			playerMovement(windowManager->getHandle(), 3.0); // control the player
 		
-		g_lookAt = g_eye + g_forward; // FIXME, put this before?
+		lookAtTarget = eye + forward; // FIXME, put this before?
 
 		// -- COLLISION CHECKING ---
 		int collided = 0;

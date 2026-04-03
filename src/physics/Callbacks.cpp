@@ -11,82 +11,93 @@
 #include "math/Bezier.h"
 #include "math/Spline.h"
 #include "physics/Camera.h"
+#include "physics/Callbacks.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
-	{
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		{
-			glfwSetWindowShouldClose(window, GL_TRUE);
-		}
-		if (key == GLFW_KEY_Q && action == GLFW_PRESS){
-			lightTrans += 0.5;
-		}
-		if (key == GLFW_KEY_E && action == GLFW_PRESS){
-			lightTrans -= 0.5;
-		}
-		//toggle material
-		if (key == GLFW_KEY_M && action == GLFW_PRESS) {
-			g_Mat = (g_Mat + 1) % 3;
-		}
-		if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
-			glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-		}
-		if (key == GLFW_KEY_Z && action == GLFW_RELEASE) {
-			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-		}
-		if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
-			goCamera = !goCamera;
-		}
-	}
+#define PI 3.1415927
 
-	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
-	{
-		double posX, posY;
+Callbacks::Callbacks(/* args */)
+{
+}
 
-		if (action == GLFW_PRESS)
-		{
-			 glfwGetCursorPos(window, &posX, &posY);
-			 cout << "Pos X " << posX <<  " Pos Y " << posY << endl;
-		}
-	}
+Callbacks::~Callbacks()
+{
+}
 
-	void scrollCallback(GLFWwindow* window, double deltaX, double deltaY) {
-   		cout << "xDel + yDel " << deltaX << " " << deltaY << endl;
-	}
+void Callbacks::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    }
+    if (key == GLFW_KEY_Q && action == GLFW_PRESS){
+        lightTrans += 0.5;
+    }
+    if (key == GLFW_KEY_E && action == GLFW_PRESS){
+        lightTrans -= 0.5;
+    }
+    //toggle material
+    if (key == GLFW_KEY_M && action == GLFW_PRESS) {
+        g_Mat = (g_Mat + 1) % 3;
+    }
+    if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
+        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    }
+    if (key == GLFW_KEY_Z && action == GLFW_RELEASE) {
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+    }
+    if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
+        goCamera = !goCamera;
+    }
+}
 
-	// https://www.glfw.org/docs/latest/input_guide.html#cursor_pos
-	// https://learnopengl.com/Getting-started/Camera
-	// https://www.opengl-tutorial.org/beginners-tutorials/tutorial-6-keyboard-and-mouse/
-	void setCursorPosCallback(GLFWwindow* window,  double xpos, double ypos)
-	{
-		double xoffset = xpos - lastX;
-		double yoffset = lastY - ypos;
-		lastX = xpos;
-		lastY = ypos;
-		
-		double xsensitivity = 0.01;
-		double ysensitivity = 0.005;
+void Callbacks::mouseCallback(GLFWwindow *window, int button, int action, int mods)
+{
+    double posX, posY;
 
-		g_phi	+= yoffset * ysensitivity; // pitch
-		g_theta	+= xoffset * xsensitivity; // yaw
+    if (action == GLFW_PRESS)
+    {
+        glfwGetCursorPos(window, &posX, &posY);
+        cout << "Pos X " << posX <<  " Pos Y " << posY << endl;
+    }
+}
 
-		g_phi = glm::clamp(g_phi, -PI/2.0 + 0.1, PI/2.0 - 0.1); // 180 degrees front view
-		
-		vec3 direction = vec3(
-			cos(g_theta)*cos(g_phi),	// x
-			sin(g_phi),					// y
-			sin(g_theta)*cos(g_phi)		// z
-		);
+void Callbacks::scrollCallback(GLFWwindow* window, double deltaX, double deltaY) {
+    cout << "xDel + yDel " << deltaX << " " << deltaY << endl;
+}
 
-		// change direction the camera is looking at so the camera moves towards this vector
-		g_forward = normalize(direction);
+// https://www.glfw.org/docs/latest/input_guide.html#cursor_pos
+// https://learnopengl.com/Getting-started/Camera
+// https://www.opengl-tutorial.org/beginners-tutorials/tutorial-6-keyboard-and-mouse/
+void Callbacks::setCursorPosCallback(GLFWwindow* window,  double xpos, double ypos)
+{
+    double xoffset = xpos - lastX;
+    double yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+    
+    double xsensitivity = 0.01;
+    double ysensitivity = 0.005;
 
-		g_lookAt = g_eye + g_forward;
-	}
+    phi	+= yoffset * ysensitivity; // pitch
+    theta	+= xoffset * xsensitivity; // yaw
 
-	void resizeCallback(GLFWwindow *window, int width, int height)
-	{
-		glViewport(0, 0, width, height);
-	}
+    phi = glm::clamp(phi, -PI/2.0 + 0.1, PI/2.0 - 0.1); // 180 degrees front view
+    
+    glm::vec3 direction = glm::vec3(
+        cos(theta)*cos(phi),	// x
+        sin(phi),					// y
+        sin(theta)*cos(phi)		// z
+    );
+
+    // change direction the camera is looking at so the camera moves towards this vector
+    forward = glm::normalize(direction);
+
+    lookAtTarget = eye + forward;
+}
+
+void Callbacks::resizeCallback(GLFWwindow *window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}

@@ -16,13 +16,13 @@ public:
    	void SetView(std::shared_ptr<Program> shader);
     void updateUsingCameraPath(float frametime, Spline *splinepath);
 
-    glm::vec3 view          = glm::vec3(0, 0, 1); // FIXME, change names of these variables
-    glm::vec3 g_eye         = glm::vec3(0, 1, 0);
-    glm::vec3 g_eye_prev    = glm::vec3(0, 1, 0);
-    glm::vec3 g_strafe      = glm::vec3(1, 0, 0);
-    glm::vec3 g_up          = glm::vec3(0, 1, 0);
-    glm::vec3 g_forward     = glm::vec3(0, 0, 1);
-    glm::vec3 g_lookAt      = glm::vec3(0, 1, -4);
+    glm::vec3 view          = glm::vec3(0, 0, 1);
+    glm::vec3 eye           = glm::vec3(0, 1, 0);
+    glm::vec3 eye_prev      = glm::vec3(0, 1, 0);
+    glm::vec3 strafe        = glm::vec3(1, 0, 0);
+    glm::vec3 up            = glm::vec3(0, 1, 0);
+    glm::vec3 forward       = glm::vec3(0, 0, 1);
+    glm::vec3 lookAtTarget  = glm::vec3(0, 1, -4);
 };
 
 #endif
