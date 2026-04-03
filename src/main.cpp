@@ -212,24 +212,6 @@ public:
 
 	void scrollCallback(GLFWwindow* window, double deltaX, double deltaY) {
    		cout << "xDel + yDel " << deltaX << " " << deltaY << endl;
-
-		double sensitivity = 10.0;
-		double radius = 1;
-		g_phi	+= deltaY * sensitivity * PI / windowHeight;	// pitch angle
-		g_theta	+= deltaX * sensitivity * PI / windowWidth;		// yaw angle
-		
-		g_phi = glm::clamp(g_phi, -PI/2.0 + 0.1, PI/2.0 - 0.1); // 180 degrees front view
-
-		vec3 direction = vec3(
-			radius*cos(g_phi)*cos(g_theta), // x
-			radius*sin(g_phi),				// y
-			radius*cos(g_phi)*sin(g_theta)	// z, cos((3.14/2.0)-theta) = sin(theta)
-		);
-
-		// change direction the camera is looking at so the camera moves towards this vector
-		g_forward = normalize(direction);
-
-		g_lookAt = g_eye - direction;
 	}
 
 	// https://www.glfw.org/docs/latest/input_guide.html#cursor_pos
@@ -284,7 +266,7 @@ public:
 		// Initialize the GLSL program that we will use for local shading
 		prog = make_shared<Program>();
 		prog->setVerbose(true);
-		prog->setShaderNames(resourceDirectory + "/shaders/frag_shader.glsl", resourceDirectory + "/shaders/vert_shader.glsl");
+		prog->setShaderNames(resourceDirectory + "/shaders/mat_vert.glsl", resourceDirectory + "/shaders/mat_frag.glsl");
 		prog->init();
 		prog->addUniform("P");
 		prog->addUniform("V");
@@ -642,36 +624,44 @@ public:
 		// Apply perspective projection.
 		Projection->pushMatrix();
 		Projection->perspective(45.0f, aspect, 0.01f, 100.0f);
-
-		// Draw the doggos
+		
+		// use the texture shader
 		texProg->bind();
-		glUniformMatrix4fv(texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-		SetView(texProg);
-		glUniform3f(texProg->getUniform("lightPos"), 2.0+lightTrans, 5.0, 2.9);
-		glUniform1f(texProg->getUniform("MatShine"), 27.9);
-		glUniform1i(texProg->getUniform("flip"), 1);
-		texture1->bind(texProg->getUniform("Texture0"));
-		Model->pushMatrix();
+			glUniformMatrix4fv(texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+			SetView(texProg);
+			glUniform3f(texProg->getUniform("lightPos"), 2.0+lightTrans, 5.0, 2.9);
+			glUniform1f(texProg->getUniform("MatShine"), 27.9);
+			glUniform1i(texProg->getUniform("flip"), 1);
+			texture1->bind(texProg->getUniform("Texture0"));
+			Model->pushMatrix();
 
-		glUniform1i(texProg->getUniform("flip"), 0);
-		drawGround(texProg);
-		drawSkybox(texProg, Model, skybox);
-       
+			glUniform1i(texProg->getUniform("flip"), 0);
+			//drawGround(texProg);
+			//drawSkybox(texProg, Model, skybox);
+
+			Model->popMatrix();
 		texProg->unbind();
 
 		//use the material shader
 		prog->bind();
-		//set up all the matrices
-		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-		SetView(prog);
-		glUniform3f(prog->getUniform("lightPos"), 2.0+lightTrans, 2.0, 2.9);
-		//draw the waving HM
-		SetMaterial(prog, 1);
-		//drawHierModel(Model, prog);
-		prog->unbind();
+			//set up all the matrices
+			glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+			SetView(prog);
+			glUniform3f(prog->getUniform("lightPos"), 2.0+lightTrans, 2.0, 2.9);
+			Model->pushMatrix();
+				Model->loadIdentity();
 
-		// Pop matrix stacks.
-		Projection->popMatrix();
+				SetMaterial(prog, 0);
+
+				Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
+				// normalize
+				Model->scale(1.0/skybox->largeExtent());
+				Model->translate(vec3(0, 0, 0)); // move to ground (half of height)
+
+				setModel(prog, Model);
+				skybox->draw(prog);
+			Model->popMatrix();
+		prog->unbind();
 
 		// --- CAMERA AND COLLISION LOGIC --- FIXME
 		// animation updates

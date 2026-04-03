@@ -17,6 +17,8 @@ void main()
 {
 	vec3 normal = normalize(fragNor);
 	vec3 light = normalize(lightDir);
+	vec3 view = normalize(-EPos);
+	
 	float dC = max(0, dot(normal, light));
 	color = vec4(MatAmb + dC*MatDif, 1.0);
 }
