@@ -13,8 +13,9 @@
 #include "WindowManager.h"
 #include "Texture.h"
 #include "stb_image.h"
-#include "Bezier.h"
-#include "Spline.h"
+#include "math/Bezier.h"
+#include "math/Spline.h"
+#include "physics/CameraMovement.h"
 #include "GameObject.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -79,175 +80,12 @@ public:
 	int cameraControl = 0;
 	double g_phi, g_theta;
 	double lastX, lastY;
-	vec3 view = vec3(0, 0, 1);
-	vec3 g_eye = vec3(0, 1, 0);
-	vec3 g_eye_prev = g_eye;
-	vec3 g_strafe = vec3(1, 0, 0);
-	vec3 g_up = vec3(0, 1, 0);
-	vec3 g_forward = vec3(0, 0, 1);
-	vec3 g_lookAt = vec3(0, 1, -4);
 
 	//player
 	Spline splinepath[4];
 	bool goCamera = false;
 	double gravity = 0.2;
 	vec3 velocity = vec3(0.0f);
-
-	void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
-	{
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		{
-			glfwSetWindowShouldClose(window, GL_TRUE);
-		}
-		if (key == GLFW_KEY_Q && action == GLFW_PRESS){
-			lightTrans += 0.5;
-		}
-		if (key == GLFW_KEY_E && action == GLFW_PRESS){
-			lightTrans -= 0.5;
-		}
-		//toggle material
-		if (key == GLFW_KEY_M && action == GLFW_PRESS) {
-			g_Mat = (g_Mat + 1) % 3;
-		}
-		if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
-			glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-		}
-		if (key == GLFW_KEY_Z && action == GLFW_RELEASE) {
-			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-		}
-		if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
-			goCamera = !goCamera;
-		}
-	}
-
-	// https://learnopengl.com/Getting-started/Camera
-	void cameraMovement(GLFWwindow *window, float cameraSpeed)
-	{
-		g_strafe = normalize(cross(g_forward, vec3(0, 1, 0))); // get side basis vector (points right)
-		g_up = normalize(cross(g_forward, g_strafe)); // get vertical basis vector (points up)
-
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		{
-			g_eye += g_forward * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		{
-			g_eye -= g_forward * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		{
-			g_eye -= g_strafe * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		{
-			g_eye += g_strafe * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		{
-			g_eye += vec3(0, 1, 0) * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		{
-			g_eye -= vec3(0, 1, 0) * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-		{	
-			g_eye -= g_up * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-		{
-			g_eye += g_up * deltaTime * cameraSpeed;
-		}
-	}
-
-	void playerMovement(GLFWwindow *window, float cameraSpeed)
-	{
-		g_strafe = normalize(cross(g_forward, vec3(0, 1, 0))); // get side basis vector (points right)
-		g_up = normalize(cross(g_forward, g_strafe)); // get vertical basis vector (points up)
-
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		{
-			g_eye += g_forward * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		{
-			g_eye -= g_forward * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		{
-			g_eye -= g_strafe * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		{
-			g_eye += g_strafe * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		{
-			g_eye += vec3(0, 1, 0) * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		{
-			g_eye -= vec3(0, 1, 0) * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-		{	
-			g_eye -= g_up * deltaTime * cameraSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-		{
-			g_eye += g_up * deltaTime * cameraSpeed;
-		}
-	}
-
-	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
-	{
-		double posX, posY;
-
-		if (action == GLFW_PRESS)
-		{
-			 glfwGetCursorPos(window, &posX, &posY);
-			 cout << "Pos X " << posX <<  " Pos Y " << posY << endl;
-		}
-	}
-
-	void scrollCallback(GLFWwindow* window, double deltaX, double deltaY) {
-   		cout << "xDel + yDel " << deltaX << " " << deltaY << endl;
-	}
-
-	// https://www.glfw.org/docs/latest/input_guide.html#cursor_pos
-	// https://learnopengl.com/Getting-started/Camera
-	// https://www.opengl-tutorial.org/beginners-tutorials/tutorial-6-keyboard-and-mouse/
-	void setCursorPosCallback(GLFWwindow* window,  double xpos, double ypos)
-	{
-		double xoffset = xpos - lastX;
-		double yoffset = lastY - ypos;
-		lastX = xpos;
-		lastY = ypos;
-		
-		double xsensitivity = 0.01;
-		double ysensitivity = 0.005;
-
-		g_phi	+= yoffset * ysensitivity; // pitch
-		g_theta	+= xoffset * xsensitivity; // yaw
-
-		g_phi = glm::clamp(g_phi, -PI/2.0 + 0.1, PI/2.0 - 0.1); // 180 degrees front view
-		
-		vec3 direction = vec3(
-			cos(g_theta)*cos(g_phi),	// x
-			sin(g_phi),					// y
-			sin(g_theta)*cos(g_phi)		// z
-		);
-
-		// change direction the camera is looking at so the camera moves towards this vector
-		g_forward = normalize(direction);
-
-		g_lookAt = g_eye + g_forward;
-	}
-
-	void resizeCallback(GLFWwindow *window, int width, int height)
-	{
-		glViewport(0, 0, width, height);
-	}
 
 	void init(const std::string& resourceDirectory)
 	{
@@ -511,12 +349,6 @@ public:
 		glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
    	}
 
-   	/* camera controls - do not change */
-	void SetView(shared_ptr<Program>  shader) {
-  		glm::mat4 Cam = glm::lookAt(g_eye, g_lookAt, vec3(0, 1, 0));
-  		glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, value_ptr(Cam));
-	}
-
    	/* draws static hier model */
    	void drawHierModel(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, vector<shared_ptr<Shape>> Shape, vec3 min, vec3 max, int material = 0, vec3 trans = vec3(0.0), float rotateDeg = 0, vec3 rotate = vec3(0.0), vec3 scale = vec3(1.0))
 	{
@@ -548,52 +380,6 @@ public:
 			
 		Model->popMatrix();
    	}
-
-   	void updateUsingCameraPath(float frametime)
-	{
-   	  if (goCamera) {
-       if(!splinepath[0].isDone()){
-       		splinepath[0].update(frametime);
-            g_eye = splinepath[0].getPosition();
-	   } else if(!splinepath[1].isDone()){
-       		splinepath[1].update(frametime);
-            g_eye = splinepath[1].getPosition();
-	   } else if(!splinepath[2].isDone()){
-       		splinepath[2].update(frametime);
-            g_eye = splinepath[2].getPosition();
-        } else {
-            splinepath[3].update(frametime);
-            g_eye = splinepath[3].getPosition();
-        }
-      }
-   	}
-
-	int CameraCollision_AABB(GameObject object)
-	{
-		// calculate if camera is inside inside bounding box of object
-		bool xCollision = (g_eye.x > object.min.x) && (g_eye.x < object.max.x);
-		bool yCollision = (g_eye.y > object.min.y) && (g_eye.y < object.max.y);
-		bool ZCollision = (g_eye.z > object.min.z) && (g_eye.z < object.max.z);
-
-		// if camera is inside bounding box
-		if(xCollision && yCollision && ZCollision)
-		{
-			cout << "inside bounding box" << endl;
-			g_eye = g_eye_prev;
-
-			// check if jailed in object
-			bool xNewCollision = (g_eye_prev.x > object.min.x) && (g_eye_prev.x < object.max.x);
-			bool yNewCollision = (g_eye_prev.y > object.min.y) && (g_eye_prev.y < object.max.y);
-			bool ZNewCollision = (g_eye_prev.z > object.min.z) && (g_eye_prev.z < object.max.z);
-			
-			if(xNewCollision && yNewCollision && ZNewCollision)
-				g_eye.y += 0.1;
-			else
-				return 1; // object collided and camera moved
-		}
-
-		return 0;
-	}
 
 	int ObjectCollision_AABB(GameObject &object1, GameObject &object2)
 	{
