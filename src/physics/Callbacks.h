@@ -7,25 +7,30 @@
 
 #define PI 3.1415927
 #include <GLFW/glfw3.h>
+#include "../world/Camera.h"
 
 class Callbacks
 {
 private:
 	/* data */
 public:
-	Callbacks(/* args */);
+	Callbacks(Camera *cam);
 	~Callbacks();
-
 
 	void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
 	void mouseCallback(GLFWwindow *window, int button, int action, int mods);
-	void scrollCallback(GLFWwindow* window, double deltaX, double deltaY);
-	void setCursorPosCallback(GLFWwindow* window,  double xpos, double ypos);
+	void scrollCallback(GLFWwindow *window, double deltaX, double deltaY);
+	void setCursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 	void resizeCallback(GLFWwindow *window, int width, int height);
 
+	Camera *camera;
 	double phi, theta; // FIXME NAMES
-	//theta = -PI/2.0;
+	// theta = -PI/2.0;
 	double lastX, lastY;
+	float lightTrans = 0;
+	bool cinematicCamera = false;
+	bool freeCamera = true;
+	int mat = 0;
 };
 
 #endif

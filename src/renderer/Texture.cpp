@@ -1,10 +1,11 @@
 #include "Texture.h"
-#include "GLSL.h"
+#include "../core/GLSL.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "../../ext/stb_image/stb_image.h"
+//#include "stb_image.h"
 
 using namespace std;
 

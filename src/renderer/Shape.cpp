@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cassert>
 
-#include "GLSL.h"
+#include "../core/GLSL.h"
 #include "Program.h"
 
 using namespace std;

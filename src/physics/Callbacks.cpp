@@ -5,21 +5,19 @@
 #include <iostream>
 #include <chrono>
 
-#include "GLSL.h"
-#include "Program.h"
-#include "MatrixStack.h"
-#include "math/Bezier.h"
-#include "math/Spline.h"
-#include "physics/Camera.h"
-#include "physics/Callbacks.h"
+#include "../core/GLSL.h"
+#include "../renderer/Program.h"
+#include "../renderer/MatrixStack.h"
+#include "../math/Bezier.h"
+#include "../math/Spline.h"
+#include "../world/Camera.h"
+#include "Callbacks.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #define PI 3.1415927
 
-Callbacks::Callbacks(/* args */)
-{
-}
+Callbacks::Callbacks(Camera *cam): camera(cam) {}
 
 Callbacks::~Callbacks()
 {
@@ -31,24 +29,33 @@ void Callbacks::keyCallback(GLFWwindow *window, int key, int scancode, int actio
     {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
-    if (key == GLFW_KEY_Q && action == GLFW_PRESS){
+    if (key == GLFW_KEY_1 && action == GLFW_PRESS)
+    {
         lightTrans += 0.5;
     }
-    if (key == GLFW_KEY_E && action == GLFW_PRESS){
+    if (key == GLFW_KEY_2 && action == GLFW_PRESS)
+    {
         lightTrans -= 0.5;
     }
-    //toggle material
-    if (key == GLFW_KEY_M && action == GLFW_PRESS) {
-        g_Mat = (g_Mat + 1) % 3;
+    if (key == GLFW_KEY_M && action == GLFW_PRESS)
+    {
+        mat = (mat + 1) % 2; // fixme
     }
-    if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
-        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    if (key == GLFW_KEY_Z && action == GLFW_PRESS)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
-    if (key == GLFW_KEY_Z && action == GLFW_RELEASE) {
-        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+    if (key == GLFW_KEY_Z && action == GLFW_RELEASE)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
-    if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
-        goCamera = !goCamera;
+    if (key == GLFW_KEY_TAB && action == GLFW_RELEASE)
+    {
+        freeCamera = !freeCamera;
+    }
+    if (key == GLFW_KEY_G && action == GLFW_RELEASE)
+    {
+        cinematicCamera = !cinematicCamera;
     }
 }
 
@@ -59,42 +66,43 @@ void Callbacks::mouseCallback(GLFWwindow *window, int button, int action, int mo
     if (action == GLFW_PRESS)
     {
         glfwGetCursorPos(window, &posX, &posY);
-        cout << "Pos X " << posX <<  " Pos Y " << posY << endl;
+        std::cout << "Pos X " << posX << " Pos Y " << posY << std::endl;
     }
 }
 
-void Callbacks::scrollCallback(GLFWwindow* window, double deltaX, double deltaY) {
-    cout << "xDel + yDel " << deltaX << " " << deltaY << endl;
+void Callbacks::scrollCallback(GLFWwindow *window, double deltaX, double deltaY)
+{
+    std::cout << "xDel + yDel " << deltaX << " " << deltaY << std::endl;
 }
 
 // https://www.glfw.org/docs/latest/input_guide.html#cursor_pos
 // https://learnopengl.com/Getting-started/Camera
 // https://www.opengl-tutorial.org/beginners-tutorials/tutorial-6-keyboard-and-mouse/
-void Callbacks::setCursorPosCallback(GLFWwindow* window,  double xpos, double ypos)
+void Callbacks::setCursorPosCallback(GLFWwindow *window, double xpos, double ypos)
 {
     double xoffset = xpos - lastX;
     double yoffset = lastY - ypos;
     lastX = xpos;
     lastY = ypos;
-    
+
     double xsensitivity = 0.01;
     double ysensitivity = 0.005;
 
-    phi	+= yoffset * ysensitivity; // pitch
-    theta	+= xoffset * xsensitivity; // yaw
+    phi += yoffset * ysensitivity;   // pitch
+    theta += xoffset * xsensitivity; // yaw
 
-    phi = glm::clamp(phi, -PI/2.0 + 0.1, PI/2.0 - 0.1); // 180 degrees front view
-    
+    phi = glm::clamp(phi, -PI / 2.0 + 0.1, PI / 2.0 - 0.1); // 180 degrees front view
+
     glm::vec3 direction = glm::vec3(
-        cos(theta)*cos(phi),	// x
-        sin(phi),					// y
-        sin(theta)*cos(phi)		// z
+        cos(theta) * cos(phi), // x
+        sin(phi),              // y
+        sin(theta) * cos(phi)  // z
     );
 
     // change direction the camera is looking at so the camera moves towards this vector
-    forward = glm::normalize(direction);
+    camera->forward = glm::normalize(direction);
 
-    lookAtTarget = eye + forward;
+    camera->lookAtTarget = camera->eye + camera->forward;
 }
 
 void Callbacks::resizeCallback(GLFWwindow *window, int width, int height)

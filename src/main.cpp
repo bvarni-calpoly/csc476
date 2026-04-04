@@ -6,17 +6,19 @@
 #include <glad/glad.h>
 #include <chrono>
 
-#include "GLSL.h"
-#include "Program.h"
-#include "Shape.h"
-#include "MatrixStack.h"
-#include "WindowManager.h"
-#include "Texture.h"
-#include "stb_image.h"
+#include "core/GLSL.h"
+#include "core/WindowManager.h"
+#include "renderer/Program.h"
+#include "renderer/Shape.h"
+#include "renderer/MatrixStack.h"
+#include "renderer/Texture.h"
+#include "../ext/stb_image/stb_image.h"
 #include "math/Bezier.h"
 #include "math/Spline.h"
-#include "physics/Camera.h"
-#include "GameObject.h"
+#include "physics/Callbacks.h"
+#include "world/Camera.h"
+#include "world/Player.h"
+#include "world/GameObject.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
@@ -45,6 +47,10 @@ public:
 	std::shared_ptr<Program> prog;
 	std::shared_ptr<Program> texProg; // Our shader program for textures
 
+	// Camera
+	shared_ptr<Camera> mainCamera = make_shared<Camera>();
+	shared_ptr<Callbacks> callbacks;
+
 	//our geometry
 	shared_ptr<Shape> cube;
 	vector<Shape> cubeObject;
@@ -69,25 +75,46 @@ public:
 	int windowHeight = 960;
 
 	//animation data
-	float lightTrans = 0;
-	int g_Mat = 0;
 	float g_Spin = 3.14/180 * 2; // 2 deg
 	float sTheta = 0;
 	float eTheta = 0;
 	float hTheta = 0;
 
-	//camera
-	int cameraControl = 0;
-
 	//player
 	Spline splinepath[4];
-	bool goCamera = false;
-	double gravity = 0.2;
-	vec3 velocity = vec3(0.0f);
+
+	void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+	{
+		if (callbacks) callbacks->keyCallback(window, key, scancode, action, mods);
+	}
+
+	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
+	{
+		if (callbacks) callbacks->mouseCallback(window, button, action, mods);
+	}
+
+	void scrollCallback(GLFWwindow *window, double deltaX, double deltaY)
+	{
+		if (callbacks) callbacks->scrollCallback(window, deltaX, deltaY);
+	}
+
+	void setCursorPosCallback(GLFWwindow *window, double xpos, double ypos)
+	{
+		if (callbacks) callbacks->setCursorPosCallback(window, xpos, ypos);
+	}
+
+	void resizeCallback(GLFWwindow *window, int width, int height)
+	{
+		if (callbacks) callbacks->resizeCallback(window, width, height);
+	}
+
 
 	void init(const std::string& resourceDirectory)
 	{
 		GLSL::checkVersion();
+
+		// setup callbacks
+		callbacks = make_shared<Callbacks>(mainCamera.get());
 
 		// might not work on WSL?
 		// glfwSetInputMode(windowManager->getHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);   
@@ -401,17 +428,17 @@ public:
 		auto Model = make_shared<MatrixStack>();
 
 		//update the camera position
-		updateUsingCameraPath(frametime);
+		//mainCamera->updateUsingCameraPath(frametime, splinepath);
 
 		// Apply perspective projection.
 		Projection->pushMatrix();
 		Projection->perspective(45.0f, aspect, 0.01f, 100.0f);
-		
+
 		// use the texture shader
 		texProg->bind();
 			glUniformMatrix4fv(texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-			SetView(texProg);
-			glUniform3f(texProg->getUniform("lightPos"), 2.0+lightTrans, 5.0, 2.9);
+			mainCamera->SetView(texProg);
+			glUniform3f(texProg->getUniform("lightPos"), 2.0+callbacks->lightTrans, 5.0, 2.9);
 			glUniform1f(texProg->getUniform("MatShine"), 27.9);
 			glUniform1i(texProg->getUniform("flip"), 1);
 			texture1->bind(texProg->getUniform("Texture0"));
@@ -428,8 +455,8 @@ public:
 		prog->bind();
 			//set up all the matrices
 			glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-			SetView(prog);
-			glUniform3f(prog->getUniform("lightPos"), 2.0+lightTrans, 2.0, 2.9);
+			mainCamera->SetView(prog);
+			glUniform3f(prog->getUniform("lightPos"), 2.0+callbacks->lightTrans, 2.0, 2.9); 
 			Model->pushMatrix();
 				Model->loadIdentity();
 
@@ -452,15 +479,17 @@ public:
 		hTheta = std::max(0.0f, (float)cos(glfwGetTime()));
 
 		// save previous camera position for collision
-		eye_prev = eye;
+		mainCamera->eye_prev = mainCamera->eye;
 
 		// camera movements
-		if(cameraControl == 0)
-			cameraMovement(windowManager->getHandle(), 3.0); // smooth camera movements
-		else
-			playerMovement(windowManager->getHandle(), 3.0); // control the player
+		if(callbacks->cinematicCamera)
+			mainCamera->updateUsingCameraPath(deltaTime, splinepath);
+		if(callbacks->freeCamera) // FIXME MOVE TO BEGINNING
+			mainCamera->cameraMovement(windowManager->getHandle(), 3.0, deltaTime); // smooth camera movements
+		//else
+		//	playerMovement(windowManager->getHandle(), 3.0); // control the player
 		
-		lookAtTarget = eye + forward; // FIXME, put this before?
+		mainCamera->lookAtTarget = mainCamera->eye + mainCamera->forward; // FIXME, put this before?
 
 		// -- COLLISION CHECKING ---
 		int collided = 0;

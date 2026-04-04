@@ -6,7 +6,7 @@
 #include <vector>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Shape.h"
+#include "../renderer/Shape.h"
 
 // https://learnopengl.com/code_viewer_gh.php?code=src/7.in_practice/3.2d_game/0.full_source/game_object.h
 class GameObject

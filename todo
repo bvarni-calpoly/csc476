@@ -1,8 +1,8 @@
 Setup
-    - Review final project code for improvements to
-        -camera
-        -window dimensions
-        -just compare the two files
+    Review final project code for improvements to
+        camera
+        window dimensions
+        just compare the two files
 
 Shaders
     Write shaders from scratch again
@@ -23,3 +23,8 @@ Additional feature
 
 Portals!
     The main focus, check pdf for more (gifs not working currently)
+
+
+Optimizations
+    Forward declarations versus Full include
+    Having memory be sequential or near each other for objects instead of pointers at random memory addresses

@@ -5,12 +5,12 @@
 #include <iostream>
 #include <chrono>
 
-#include "GLSL.h"
-#include "Program.h"
-#include "MatrixStack.h"
-#include "math/Bezier.h"
-#include "math/Spline.h"
-#include "physics/Camera.h"
+#include "../core/GLSL.h"
+#include "../renderer/Program.h"
+#include "../renderer/MatrixStack.h"
+#include "../math/Bezier.h"
+#include "../math/Spline.h"
+#include "Camera.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 

@@ -3,7 +3,7 @@
 #include <cassert>
 #include <fstream>
 
-#include "GLSL.h"
+#include "../core/GLSL.h"
 
 
 std::string readFileAsString(const std::string &fileName)
