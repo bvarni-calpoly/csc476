@@ -4,6 +4,10 @@ Setup
         window dimensions
         just compare the two files
 
+File Structure
+    Game Object should have a draw function instead of there being
+        drawSkybox or drawObject.
+
 Shaders
     Write shaders from scratch again
     Blinn-Phong lighting

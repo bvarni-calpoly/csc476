@@ -11,7 +11,7 @@ public:
     Camera(/* args */);
     ~Camera();
 
-    void cameraMovement(GLFWwindow *window, float cameraSpeed, float deltaTime);
+    void cameraMovement(GLFWwindow *window, float cameraSpeed, float deltaTime); //fixme make deltatime a variable
 	void playerMovement(GLFWwindow *window, float cameraSpeed, float deltaTime);
    	void SetView(std::shared_ptr<Program> shader);
     void updateUsingCameraPath(float frametime, Spline *splinepath);
