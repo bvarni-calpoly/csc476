@@ -29,15 +29,16 @@ public:
 
     void init(const std::string &resourceDirectory);
     void initGeom(const std::string &resourceDirectory);
-    void render(float frametime); 
+    void render(float frametime);
 
     void initGround();
+    void drawHierMap(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::vector<std::shared_ptr<Shape>> shape);
     void drawGround(std::shared_ptr<Program> curS);
     void drawSkybox(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<Shape> shape);
     void SetMaterial(std::shared_ptr<Program> curS, int i);
     void SetModel(glm::vec3 trans, float rotY, float rotX, float sc, std::shared_ptr<Program> curS);
     void setModel(std::shared_ptr<Program> prog, std::shared_ptr<MatrixStack> M);
-    //void drawHierModel(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::vector<std::shared_ptr<Shape>> Shape, glm::vec3 min, glm::vec3 max, int material = 0, glm::vec3 trans = glm::vec3(0.0), float rotateDeg = 0, glm::vec3 rotate = glm::vec3(0.0), glm::vec3 scale = glm::vec3(1.0));
+    // void drawHierModel(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::vector<std::shared_ptr<Shape>> Shape, glm::vec3 min, glm::vec3 max, int material = 0, glm::vec3 trans = glm::vec3(0.0), float rotateDeg = 0, glm::vec3 rotate = glm::vec3(0.0), glm::vec3 scale = glm::vec3(1.0));
 
     float deltaTime;
     int windowWidth = 1080, windowHeight = 960;
@@ -53,8 +54,9 @@ public:
     std::shared_ptr<Callbacks> callbacks;
 
     // our geometry
+    std::vector<std::shared_ptr<Shape>> stage;
     std::shared_ptr<Shape> cube;
-    std::vector<Shape> cubeObject; 
+    std::vector<Shape> cubeObject;
     std::shared_ptr<Shape> skybox;
     std::vector<GameObject> skyboxObject;
     // vector<shared_ptr<Shape>> testShape;

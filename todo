@@ -1,6 +1,7 @@
 -- FOR TODAY --
--fix application.cpp and .h
 -add basic map loading (add mtl later)
+
+-- FOR TOMORROW --
 -add aabb collision to camera/map
 
 -- LONG TERM --
@@ -21,7 +22,9 @@ Shaders
     Frustum Culling
 
 Loading
+    make a function to initialize objects in initGeom
     Fix tiny_obj_loader
+        add mtl loading support
     add assimp
 
 Map loading and Collisions

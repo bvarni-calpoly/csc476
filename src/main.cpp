@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 		resourceDir = argv[1];
 	}
 
-	Application *application = new Application(deltaTime);
+	Application *application = new Application(0);
 
 	// Your main will always include a similar set up to establish your window
 	// and GL context, etc.
@@ -81,6 +81,8 @@ int main(int argc, char *argv[])
 
 		// Render scene.
 		application->render(deltaTime);
+		application->deltaTime = deltaTime;
+		
 		// Swap front and back buffers.
 		glfwSwapBuffers(windowManager->getHandle());
 		// Poll for and process events.

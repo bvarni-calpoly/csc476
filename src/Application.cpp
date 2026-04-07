@@ -2,6 +2,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include "core/GLSL.h"
+#include "core/GLSLUtils.h"
 #include <chrono>
 
 #include "Application.h"
@@ -20,11 +21,12 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
-#define PI 3.1415927
 
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#define PI 3.1415927
 
 using namespace std;
 using namespace glm;
@@ -155,6 +157,39 @@ void Application::initGeom(const std::string &resourceDirectory)
         cube->init();
     }
 
+    // Initialize map mesh (hier)
+    vector<tinyobj::shape_t> TOshapesStage;
+    vector<tinyobj::material_t> objMaterialsStage;
+    // load in the mesh and make the shape(s)
+    rc = tinyobj::LoadObj(TOshapesStage, objMaterialsStage, errStr, (resourceDirectory + "/levels/blender_test.obj").c_str());
+    if (!rc)
+    {
+        cerr << errStr << endl;
+    }
+    else
+    {
+        //stageMin = vec3(numerlic_limits<float>>:max());
+        //stageMax = vec3(numerlic_limits<float>>:min());
+
+        for(int i = 0; i < TOshapesStage.size(); i++)
+        {
+            // Create temporary empty part
+            shared_ptr<Shape> part;
+
+            // Initialize stage part
+            part = make_shared<Shape>();
+            part->createShape(TOshapesStage[i]);
+            part->measure();
+            part->init();
+
+            // Add part to stage vector
+            stage.push_back(part);
+
+            //stageMin = min(stageMin, part->min);
+            //stageMax = max(stageMax, part->max);
+        }
+    }
+
     // Initialize skybox mesh
     vector<tinyobj::shape_t> TOshapesSkybox;
     vector<tinyobj::material_t> objMaterialsSkybox;
@@ -174,7 +209,7 @@ void Application::initGeom(const std::string &resourceDirectory)
     }
 
     // code to load in the ground plane (CPU defined data passed to GPU)
-    initGround();
+    //initGround();
 }
 
 // directly pass quad for the ground to the GPU
@@ -235,7 +270,7 @@ void Application::drawGround(shared_ptr<Program> curS)
     glBindVertexArray(GroundVertexArrayID);
     texture0->bind(curS->getUniform("Texture0"));
     // draw the ground plane
-    SetModel(vec3(0, -1, 0), 0, 0, 1, curS);
+    GLSLUtils::SetModel(vec3(0, -1, 0), 0, 0, 1, curS);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, GrndBuffObj);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -292,47 +327,10 @@ void Application::drawSkybox(shared_ptr<Program> curS, shared_ptr<MatrixStack> M
     Model->translate(vec3(0, halfHeight, 0)); // move to ground (half of height)
     Model->translate(-shape->center);         // move to origin
 
-    setModel(curS, Model);
+    GLSLUtils::setModel(curS, Model);
     shape->draw(curS);
     Model->popMatrix();
     curS->unbind();
-}
-
-// helper function to pass material data to the GPU
-void Application::SetMaterial(shared_ptr<Program> curS, int i)
-{
-    switch (i)
-    {
-    case 0: // purple
-        glUniform3f(curS->getUniform("MatAmb"), 0.096, 0.046, 0.095);
-        glUniform3f(curS->getUniform("MatDif"), 0.96, 0.46, 0.95);
-        glUniform3f(curS->getUniform("MatSpec"), 0.45, 0.23, 0.45);
-        glUniform1f(curS->getUniform("MatShine"), 120.0);
-        break;
-    case 1:
-        // https://learnopengl.com/Lighting/Materials
-        glUniform3f(curS->getUniform("MatAmb"), sin(glfwGetTime() * 2.0f) / 4 + 0.52, sin(glfwGetTime() * 0.7f) / 4 + 0.25, sin(glfwGetTime() * 1.3f) / 4 + 0.25);
-        glUniform3f(curS->getUniform("MatDif"), sin(glfwGetTime() / 4.0f) / 4 + 0.52, sin(glfwGetTime() / 4.0f) / 4 + 0.25, sin(glfwGetTime() / 4.0f) / 4 + 0.25);
-        glUniform3f(curS->getUniform("MatSpec"), sin(glfwGetTime() / 4.0f) / 4 + 0.52, sin(glfwGetTime() / 4.0f) / 4 + 0.25, sin(glfwGetTime() / 4.0f) / 4 + 0.25);
-        glUniform1f(curS->getUniform("MatShine"), 150.0);
-        break;
-    }
-}
-
-/* helper function to set model transforms */
-void Application::SetModel(vec3 trans, float rotY, float rotX, float sc, shared_ptr<Program> curS)
-{
-    mat4 Trans = glm::translate(glm::mat4(1.0f), trans);
-    mat4 RotX = glm::rotate(glm::mat4(1.0f), rotX, vec3(1, 0, 0));
-    mat4 RotY = glm::rotate(glm::mat4(1.0f), rotY, vec3(0, 1, 0));
-    mat4 ScaleS = glm::scale(glm::mat4(1.0f), vec3(sc));
-    mat4 ctm = Trans * RotX * RotY * ScaleS;
-    glUniformMatrix4fv(curS->getUniform("M"), 1, GL_FALSE, value_ptr(ctm));
-}
-
-void Application::setModel(shared_ptr<Program> prog, shared_ptr<MatrixStack> M)
-{
-    glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 }
 
 /* draws static hier model */
@@ -362,13 +360,32 @@ void Application::drawHierModel(shared_ptr<Program> curS, shared_ptr<MatrixStack
     // render each part
     for (auto part : Shape)
     {
-        setModel(curS, Model);
+        GLSLUtils::setModel(curS, Model);
         part->draw(curS);
     }
 
     Model->popMatrix();
 }
 */
+
+// draw map / stage / level
+void Application::drawHierMap(shared_ptr<Program> curS, shared_ptr<MatrixStack> model, vector<shared_ptr<Shape>> shape)
+{
+    model->pushMatrix();
+        model->loadIdentity();
+
+        // SRT
+        //model->scale(1.0/shape->largeExtent());
+        //model->rotate();
+        //model->translate();
+        for(auto part : shape)
+        {
+            GLSLUtils::setModel(curS, model);
+            part->draw(curS);
+        }
+
+    model->popMatrix();
+}
 
 void Application::render(float frametime)
 {
@@ -387,49 +404,63 @@ void Application::render(float frametime)
     auto Projection = make_shared<MatrixStack>();
     auto Model = make_shared<MatrixStack>();
 
+    // FIXME move camerea functions here <<<
+
     // update the camera position
     // mainCamera->updateUsingCameraPath(frametime, splinepath);
 
     // Apply perspective projection.
     Projection->pushMatrix();
-    Projection->perspective(45.0f, aspect, 0.01f, 100.0f);
+    Projection->perspective(45.0f, aspect, 0.01f, 1000.0f); //FIXME, was 100
 
     // use the texture shader
     texProg->bind();
-    glUniformMatrix4fv(texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-    mainCamera->SetView(texProg);
-    glUniform3f(texProg->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 5.0, 2.9);
-    glUniform1f(texProg->getUniform("MatShine"), 27.9);
-    glUniform1i(texProg->getUniform("flip"), 1);
-    texture1->bind(texProg->getUniform("Texture0"));
-    Model->pushMatrix();
+        glUniformMatrix4fv(texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+        mainCamera->SetView(texProg);
+        glUniform3f(texProg->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 5.0, 2.9);
+        glUniform1f(texProg->getUniform("MatShine"), 27.9);
+        glUniform1i(texProg->getUniform("flip"), 1);
+        texture1->bind(texProg->getUniform("Texture0"));
 
-    glUniform1i(texProg->getUniform("flip"), 0);
-    // drawGround(texProg);
-    // drawSkybox(texProg, Model, skybox);
+        Model->pushMatrix();
 
-    Model->popMatrix();
+        glUniform1i(texProg->getUniform("flip"), 0);
+        // drawGround(texProg);
+        // drawSkybox(texProg, Model, skybox);
+
+        // load map model
+        Model->pushMatrix();
+            Model->loadIdentity();
+
+            Model->scale(1.0 / stage[1]->largeExtent());
+            Model->translate(-stage[1]->center);
+            
+            GLSLUtils::setModel(texProg, Model);
+            stage[1]->draw(texProg);
+        Model->popMatrix();
+
+        Model->popMatrix();
     texProg->unbind();
 
     // use the material shader
     prog->bind();
-    // set up all the matrices
-    glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-    mainCamera->SetView(prog);
-    glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
-    Model->pushMatrix();
-    Model->loadIdentity();
+        // set up all the matrices
+        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+        mainCamera->SetView(prog);
+        glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
+        Model->pushMatrix();
+            Model->loadIdentity();
 
-    SetMaterial(prog, 0);
+            GLSLUtils::SetMaterial(prog, 0);
 
-    Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
-    // normalize
-    Model->scale(1.0 / skybox->largeExtent());
-    Model->translate(vec3(0, 0, 0)); // move to ground (half of height)
+            Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
+            // normalize
+            Model->scale(1.0 / skybox->largeExtent());
+            Model->translate(vec3(0, 0, 0)); // move to ground (half of height)
 
-    setModel(prog, Model);
-    skybox->draw(prog);
-    Model->popMatrix();
+            GLSLUtils::setModel(prog, Model);
+            //skybox->draw(prog);
+        Model->popMatrix();
     prog->unbind();
 
     // --- CAMERA AND COLLISION LOGIC --- FIXME
