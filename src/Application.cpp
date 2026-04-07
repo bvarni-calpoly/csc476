@@ -1,6 +1,10 @@
 // fixme dependencies
-#include "Application.h"
+#include <iostream>
+#include <glad/glad.h>
 #include "core/GLSL.h"
+#include <chrono>
+
+#include "Application.h"
 #include "core/WindowManager.h"
 #include "renderer/Program.h"
 #include "renderer/Shape.h"

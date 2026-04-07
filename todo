@@ -1,3 +1,9 @@
+-- FOR TODAY --
+-fix application.cpp and .h
+-add basic map loading (add mtl later)
+-add aabb collision to camera/map
+
+-- LONG TERM --
 Setup
     Review final project code for improvements to
         camera
@@ -21,13 +27,13 @@ Loading
 Map loading and Collisions
     plane collisions
     load maps from probably TrenchBroom
+    vertical map
 
 Additional feature
     Possibly complex collision response?
 
 Portals!
     The main focus, check pdf for more (gifs not working currently)
-
 
 Optimizations
     Forward declarations versus Full include

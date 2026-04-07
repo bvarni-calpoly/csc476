@@ -1,0 +1,9 @@
+newmtl marble-tile-cool
+map_Kd textures/marble-tile-cool.png
+
+newmtl marble4_blue
+map_Kd textures/marble4_blue.png
+
+newmtl snow-mountains3
+map_Kd textures/snow-mountains3.jpg
+

@@ -2,6 +2,9 @@
 #define CAMERA_H
 
 #include <glm/glm.hpp>
+#include "../renderer/Program.h"
+#include "../math/Spline.h"
+#include <memory>
 
 class Camera
 {

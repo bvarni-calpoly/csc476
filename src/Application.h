@@ -1,6 +1,7 @@
 #pragma once
 
 // fixme dependencies
+#include "core/WindowManager.h"
 #include "physics/Callbacks.h"
 #include "world/GameObject.h"
 #include "world/Camera.h"
