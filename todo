@@ -1,6 +1,8 @@
 -- FOR TODAY --
 -add basic map loading (add mtl later)
 
+make callback for toggle mouse movement so imgui can be clicked
+
 -- FOR TOMORROW --
 -add aabb collision to camera/map
 
@@ -37,6 +39,7 @@ Additional feature
 
 Portals!
     The main focus, check pdf for more (gifs not working currently)
+    Stencils buffers or render to texture? (probably stencil buffers)
 
 Optimizations
     Forward declarations versus Full include

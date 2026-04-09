@@ -5,6 +5,9 @@
 #include "core/GLSLUtils.h"
 #include <chrono>
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader/tiny_obj_loader.h>
+
 #include "Application.h"
 #include "core/WindowManager.h"
 #include "renderer/Program.h"
@@ -18,9 +21,6 @@
 #include "world/Camera.h"
 #include "world/Player.h"
 #include "world/GameObject.h"
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader/tiny_obj_loader.h>
 
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>
@@ -427,17 +427,7 @@ void Application::render(float frametime)
         glUniform1i(texProg->getUniform("flip"), 0);
         // drawGround(texProg);
         // drawSkybox(texProg, Model, skybox);
-
-        // load map model
-        Model->pushMatrix();
-            Model->loadIdentity();
-
-            Model->scale(1.0 / stage[1]->largeExtent());
-            Model->translate(-stage[1]->center);
-            
-            GLSLUtils::setModel(texProg, Model);
-            stage[1]->draw(texProg);
-        Model->popMatrix();
+        drawHierMap(texProg, Model, stage);
 
         Model->popMatrix();
     texProg->unbind();
