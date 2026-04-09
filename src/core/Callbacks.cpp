@@ -5,13 +5,13 @@
 #include <iostream>
 #include <chrono>
 
-#include "../core/GLSL.h"
+#include "Callbacks.h"
+#include "GLSL.h"
 #include "../renderer/Program.h"
 #include "../renderer/MatrixStack.h"
 #include "../math/Bezier.h"
 #include "../math/Spline.h"
 #include "../world/Camera.h"
-#include "Callbacks.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -60,7 +60,7 @@ void Callbacks::keyCallback(GLFWwindow *window, int key, int scancode, int actio
 }
 
 void Callbacks::mouseCallback(GLFWwindow *window, int button, int action, int mods)
-{
+{    
     double posX, posY;
 
     if (action == GLFW_PRESS)

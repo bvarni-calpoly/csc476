@@ -17,7 +17,7 @@
 #include "../ext/stb_image/stb_image.h"
 #include "math/Bezier.h"
 #include "math/Spline.h"
-#include "physics/Callbacks.h"
+#include "core/Callbacks.h"
 #include "world/Camera.h"
 #include "world/Player.h"
 #include "world/GameObject.h"
@@ -25,6 +25,11 @@
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+// imgui FIXME
+#include "../ext/imgui/imgui.h"
+#include "../ext/imgui/backends/imgui_impl_glfw.h"
+#include "../ext/imgui/backends/imgui_impl_opengl3.h"
 
 #define PI 3.1415927
 
@@ -42,7 +47,7 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
 }
 
 void Application::mouseCallback(GLFWwindow *window, int button, int action, int mods)
-{
+{    
     if (callbacks)
         callbacks->mouseCallback(window, button, action, mods);
 }
@@ -55,6 +60,10 @@ void Application::scrollCallback(GLFWwindow *window, double deltaX, double delta
 
 void Application::setCursorPosCallback(GLFWwindow *window, double xpos, double ypos)
 {
+    // Prevent camera moving when hovering over imgui window
+    if(ImGui::GetIO().WantCaptureMouse)
+        return;
+
     if (callbacks)
         callbacks->setCursorPosCallback(window, xpos, ypos);
 }
