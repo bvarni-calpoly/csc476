@@ -10,14 +10,14 @@ set(CMAKE_CXX_STANDARD 14)
 
 # Use glob to get the list of all source files.
 # file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp" "${CMAKE_SOURCE_DIR}/ext/*/*.cpp" "${CMAKE_SOURCE_DIR}/ext/glad/src/*.c")
-file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
+file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp" "${CMAKE_SOURCE_DIR}/ext/glad/src/*.c")
 
 # 2. GLAD (Needs the actual source file compiled)
 list(APPEND SOURCES "${CMAKE_SOURCE_DIR}/ext/glad/src/glad.c")
 # We don't really need to include header and resource files to build, but it's
 # nice to have them show up in IDEs.
 # file(GLOB_RECURSE HEADERS "src/*.h" "ext/*/*.h" "ext/glad/*/*.h")
-file(GLOB_RECURSE HEADERS "${CMAKE_SOURCE_DIR}/src/*.h")
+#file(GLOB_RECURSE HEADERS "${CMAKE_SOURCE_DIR}/src/*.h")
 file(GLOB_RECURSE GLSL "resources/*.glsl")
 
 include_directories("ext")

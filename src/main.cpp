@@ -35,10 +35,14 @@
 // #include "imgui_impl_opengl3.h"
 
 // imgui FIXME
+//https://github.com/ocornut/imgui/wiki/Getting-Started#example-if-you-are-using-glfw--openglwebgl
 #include "../ext/imgui/imgui.h"
 #include "../ext/imgui/backends/imgui_impl_glfw.h"
 #include "../ext/imgui/backends/imgui_impl_opengl3.h"
 
+// USEFUL RESOURCES
+// https://github.com/godotengine/godot/tree/master/core/math
+// https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 
 using namespace std;
 using namespace glm;
@@ -88,6 +92,9 @@ int main(int argc, char *argv[])
 	while (! glfwWindowShouldClose(windowManager->getHandle()))
 	{
 		// (Your code calls glfwPollEvents())
+		// Poll for and process events.
+		glfwPollEvents();
+		
 		// ...
 		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
@@ -123,7 +130,7 @@ int main(int argc, char *argv[])
 		// Swap front and back buffers.
 		glfwSwapBuffers(windowManager->getHandle());
 		// Poll for and process events.
-		glfwPollEvents();
+		//glfwPollEvents();
 	}
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();

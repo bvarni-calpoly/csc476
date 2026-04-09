@@ -387,6 +387,7 @@ void Application::drawHierMap(shared_ptr<Program> curS, shared_ptr<MatrixStack> 
         //model->scale(1.0/shape->largeExtent());
         //model->rotate();
         //model->translate();
+        model->scale(0.25);
         for(auto part : shape)
         {
             GLSLUtils::setModel(curS, model);
@@ -404,7 +405,20 @@ void Application::render(float frametime)
     glViewport(0, 0, width, height);
 
     // Clear framebuffer.
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // FIXME STENCIL BUFFERS https://learnopengl.com/Advanced-OpenGL/Stencil-testing
+    // Stencil buffers
+    glEnable(GL_STENCIL_TEST);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // Clear framebuffer and stencilbuffer
+
+    //glStencilMask(0x00); // each bit ends up as 0 in the stencil buffer (disabling writes)
+    
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF); // only draw the 1 from the stencil buffer
+    glStencilMask(0xFF); // each bit is written to the stencil buffer as is
+
+    //END OF FIXME FOR STENCIL BUFFERS
 
     // Use the matrix stack for Lab 6
     float aspect = width / (float)height;
@@ -436,10 +450,22 @@ void Application::render(float frametime)
         glUniform1i(texProg->getUniform("flip"), 0);
         // drawGround(texProg);
         // drawSkybox(texProg, Model, skybox);
-        drawHierMap(texProg, Model, stage);
+        //drawHierMap(texProg, Model, stage); // FIXME, SCALE IS WRONG
+
+        Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
+        // normalize
+        Model->scale(1.0 / skybox->largeExtent());
+        GLSLUtils::setModel(prog, Model);
+        skybox->draw(prog);
 
         Model->popMatrix();
     texProg->unbind();
+
+    // STENCIL AGAIN
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+    // END STENCIL TEST
 
     // use the material shader
     prog->bind();
@@ -450,15 +476,16 @@ void Application::render(float frametime)
         Model->pushMatrix();
             Model->loadIdentity();
 
-            GLSLUtils::SetMaterial(prog, 0);
+            GLSLUtils::SetMaterial(prog, 1);
 
             Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
             // normalize
-            Model->scale(1.0 / skybox->largeExtent());
+            Model->scale(1.0 / skybox->largeExtent() + 0.1);
             Model->translate(vec3(0, 0, 0)); // move to ground (half of height)
 
             GLSLUtils::setModel(prog, Model);
-            //skybox->draw(prog);
+            skybox->draw(prog);
+            //stage->draw(prog);
         Model->popMatrix();
     prog->unbind();
 
@@ -490,4 +517,10 @@ void Application::render(float frametime)
     //		collided = CameraCollision_AABB(object);
     //	else
     //		break;
+
+    // STENCIL FIX ME AGAIN!
+        glStencilMask(0xFF);
+        glEnable(GL_DEPTH_TEST);
+        glDisable(GL_STENCIL_TEST);
+    // END OF FIXME
 }
