@@ -29,6 +29,14 @@ void Callbacks::keyCallback(GLFWwindow *window, int key, int scancode, int actio
     {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
+    if (key == GLFW_KEY_MINUS && action == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    }
+    if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS)
+    {
+        mouseEnabled = !mouseEnabled;
+    }
     if (key == GLFW_KEY_1 && action == GLFW_PRESS)
     {
         lightTrans += 0.5;
@@ -67,6 +75,9 @@ void Callbacks::mouseCallback(GLFWwindow *window, int button, int action, int mo
     {
         glfwGetCursorPos(window, &posX, &posY);
         std::cout << "Pos X " << posX << " Pos Y " << posY << std::endl;
+
+        mouseEnabled = !mouseEnabled;
+        std::cout << "Mouse toggle:" << mouseEnabled << std::endl;
     }
 }
 

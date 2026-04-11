@@ -64,8 +64,10 @@ void Application::setCursorPosCallback(GLFWwindow *window, double xpos, double y
     if(ImGui::GetIO().WantCaptureMouse)
         return;
 
-    if (callbacks)
-        callbacks->setCursorPosCallback(window, xpos, ypos);
+    // toggle mouse movement
+    if (callbacks->mouseEnabled)
+        if (callbacks)
+            callbacks->setCursorPosCallback(window, xpos, ypos);
 }
 
 void Application::resizeCallback(GLFWwindow *window, int width, int height)

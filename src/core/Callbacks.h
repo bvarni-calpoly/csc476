@@ -31,6 +31,7 @@ public:
 	bool cinematicCamera = false;
 	bool freeCamera = true;
 	int mat = 0;
+	bool mouseEnabled = true;
 };
 
 #endif
