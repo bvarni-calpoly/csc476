@@ -21,6 +21,7 @@
 #include "world/Camera.h"
 #include "world/Player.h"
 #include "world/GameObject.h"
+#include "physics/AABB.h"
 
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>
@@ -36,7 +37,7 @@
 using namespace std;
 using namespace glm;
 
-Application::Application(float dt): deltaTime(dt) {};
+Application::Application(float dt) : deltaTime(dt) {};
 
 Application::~Application() {}
 
@@ -47,7 +48,7 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
 }
 
 void Application::mouseCallback(GLFWwindow *window, int button, int action, int mods)
-{    
+{
     if (callbacks)
         callbacks->mouseCallback(window, button, action, mods);
 }
@@ -61,7 +62,7 @@ void Application::scrollCallback(GLFWwindow *window, double deltaX, double delta
 void Application::setCursorPosCallback(GLFWwindow *window, double xpos, double ypos)
 {
     // Prevent camera moving when hovering over imgui window
-    if(ImGui::GetIO().WantCaptureMouse)
+    if (ImGui::GetIO().WantCaptureMouse)
         return;
 
     // toggle mouse movement
@@ -162,42 +163,47 @@ void Application::initGeom(const std::string &resourceDirectory)
     }
     else
     {
-        cube = make_shared<Shape>();
-        cube->createShape(TOshapes[0]);
-        cube->measure();
-        cube->init();
+        cube = make_shared<GameObject>();
+        cube->shape = make_shared<Shape>();
+        cube->shape->createShape(TOshapes[0]);
+        cube->shape->measure();
+        cube->shape->init();
     }
 
     // Initialize map mesh (hier)
-    vector<tinyobj::shape_t> TOshapesStage;
-    vector<tinyobj::material_t> objMaterialsStage;
+    vector<tinyobj::shape_t> TOshapesScene;
+    vector<tinyobj::material_t> objMaterialsScene;
     // load in the mesh and make the shape(s)
-    rc = tinyobj::LoadObj(TOshapesStage, objMaterialsStage, errStr, (resourceDirectory + "/levels/blender_test.obj").c_str());
+    rc = tinyobj::LoadObj(TOshapesScene, objMaterialsScene, errStr, (resourceDirectory + "/scene/blender_test.obj").c_str());
     if (!rc)
     {
         cerr << errStr << endl;
     }
     else
     {
-        //stageMin = vec3(numerlic_limits<float>>:max());
-        //stageMax = vec3(numerlic_limits<float>>:min());
+        scene = make_shared<GameObject>();
 
-        for(int i = 0; i < TOshapesStage.size(); i++)
+        for (int i = 0; i < TOshapesScene.size(); i++)
         {
             // Create temporary empty part
-            shared_ptr<Shape> part;
+            auto part = make_unique<GameObject>();
 
-            // Initialize stage part
-            part = make_shared<Shape>();
-            part->createShape(TOshapesStage[i]);
-            part->measure();
-            part->init();
+            // Initialize scene part
+            part->shape = make_shared<Shape>();
+            part->shape->createShape(TOshapesScene[i]);
+            part->shape->measure();
+            part->shape->init();
+            
+            part->localMin = part->shape->min;
+            part->localMax = part->shape->max;
 
-            // Add part to stage vector
-            stage.push_back(part);
+            part->updateBounds();
 
-            //stageMin = min(stageMin, part->min);
-            //stageMax = max(stageMax, part->max);
+            // Add part to scene vector
+            //scene->min = min(scene->min, part->min);
+            //scene->max = max(scene->max, part->max);
+
+            scene->addChild(move(part));
         }
     }
 
@@ -212,15 +218,34 @@ void Application::initGeom(const std::string &resourceDirectory)
     }
     else
     {
-        skybox = make_shared<Shape>();
-        skybox->createShape(TOshapesSkybox[0]);
-        skybox->measure();
-        skybox->init();
-        skybox->center = (skybox->max + skybox->min) / 2.0f; // FIXME
+        skybox = make_shared<GameObject>();
+        skybox->shape = make_shared<Shape>();
+        skybox->shape->createShape(TOshapesSkybox[0]);
+        skybox->shape->measure();
+        skybox->shape->init();
+        //skybox->shape->center = (skybox->max + skybox->min) / 2.0f; // FIXME
+    }
+
+    // Initialize arrow mesh
+    vector<tinyobj::shape_t> TOshapesArrow;
+    vector<tinyobj::material_t> objMaterialsArrow;
+    // load in the mesh and make the shape(s)
+    rc = tinyobj::LoadObj(TOshapesArrow, objMaterialsArrow, errStr, (resourceDirectory + "/objects/wedge.obj").c_str());
+    if (!rc)
+    {
+        cerr << errStr << endl;
+    }
+    else
+    {
+        arrow = make_shared<GameObject>();
+        arrow->shape = make_shared<Shape>();
+        arrow->shape->createShape(TOshapesArrow[0]);
+        arrow->shape->measure();
+        arrow->shape->init();
     }
 
     // code to load in the ground plane (CPU defined data passed to GPU)
-    //initGround();
+    // initGround();
 }
 
 // directly pass quad for the ground to the GPU
@@ -344,57 +369,22 @@ void Application::drawSkybox(shared_ptr<Program> curS, shared_ptr<MatrixStack> M
     curS->unbind();
 }
 
-/* draws static hier model */
-/*
-void Application::drawHierModel(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, vector<shared_ptr<Shape>> Shape, vec3 min, vec3 max, int material = 0, vec3 trans = vec3(0.0), float rotateDeg = 0, vec3 rotate = vec3(0.0), vec3 scale = vec3(1.0))
-{
-    // set material
-    // SetMaterial(prog, material);
-
-    // draw hierarchical mesh
-    Model->pushMatrix();
-    Model->loadIdentity();
-
-    float halfHeight = (max.y - min.y) / 2.0f;
-    vec3 center = (max + min) / 2.0f;
-
-    // offset
-    Model->translate(trans);
-    Model->rotate(rotateDeg, rotate);
-    Model->scale(scale);
-
-    // normalize
-    Model->scale(1.0 / (max - min).y);
-    Model->translate(vec3(0, halfHeight, 0)); // move to ground
-    Model->translate(-center);
-
-    // render each part
-    for (auto part : Shape)
-    {
-        GLSLUtils::setModel(curS, Model);
-        part->draw(curS);
-    }
-
-    Model->popMatrix();
-}
-*/
-
-// draw map / stage / level
+// draw map / scene / level / scene
 void Application::drawHierMap(shared_ptr<Program> curS, shared_ptr<MatrixStack> model, vector<shared_ptr<Shape>> shape)
 {
     model->pushMatrix();
-        model->loadIdentity();
+    model->loadIdentity();
 
-        // SRT
-        //model->scale(1.0/shape->largeExtent());
-        //model->rotate();
-        //model->translate();
-        model->scale(0.25);
-        for(auto part : shape)
-        {
-            GLSLUtils::setModel(curS, model);
-            part->draw(curS);
-        }
+    // SRT
+    // model->scale(1.0/shape->largeExtent());
+    // model->rotate();
+    // model->translate();
+    model->scale(0.25);
+    for (auto part : shape)
+    {
+        GLSLUtils::setModel(curS, model);
+        part->draw(curS);
+    }
 
     model->popMatrix();
 }
@@ -407,20 +397,26 @@ void Application::render(float frametime)
     glViewport(0, 0, width, height);
 
     // Clear framebuffer.
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // FIXME STENCIL BUFFERS https://learnopengl.com/Advanced-OpenGL/Stencil-testing
     // Stencil buffers
     glEnable(GL_STENCIL_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // Clear framebuffer and stencilbuffer
 
-    //glStencilMask(0x00); // each bit ends up as 0 in the stencil buffer (disabling writes)
-    
+    // glStencilMask(0x00); // each bit ends up as 0 in the stencil buffer (disabling writes)
+
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     glStencilFunc(GL_ALWAYS, 1, 0xFF); // only draw the 1 from the stencil buffer
-    glStencilMask(0xFF); // each bit is written to the stencil buffer as is
+    glStencilMask(0xFF);               // each bit is written to the stencil buffer as is
 
-    //END OF FIXME FOR STENCIL BUFFERS
+    // READ ME <<<
+    // https://ajknowles11.github.io/projects/portals/
+    // https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
+    // https://www.youtube.com/watch?v=cWpFZbjtSQg
+    // https://medium.com/@alikomurcu/portals-with-opengl-d74da6241dd4
+
+    // END OF FIXME FOR STENCIL BUFFERS
 
     // Use the matrix stack for Lab 6
     float aspect = width / (float)height;
@@ -436,59 +432,60 @@ void Application::render(float frametime)
 
     // Apply perspective projection.
     Projection->pushMatrix();
-    Projection->perspective(45.0f, aspect, 0.01f, 1000.0f); //FIXME, was 100
+    Projection->perspective(45.0f, aspect, 0.01f, 1000.0f); // FIXME, was 100
 
     // use the texture shader
     texProg->bind();
-        glUniformMatrix4fv(texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        mainCamera->SetView(texProg);
-        glUniform3f(texProg->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 5.0, 2.9);
-        glUniform1f(texProg->getUniform("MatShine"), 27.9);
-        glUniform1i(texProg->getUniform("flip"), 1);
-        texture1->bind(texProg->getUniform("Texture0"));
+    glUniformMatrix4fv(texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+    mainCamera->SetView(texProg);
+    glUniform3f(texProg->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 5.0, 2.9);
+    glUniform1f(texProg->getUniform("MatShine"), 27.9);
+    glUniform1i(texProg->getUniform("flip"), 1);
+    texture1->bind(texProg->getUniform("Texture0"));
 
-        Model->pushMatrix();
+    Model->pushMatrix();
 
-        glUniform1i(texProg->getUniform("flip"), 0);
-        // drawGround(texProg);
-        // drawSkybox(texProg, Model, skybox);
-        //drawHierMap(texProg, Model, stage); // FIXME, SCALE IS WRONG
+    glUniform1i(texProg->getUniform("flip"), 0);
+    // drawGround(texProg);
+    // drawSkybox(texProg, Model, skybox);
+    // drawHierMap(texProg, Model, scene); // FIXME, SCALE IS WRONG
 
-        Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
-        // normalize
-        Model->scale(1.0 / skybox->largeExtent());
-        GLSLUtils::setModel(prog, Model);
-        skybox->draw(prog);
+    //Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
+    // normalize
+    Model->scale(1.0 / skybox->shape->largeExtent());
+    GLSLUtils::setModel(prog, Model);
+    //skybox->shape->draw(prog);
+    arrow->shape->draw(prog);
 
-        Model->popMatrix();
+    Model->popMatrix();
     texProg->unbind();
 
     // STENCIL AGAIN
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-        glStencilMask(0x00);
-        glDisable(GL_DEPTH_TEST);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilMask(0x00);
+    glDisable(GL_DEPTH_TEST);
     // END STENCIL TEST
 
     // use the material shader
     prog->bind();
-        // set up all the matrices
-        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        mainCamera->SetView(prog);
-        glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
-        Model->pushMatrix();
-            Model->loadIdentity();
+    // set up all the matrices
+    glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+    mainCamera->SetView(prog);
+    glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
+    Model->pushMatrix();
+    Model->loadIdentity();
 
-            GLSLUtils::SetMaterial(prog, 1);
+    GLSLUtils::SetMaterial(prog, 1);
 
-            Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
-            // normalize
-            Model->scale(1.0 / skybox->largeExtent() + 0.1);
-            Model->translate(vec3(0, 0, 0)); // move to ground (half of height)
+    Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
+    // normalize
+    Model->scale(1.0 / skybox->shape->largeExtent() + 0.1);
+    Model->translate(vec3(0, 0, 0)); // move to ground (half of height)
 
-            GLSLUtils::setModel(prog, Model);
-            skybox->draw(prog);
-            //stage->draw(prog);
-        Model->popMatrix();
+    GLSLUtils::setModel(prog, Model);
+    skybox->shape->draw(prog);
+    //scene->shape->draw(prog);
+    Model->popMatrix();
     prog->unbind();
 
     // --- CAMERA AND COLLISION LOGIC --- FIXME
@@ -513,6 +510,15 @@ void Application::render(float frametime)
     // -- COLLISION CHECKING ---
     int collided = 0;
 
+    collided = AABB::intersectsCamera(*mainCamera, *arrow);
+
+    // for (collided = 0; auto &object : scene->children)
+    // {
+    //     collided = AABB::intersectsCamera(*mainCamera, *object);
+    //     if (collided != 0)
+    //         break;
+    // }
+
     // check collisions for crate
     // for(collided = 0; auto& object : skyboxObject)
     //	if(collided == 0)
@@ -521,8 +527,8 @@ void Application::render(float frametime)
     //		break;
 
     // STENCIL FIX ME AGAIN!
-        glStencilMask(0xFF);
-        glEnable(GL_DEPTH_TEST);
-        glDisable(GL_STENCIL_TEST);
+    glStencilMask(0xFF);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
     // END OF FIXME
 }

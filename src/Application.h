@@ -53,15 +53,14 @@ public:
     std::shared_ptr<Camera> mainCamera = std::make_shared<Camera>();
     std::shared_ptr<Callbacks> callbacks;
 
-    // our geometry
-    std::vector<std::shared_ptr<Shape>> stage;
-    std::shared_ptr<Shape> cube;
-    std::vector<Shape> cubeObject;
-    std::shared_ptr<Shape> skybox;
-    std::vector<GameObject> skyboxObject;
-    // vector<shared_ptr<Shape>> testShape;
+    // scene / level
+    std::shared_ptr<GameObject> scene;
+    std::shared_ptr<GameObject> skybox;
 
-    glm::vec3 skyboxMin, skyboxMax;
+    std::shared_ptr<GameObject> cube;
+    std::shared_ptr<GameObject> arrow;
+
+    glm::vec3 skyboxMin, skyboxMax; // fixme
     glm::vec3 gMin;
 
     // global data for ground plane - direct load constant defined CPU data to GPU (not obj)

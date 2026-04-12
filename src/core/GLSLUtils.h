@@ -8,7 +8,7 @@
 class GLSLUtils
 {
 private:
-    GLSLUtils() = delete; // Prevent instantiation FIXME
+    GLSLUtils() = delete; // Prevent instantiation
 public:
     static void SetMaterial(std::shared_ptr<Program> curS, int i);
     static void SetModel(glm::vec3 trans, float rotY, float rotX, float sc, std::shared_ptr<Program> curS);
