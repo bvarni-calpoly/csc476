@@ -112,9 +112,9 @@ void Shape::init()
 			// normal vector
 			vec3 normal = normalize(cross(vec12, vec13));
 
-			norBuf[3 * v1idx + 0] = normal.x, norBuf[3 * v1idx + 1] = v1.y, norBuf[3 * v1idx + 2] = normal.z;
-			norBuf[3 * v2idx + 0] = normal.x, norBuf[3 * v2idx + 1] = v1.y, norBuf[3 * v2idx + 2] = normal.z;
-			norBuf[3 * v3idx + 0] = normal.x, norBuf[3 * v3idx + 1] = v1.y, norBuf[3 * v3idx + 2] = normal.z;
+			norBuf[3 * v1idx + 0] = normal.x, norBuf[3 * v1idx + 1] = normal.y, norBuf[3 * v1idx + 2] = normal.z;
+			norBuf[3 * v2idx + 0] = normal.x, norBuf[3 * v2idx + 1] = normal.y, norBuf[3 * v2idx + 2] = normal.z;
+			norBuf[3 * v3idx + 0] = normal.x, norBuf[3 * v3idx + 1] = normal.y, norBuf[3 * v3idx + 2] = normal.z;
 		}
 	}
 

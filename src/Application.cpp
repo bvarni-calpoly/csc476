@@ -230,7 +230,7 @@ void Application::initGeom(const std::string &resourceDirectory)
     vector<tinyobj::shape_t> TOshapesArrow;
     vector<tinyobj::material_t> objMaterialsArrow;
     // load in the mesh and make the shape(s)
-    rc = tinyobj::LoadObj(TOshapesArrow, objMaterialsArrow, errStr, (resourceDirectory + "/objects/wedge.obj").c_str());
+    rc = tinyobj::LoadObj(TOshapesArrow, objMaterialsArrow, errStr, (resourceDirectory + "/objects/ico_nonorm.obj").c_str());
     if (!rc)
     {
         cerr << errStr << endl;
@@ -452,6 +452,7 @@ void Application::render(float frametime)
 
     //Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
     // normalize
+    Model->translate(vec3(1.0));
     Model->scale(1.0 / skybox->shape->largeExtent());
     GLSLUtils::setModel(prog, Model);
     //skybox->shape->draw(prog);
