@@ -1,6 +1,11 @@
 /*
     Project!
+
+
+	Useful links!
+	IMGUI Explorer - https://pthom.github.io/imgui_explorer/
 */
+
 
 #include <iostream>
 #include <glad/glad.h>
@@ -99,8 +104,17 @@ int main(int argc, char *argv[])
 		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
+
 		ImGui::NewFrame();
-		ImGui::ShowDemoWindow(); // Show demo window! :)
+
+		static bool showDemoWindow = false;
+		static float position = 0.0f;
+		ImGui::Checkbox("Show Demo Window", &showDemoWindow);
+		ImGui::SliderFloat("g_Spin", &application->g_Spin, 0.0f, 20.0f);
+		ImGui::SliderFloat3("light pos", &application->callbacks->lightTrans.x, -20.0f, 20.0f);
+		ImGui::SliderFloat3("skybox position", &application->skybox->position.x, -5.0f, 5.0f);
+
+		if (showDemoWindow) ImGui::ShowDemoWindow(); // Show demo window! :)
 
 		// save current time for next frame
 		auto nextLastTime = chrono::high_resolution_clock::now();

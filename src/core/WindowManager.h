@@ -30,7 +30,6 @@ class EventCallbacks
 
 public:
 
-
 	virtual void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) = 0;
 
 	virtual void mouseCallback(GLFWwindow *window, int button, int action, int mods) = 0;

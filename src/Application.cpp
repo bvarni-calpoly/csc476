@@ -438,7 +438,7 @@ void Application::render(float frametime)
     texProg->bind();
     glUniformMatrix4fv(texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
     mainCamera->SetView(texProg);
-    glUniform3f(texProg->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 5.0, 2.9);
+    glUniform3fv(texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
     glUniform1f(texProg->getUniform("MatShine"), 27.9);
     glUniform1i(texProg->getUniform("flip"), 1);
     texture1->bind(texProg->getUniform("Texture0"));
@@ -472,7 +472,8 @@ void Application::render(float frametime)
     // set up all the matrices
     glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
     mainCamera->SetView(prog);
-    glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
+    //glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
+    glUniform3fv(texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
     Model->pushMatrix();
     Model->loadIdentity();
 
@@ -481,7 +482,7 @@ void Application::render(float frametime)
     Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
     // normalize
     Model->scale(1.0 / skybox->shape->largeExtent() + 0.1);
-    Model->translate(vec3(0, 0, 0)); // move to ground (half of height)
+    Model->translate(skybox->position); // move to ground (half of height)
 
     GLSLUtils::setModel(prog, Model);
     skybox->shape->draw(prog);

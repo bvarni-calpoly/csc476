@@ -37,11 +37,11 @@ void Callbacks::keyCallback(GLFWwindow *window, int key, int scancode, int actio
     {
         mouseEnabled = !mouseEnabled;
     }
-    if (key == GLFW_KEY_1 && action == GLFW_PRESS)
+    if (key == GLFW_KEY_1 && action == GLFW_PRESS) // FIXME, REMOVE THIS
     {
         lightTrans += 0.5;
     }
-    if (key == GLFW_KEY_2 && action == GLFW_PRESS)
+    if (key == GLFW_KEY_2 && action == GLFW_PRESS) // FIXME, REMOVE THIS
     {
         lightTrans -= 0.5;
     }
