@@ -245,7 +245,7 @@ void Application::initGeom(const std::string &resourceDirectory)
     vector<tinyobj::shape_t> TOshapesArrow;
     vector<tinyobj::material_t> objMaterialsArrow;
     // load in the mesh and make the shape(s)
-    rc = tinyobj::LoadObj(TOshapesArrow, objMaterialsArrow, errStr, (resourceDirectory + "/objects/ico_nonorm.obj").c_str());
+    rc = tinyobj::LoadObj(TOshapesArrow, objMaterialsArrow, errStr, (resourceDirectory + "/objects/wedge.obj").c_str());
     if (!rc)
     {
         cerr << errStr << endl;
@@ -458,22 +458,27 @@ void Application::render(float frametime)
     glUniform1i(texProg->getUniform("flip"), 1);
     texture1->bind(texProg->getUniform("Texture0"));
 
-    Model->pushMatrix();
-
     glUniform1i(texProg->getUniform("flip"), 0);
     // drawGround(texProg);
     // drawSkybox(texProg, Model, skybox);
     // drawHierMap(texProg, Model, scene); // FIXME, SCALE IS WRONG
 
     // Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
-    //  normalize
-    Model->translate(vec3(1.0));
-    Model->scale(1.0 / skybox->shape->largeExtent());
-    GLSLUtils::setModel(prog, Model);
-    // skybox->shape->draw(prog);
-    arrow->shape->draw(prog);
 
-    Model->popMatrix();
+    vec3 velocity = vec3(0);
+    for(int i = 0; i < 1; i++)
+    {
+        Model->pushMatrix();
+
+        Model->scale(1.0 / arrow->shape->largeExtent());
+        Model->translate(vec3(1.0f, 1.0f, rand() % 10));
+
+        GLSLUtils::setModel(texProg, Model);
+        arrow->shape->draw(texProg);
+        
+        Model->popMatrix();
+    }
+    
     texProg->unbind();
 
     // STENCIL AGAIN
