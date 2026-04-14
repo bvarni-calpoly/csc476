@@ -1,10 +1,8 @@
 -- FOR TODAY --
-    add aabb
-    camera collision
     test out a basic map with moving objects
-    start working on scene graphs
 
 -- FOR ANOTHER DAY --
+-add rotations to aabb
 -add basic map loading (add mtl later)
 
 make callback for toggle mouse movement so imgui can be clicked

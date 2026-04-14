@@ -6,9 +6,11 @@ uniform mat4 M;
 uniform vec4 debugColor;
 
 out vec4 vertColor;
+out vec3 vertPos1;
 
 void main()
 {
     gl_Position = P * V * M * vec4(vertPos, 1.0);
     vertColor = debugColor;
+    vertPos1 = vertPos;
 }

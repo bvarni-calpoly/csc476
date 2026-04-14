@@ -7,6 +7,7 @@
 
 void GameObject::updateBounds()
 {
+    // FIXME, account for rotations
     float normScale = 1.0f / shape->largeExtent();
     min = (localMin * normScale * scale) + position;
     max = (localMax * normScale * scale) + position;

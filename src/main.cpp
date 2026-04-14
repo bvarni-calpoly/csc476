@@ -3,7 +3,9 @@
 
 
 	Useful links!
+	Ray Tracing - https://raytracing.github.io/
 	IMGUI Explorer - https://pthom.github.io/imgui_explorer/
+	3D Collision Detection - https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
 */
 
 

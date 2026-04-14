@@ -13,10 +13,11 @@ class GameObject
 {
 
 public:
-	GameObject() : shape(nullptr), position(0.0f), rotation(0.0f), scale(0.0f) {}
-	GameObject(std::shared_ptr<Shape> s, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, glm::vec3 mi, glm::vec3 ma)
+	GameObject() : shape(nullptr), position(0.0f), angle(0.0f), rotation(0.0f), scale(1.0f) {}
+	GameObject(std::shared_ptr<Shape> s, glm::vec3 pos, float ang, glm::vec3 rot, glm::vec3 scl, glm::vec3 mi, glm::vec3 ma)
 		: shape(s),
 		  position(pos),
+		  angle(ang),
 		  rotation(rot),
 		  scale(scl),
 		  localMin(mi),
@@ -35,6 +36,7 @@ public:
 
 	std::shared_ptr<Shape> shape;
 	glm::vec3 position = glm::vec3(0);
+	float angle = 0;
 	glm::vec3 rotation = glm::vec3(0);
 	glm::vec3 scale = glm::vec3(1.0f);
 	glm::vec3 localMin = glm::vec3(0); // Local space
@@ -42,4 +44,7 @@ public:
 	// already calculate in shape
 	glm::vec3 min = glm::vec3(std::numeric_limits<float>::max()); // World space
 	glm::vec3 max = glm::vec3(std::numeric_limits<float>::lowest());
+	
+	// physics
+	int collided = 0;
 };

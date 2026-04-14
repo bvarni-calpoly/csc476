@@ -4,16 +4,16 @@
 int AABB::intersectsCamera(Camera& cam, const GameObject& obj) // FIXME optimize this, check godot docs
 {
     // check each axis for collision
-    bool xCollision = (cam.eye.x > obj.shape->min.x) && (cam.eye.x <  obj.shape->max.x);
-    bool yCollision = (cam.eye.y > obj.shape->min.y) && (cam.eye.y <  obj.shape->max.y);
-    bool zCollision = (cam.eye.z > obj.shape->min.z) && (cam.eye.z <  obj.shape->max.z);
+    bool xCollision = (cam.eye.x > obj.min.x) && (cam.eye.x < obj.max.x);
+    bool yCollision = (cam.eye.y > obj.min.y) && (cam.eye.y < obj.max.y);
+    bool zCollision = (cam.eye.z > obj.min.z) && (cam.eye.z < obj.max.z);
 
     //std::cout << cam.eye.x << " " << obj.min.x << std::endl;
     //std::cout << xCollision << " " << yCollision << " " << zCollision << std::endl;
 
     if (xCollision && yCollision && zCollision)
     {
-        std::cout << "inside bounding box" << std::endl;
+        //std::cout << "inside bounding box" << std::endl;
         cam.eye = cam.eye_prev;
 
         // check if jailed inside object
