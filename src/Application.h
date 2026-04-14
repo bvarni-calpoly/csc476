@@ -48,6 +48,7 @@ public:
     // Our shader program - use this one for Blinn-Phong has diffuse
     std::shared_ptr<Program> prog;
     std::shared_ptr<Program> texProg; // Our shader program for textures
+    std::shared_ptr<Program> debugShader; // shader program for debug information and collision visualization
 
     // Camera
     std::shared_ptr<Camera> mainCamera = std::make_shared<Camera>();

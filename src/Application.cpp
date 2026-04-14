@@ -125,6 +125,21 @@ void Application::init(const std::string &resourceDirectory)
     texProg->addAttribute("vertNor");
     texProg->addAttribute("vertTex");
 
+    // Initialize the GLSL program for rendering collision bounds
+    debugShader = make_shared<Program>();
+    debugShader->setVerbose(true);
+    debugShader->setShaderNames(resourceDirectory + "/shaders/debug.vert", resourceDirectory + "/shaders/debug.frag");
+    debugShader->init();
+    debugShader->addUniform("P");
+    debugShader->addUniform("V");
+    debugShader->addUniform("M");
+    debugShader->addUniform("debugColor");
+    debugShader->addUniform("camPos");
+    debugShader->addUniform("boxMin");
+    debugShader->addUniform("boxMax");
+    debugShader->addUniform("collided");
+    debugShader->addAttribute("vertPos");
+
     // read in a load the texture
     texture0 = make_shared<Texture>();
     texture0->setFilename(resourceDirectory + "/image.jpg");
@@ -193,15 +208,15 @@ void Application::initGeom(const std::string &resourceDirectory)
             part->shape->createShape(TOshapesScene[i]);
             part->shape->measure();
             part->shape->init();
-            
+
             part->localMin = part->shape->min;
             part->localMax = part->shape->max;
 
             part->updateBounds();
 
             // Add part to scene vector
-            //scene->min = min(scene->min, part->min);
-            //scene->max = max(scene->max, part->max);
+            // scene->min = min(scene->min, part->min);
+            // scene->max = max(scene->max, part->max);
 
             scene->addChild(move(part));
         }
@@ -223,7 +238,7 @@ void Application::initGeom(const std::string &resourceDirectory)
         skybox->shape->createShape(TOshapesSkybox[0]);
         skybox->shape->measure();
         skybox->shape->init();
-        //skybox->shape->center = (skybox->max + skybox->min) / 2.0f; // FIXME
+        // skybox->shape->center = (skybox->max + skybox->min) / 2.0f; // FIXME
     }
 
     // Initialize arrow mesh
@@ -450,12 +465,12 @@ void Application::render(float frametime)
     // drawSkybox(texProg, Model, skybox);
     // drawHierMap(texProg, Model, scene); // FIXME, SCALE IS WRONG
 
-    //Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
-    // normalize
+    // Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
+    //  normalize
     Model->translate(vec3(1.0));
     Model->scale(1.0 / skybox->shape->largeExtent());
     GLSLUtils::setModel(prog, Model);
-    //skybox->shape->draw(prog);
+    // skybox->shape->draw(prog);
     arrow->shape->draw(prog);
 
     Model->popMatrix();
@@ -472,7 +487,7 @@ void Application::render(float frametime)
     // set up all the matrices
     glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
     mainCamera->SetView(prog);
-    //glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
+    // glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
     glUniform3fv(texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
     Model->pushMatrix();
     Model->loadIdentity();
@@ -486,7 +501,7 @@ void Application::render(float frametime)
 
     GLSLUtils::setModel(prog, Model);
     skybox->shape->draw(prog);
-    //scene->shape->draw(prog);
+    // scene->shape->draw(prog);
     Model->popMatrix();
     prog->unbind();
 
@@ -512,7 +527,7 @@ void Application::render(float frametime)
     // -- COLLISION CHECKING ---
     int collided = 0;
 
-    collided = AABB::intersectsCamera(*mainCamera, *arrow);
+    collided = AABB::intersectsCamera(*mainCamera, *skybox);
 
     // for (collided = 0; auto &object : scene->children)
     // {
@@ -527,6 +542,26 @@ void Application::render(float frametime)
     //		collided = CameraCollision_AABB(object);
     //	else
     //		break;
+
+    debugShader->bind();
+    // Set global matrices FIXME-COMMENT
+    glUniformMatrix4fv(debugShader->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+    mainCamera->SetView(debugShader);
+
+    glUniform3fv(debugShader->getUniform("boxMin"), 1, value_ptr(skybox->localMin));
+    glUniform3fv(debugShader->getUniform("boxMax"), 1, value_ptr(skybox->localMax));
+    glUniform3fv(debugShader->getUniform("camPos"), 1, value_ptr(mainCamera->eye));
+    glUniform4f(debugShader->getUniform("debugColor"), 0.0f, 0.0f, 1.0f, 0.5f);
+    glUniform1i(debugShader->getUniform("collided"), collided);
+
+    // Set model (M) matrix
+    Model->pushMatrix();
+    Model->loadIdentity();
+
+    GLSLUtils::setModel(debugShader, Model);
+    skybox->shape->draw(debugShader);
+    Model->popMatrix();
+    debugShader->unbind();
 
     // STENCIL FIX ME AGAIN!
     glStencilMask(0xFF);

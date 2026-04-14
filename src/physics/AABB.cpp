@@ -4,9 +4,9 @@
 int AABB::intersectsCamera(Camera& cam, const GameObject& obj) // FIXME optimize this, check godot docs
 {
     // check each axis for collision
-    bool xCollision = (cam.eye.x > obj.shape->min.x) && (cam.eye.x < obj.shape->max.x);
-    bool yCollision = (cam.eye.y > obj.shape->min.y) && (cam.eye.y < obj.shape->max.y);
-    bool zCollision = (cam.eye.z > obj.shape->min.z) && (cam.eye.z < obj.shape->max.z);
+    bool xCollision = (cam.eye.x > obj.position.x + obj.shape->min.x) && (cam.eye.x < obj.position.x + obj.shape->max.x);
+    bool yCollision = (cam.eye.y > obj.position.y + obj.shape->min.y) && (cam.eye.y < obj.position.y + obj.shape->max.y);
+    bool zCollision = (cam.eye.z > obj.position.z + obj.shape->min.z) && (cam.eye.z < obj.position.z + obj.shape->max.z);
 
     //std::cout << cam.eye.x << " " << obj.min.x << std::endl;
     //std::cout << xCollision << " " << yCollision << " " << zCollision << std::endl;
