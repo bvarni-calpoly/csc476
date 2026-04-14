@@ -40,6 +40,6 @@ public:
 	glm::vec3 localMin = glm::vec3(0); // Local space
 	glm::vec3 localMax = glm::vec3(0);
 	// already calculate in shape
-	// glm::vec3 min = glm::vec3(std::numeric_limits<float>::max()); // World space
-	// glm::vec3 max = glm::vec3(std::numeric_limits<float>::lowest());
+	glm::vec3 min = glm::vec3(std::numeric_limits<float>::max()); // World space
+	glm::vec3 max = glm::vec3(std::numeric_limits<float>::lowest());
 };

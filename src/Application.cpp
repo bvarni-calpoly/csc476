@@ -280,6 +280,8 @@ void Application::initGeom(const std::string &resourceDirectory)
             arrow->localMax
         );
 
+        childArrow->updateBounds();
+
         arrow->addChild(std::move(childArrow));
     }
 }
@@ -488,13 +490,13 @@ void Application::render(float frametime)
 
         vec3 velocity = vec3(0);
         // iterate over each child of arrow
-        for(int i = 0; i < 10; i++)
+        for(auto &arrowChild : arrow->children)
         {
             Model->pushMatrix();
 
-            Model->scale(1.0 / arrow->children[i]->shape->largeExtent());
             //Model->translate(arrow->getChild() + velocity));
-            Model->translate(arrow->children[i]->position);
+            Model->translate(arrowChild->position);
+            Model->scale(1.0 / arrowChild->shape->largeExtent());
 
             GLSLUtils::setModel(texProg, Model);
             arrow->shape->draw(texProg);
@@ -554,15 +556,17 @@ void Application::render(float frametime)
 
     // -- COLLISION CHECKING ---
     int collided = 0;
+    //collided = AABB::intersectsCamera(*mainCamera, *skybox);
 
-    collided = AABB::intersectsCamera(*mainCamera, *skybox);
-
-    // for (collided = 0; auto &object : scene->children)
-    // {
-    //     collided = AABB::intersectsCamera(*mainCamera, *object);
-    //     if (collided != 0)
-    //         break;
-    // }
+    for (auto &childArrow : arrow->children)
+    {
+        cout << childArrow->localMin.x << " " << childArrow->min.x << endl;
+        if (AABB::intersectsCamera(*mainCamera, *childArrow) != 0)
+        {
+            collided = 1;
+            break;
+        }
+    }
 
     // check collisions for crate
     // for(collided = 0; auto& object : skyboxObject)
@@ -570,14 +574,14 @@ void Application::render(float frametime)
     //		collided = CameraCollision_AABB(object);
     //	else
     //		break;
-
+    
     debugShader->bind();
     // Set global matrices FIXME-COMMENT
     glUniformMatrix4fv(debugShader->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
     mainCamera->SetView(debugShader);
 
-    glUniform3fv(debugShader->getUniform("boxMin"), 1, value_ptr(skybox->localMin));
-    glUniform3fv(debugShader->getUniform("boxMax"), 1, value_ptr(skybox->localMax));
+    //glUniform3fv(debugShader->getUniform("boxMin"), 1, value_ptr(skybox->localMin));
+    //glUniform3fv(debugShader->getUniform("boxMax"), 1, value_ptr(skybox->localMax));
     glUniform3fv(debugShader->getUniform("camPos"), 1, value_ptr(mainCamera->eye));
     glUniform4f(debugShader->getUniform("debugColor"), 0.0f, 0.0f, 1.0f, 0.5f);
     glUniform1i(debugShader->getUniform("collided"), collided);
@@ -587,8 +591,29 @@ void Application::render(float frametime)
     Model->loadIdentity();
 
     GLSLUtils::setModel(debugShader, Model);
+    
+    // draw wireframe hitbox
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     skybox->shape->draw(debugShader);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     Model->popMatrix();
+
+
+    for(auto &childArrow : arrow->children)
+    {
+        Model->pushMatrix();
+            Model->loadIdentity();
+            Model->translate(childArrow->position);
+            //Model->rotate(1, childArrow->rotation);
+            Model->scale(1.0 / childArrow->shape->largeExtent());
+            Model->scale(vec3(1.1f));
+
+            GLSLUtils::setModel(debugShader, Model);
+            glUniform3fv(debugShader->getUniform("boxMin"), 1, value_ptr(childArrow->min));
+            glUniform3fv(debugShader->getUniform("boxMax"), 1, value_ptr(childArrow->max));
+            childArrow->shape->draw(debugShader);
+        Model->popMatrix();
+    }
     debugShader->unbind();
 
     // STENCIL FIX ME AGAIN!

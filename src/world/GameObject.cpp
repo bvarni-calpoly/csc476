@@ -8,9 +8,8 @@
 void GameObject::updateBounds()
 {
     float normScale = 1.0f / shape->largeExtent();
-    std::cout << "GameObject::updateBounds not yet implemented" << std::endl;
-    //min = (localMin * normScale * scale) + position;
-    //max = (localMax * normScale * scale) + position;
+    min = (localMin * normScale * scale) + position;
+    max = (localMax * normScale * scale) + position;
 }
 
 void GameObject::addChild(std::unique_ptr<GameObject> child)
