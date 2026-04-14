@@ -172,8 +172,8 @@ void Application::initGeom(const std::string &resourceDirectory)
     vector<tinyobj::material_t> objMaterials;
     string errStr;
     // load in the mesh and make the shape(s)
-
     bool rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr, (resourceDirectory + "/objects/cube.obj").c_str());
+    /*
     if (!rc)
     {
         cerr << errStr << endl;
@@ -186,6 +186,7 @@ void Application::initGeom(const std::string &resourceDirectory)
         cube->shape->measure();
         cube->shape->init();
     }
+    */
 
     // Initialize map mesh (hier)
     vector<tinyobj::shape_t> TOshapesScene;
@@ -240,7 +241,7 @@ void Application::initGeom(const std::string &resourceDirectory)
         skybox->shape->createShape(TOshapesSkybox[0]);
         skybox->shape->measure();
         skybox->shape->init();
-        
+
         skybox->localMin = skybox->shape->min;
         skybox->localMax = skybox->shape->max;
 
@@ -268,27 +269,77 @@ void Application::initGeom(const std::string &resourceDirectory)
         arrow->localMax = arrow->shape->max;
     }
 
+    // Initialize cube mesh
+    vector<tinyobj::shape_t> TOshapesCube;
+    vector<tinyobj::material_t> objMaterialsCube;
+    // load in the mesh and make the shape(s)
+    rc = tinyobj::LoadObj(TOshapesCube, objMaterialsCube, errStr, (resourceDirectory + "/objects/cube.obj").c_str());
+    if (!rc)
+    {
+        cerr << errStr << endl;
+    }
+    else
+    {
+        cube = make_shared<GameObject>();
+        cube->shape = make_shared<Shape>();
+        cube->shape->createShape(TOshapesCube[0]);
+        cube->shape->measure();
+        cube->shape->init();
+
+        cube->localMin = cube->shape->min;
+        cube->localMax = cube->shape->max;
+    }
+
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();
 
     // create gameobjects for arrow
-    for(int i = 0; i < 10; i++)
+    for (int i = 0; i < 10; i++)
     {
         // create children nodes for arrow
-        auto childArrow = make_unique<GameObject>(
+        auto arrowChild = make_unique<GameObject>(
             arrow->shape,
-            vec3(rand() % 10, 1.0f, rand() % 10),
+            vec3(rand() % 10, 0.0f, rand() % 10),
             0.0f,
-            vec3(0.0f, radians((float) (rand() % 360)), 0.0f),
+            vec3(0.0f, radians((float)(rand() % 360)), 0.0f),
             vec3(1.0f),
             arrow->localMin,
-            arrow->localMax
-        );
+            arrow->localMax);
+        arrowChild->velocity = vec3(0.5, 0.0, 0.0);
 
-        childArrow->updateBounds();
-
-        arrow->addChild(std::move(childArrow));
+        arrowChild->updateBounds();
+        arrow->addChild(std::move(arrowChild));
     }
+
+    // create gameobjects for cube walls
+    for (int i = 0; i < 4; i++)
+    {
+        // create children nodes for arrow
+        auto cubeChild = make_unique<GameObject>(
+            cube->shape,
+            vec3(0.0f),
+            0.0f,
+            vec3(0.0f),
+            vec3(1.0f),
+            cube->localMin,
+            cube->localMax);
+        cubeChild->velocity = vec3(0);
+
+        cubeChild->updateBounds();
+        cube->addChild(std::move(cubeChild));
+    }
+    float wallLength = 20.0f;
+    cube->children[0]->scale = vec3(1.0f, 1.0f, wallLength);
+    cube->children[0]->position = vec3(0.0f, 0.0f, wallLength/2);
+
+    cube->children[1]->scale = vec3(wallLength, 1.0f, 1.0f);
+    cube->children[1]->position = vec3(wallLength/2, 0.0f, 0.0f);
+
+    cube->children[2]->scale = vec3(1.0f, 1.0f, wallLength);
+    cube->children[2]->position = vec3(wallLength, 0.0f, wallLength/2);
+
+    cube->children[3]->scale = vec3(wallLength, 1.0f, 1.0f);
+    cube->children[3]->position = vec3(wallLength/2, 0.0f, wallLength);
 }
 
 // directly pass quad for the ground to the GPU
@@ -493,22 +544,23 @@ void Application::render(float frametime)
 
     // Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));a
 
-        vec3 velocity = vec3(0);
-        // iterate over each child of arrow
-        for(auto &arrowChild : arrow->children)
-        {
-            Model->pushMatrix();
+    vec3 velocity = vec3(0);
+    // iterate over each child of arrow
+    for (auto &arrowChild : arrow->children)
+    {
+        Model->pushMatrix();
+        Model->loadIdentity();
 
-            //Model->translate(arrow->getChild() + velocity));
-            Model->translate(arrowChild->position);
-            Model->scale(1.0 / arrowChild->shape->largeExtent());
+        // Model->translate(arrow->getChild() + velocity));
+        Model->translate(arrowChild->position);
+        Model->scale(1.0 / arrowChild->shape->largeExtent());
 
-            GLSLUtils::setModel(texProg, Model);
-            arrow->shape->draw(texProg);
-            
-            Model->popMatrix();
-        }
-    
+        GLSLUtils::setModel(texProg, Model);
+        arrowChild->shape->draw(texProg);
+
+        Model->popMatrix();
+    }
+
     texProg->unbind();
 
     // STENCIL AGAIN
@@ -536,13 +588,29 @@ void Application::render(float frametime)
     Model->rotate(skybox->angle, skybox->rotation);
     Model->scale(1.0 / skybox->shape->largeExtent() + 0.1); // normalize
 
-   
-
     GLSLUtils::SetMaterial(prog, 1);
     GLSLUtils::setModel(prog, Model);
     skybox->shape->draw(prog);
-    // scene->shape->draw(prog);
     Model->popMatrix();
+
+    // DRAW WALLS
+    for (auto &cubeChild : cube->children)
+    {
+        Model->pushMatrix();
+        Model->loadIdentity();
+
+        cubeChild->updateBounds();
+        Model->translate(cubeChild->position);
+        Model->scale(cubeChild->scale);
+        Model->scale(1.0 / cubeChild->shape->largeExtent());
+
+        GLSLUtils::SetMaterial(prog, 1);
+        GLSLUtils::setModel(prog, Model);
+        cubeChild->shape->draw(prog);
+
+        Model->popMatrix();
+    }
+
     prog->unbind();
 
     // --- CAMERA AND COLLISION LOGIC --- FIXME
@@ -564,20 +632,41 @@ void Application::render(float frametime)
 
     mainCamera->lookAtTarget = mainCamera->eye + mainCamera->forward; // FIXME, put this before?
 
-    // -- COLLISION CHECKING ---
-    int tmp = AABB::intersectsCamera(*mainCamera, *skybox);
-    if (tmp != 0)
-        skybox->collided = 1;
-        
-    for (auto &childArrow : arrow->children)
+    // -- COLLISION CHECKING --- FIXME / TODO PUT THIS IN ANOTHER CLASS
+    skybox->collided = AABB::intersectsCamera(*mainCamera, *skybox);
+
+    for (auto &arrowChild : arrow->children)
     {
-        if (AABB::intersectsCamera(*mainCamera, *childArrow) != 0)
+        if (AABB::intersectsCamera(*mainCamera, *arrowChild) != 0)
         {
-            childArrow->collided = 1;
+            arrowChild->collided += 1;
             break;
         }
     }
-    
+
+    for (auto &cubeChild : cube->children)
+    {
+        if (AABB::intersectsCamera(*mainCamera, *cubeChild) != 0)
+        {
+            cubeChild->collided = 1;
+            break;
+        }
+    }
+
+    // check if arrow hits wall
+    for (auto &arrowChild : arrow->children)
+    {
+        for (auto &cubeChild : cube->children)
+        {
+            if (AABB::intersectsObject(*arrowChild, *cubeChild) != 0)
+            {
+                arrowChild->collided = 1;
+                cubeChild->collided = 1;
+                break;
+            }
+        }
+    }
+
     debugShader->bind();
     // Set global matrices FIXME-COMMENT
     glUniformMatrix4fv(debugShader->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
@@ -588,42 +677,83 @@ void Application::render(float frametime)
 
     // Set model (M) matrix
     Model->pushMatrix();
-        Model->loadIdentity();
-        
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glUniform3fv(debugShader->getUniform("boxMin"), 1, value_ptr(skybox->min));
-        glUniform3fv(debugShader->getUniform("boxMax"), 1, value_ptr(skybox->max));
-        glUniform1i(debugShader->getUniform("collided"), skybox->collided);
-        
-        Model->translate(skybox->position);
-        //Model->rotate(1.0f, skybox->rotation); // FIXME
-        Model->scale(1.0f / skybox->shape->largeExtent());
-        Model->scale(1.1f);
+    Model->loadIdentity();
 
-        // draw wireframe hitbox
-        GLSLUtils::setModel(debugShader, Model);
-        skybox->shape->draw(debugShader);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    glUniform3fv(debugShader->getUniform("boxMin"), 1, value_ptr(skybox->min));
+    glUniform3fv(debugShader->getUniform("boxMax"), 1, value_ptr(skybox->max));
+    glUniform1i(debugShader->getUniform("collided"), skybox->collided);
+
+    Model->translate(skybox->position);
+    // Model->rotate(1.0f, skybox->rotation); // FIXME
+    Model->scale(1.0f / skybox->shape->largeExtent());
+    Model->scale(1.1f);
+
+    // draw wireframe hitbox
+    GLSLUtils::setModel(debugShader, Model);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    skybox->shape->draw(debugShader);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     Model->popMatrix();
 
-    //glUniform4f(debugShader->getUniform("debugColor"), 0.0f, 0.0f, 1.0f, 0.5f);
+    // glUniform4f(debugShader->getUniform("debugColor"), 0.0f, 0.0f, 1.0f, 0.5f);
 
-    for(auto &childArrow : arrow->children)
+    for (auto &arrowChild : arrow->children)
     {
         Model->pushMatrix();
-            Model->loadIdentity();
-            Model->translate(childArrow->position);
-            //Model->rotate(1, childArrow->rotation);
-            Model->scale(1.0f / childArrow->shape->largeExtent());
-            Model->scale(vec3(1.1f));
+        Model->loadIdentity();
+        // physics updates
+        if (arrowChild->collided > 5)
+        {
+            arrowChild->position = vec3(0);
+        }
+        else if (arrowChild->collided > 0)
+        {
+            arrowChild->position += vec3(5 * sin(5 * glfwGetTime()), 1.0, 0.0) * deltaTime;
+        }
+        else
+        {
+            arrowChild->position += arrowChild->velocity * deltaTime;
+        }
+        arrowChild->updateBounds();
 
-            glUniform3fv(debugShader->getUniform("boxMin"), 1, value_ptr(childArrow->min));
-            glUniform3fv(debugShader->getUniform("boxMax"), 1, value_ptr(childArrow->max));
-            glUniform1i(debugShader->getUniform("collided"), childArrow->collided);
+        Model->translate(arrowChild->position);
+        // Model->rotate(1, arrowChild->rotation);
+        Model->scale(1.0f / arrowChild->shape->largeExtent());
+        Model->scale(vec3(1.1f));
 
-            GLSLUtils::setModel(debugShader, Model);
-            childArrow->shape->draw(debugShader);
-            Model->popMatrix();
+        glUniform3fv(debugShader->getUniform("boxMin"), 1, value_ptr(arrowChild->min));
+        glUniform3fv(debugShader->getUniform("boxMax"), 1, value_ptr(arrowChild->max));
+        glUniform1i(debugShader->getUniform("collided"), arrowChild->collided);
+
+        GLSLUtils::setModel(debugShader, Model);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        arrowChild->shape->draw(debugShader);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        Model->popMatrix();
+    }
+
+    for (auto &cubeChild : cube->children)
+    {
+        Model->pushMatrix();
+        Model->loadIdentity();
+
+        cubeChild->updateBounds();
+
+        Model->translate(cubeChild->position);
+        // Model->rotate(1, cubeChild->rotation);
+        Model->scale(cubeChild->scale + vec3(0.1f));
+        Model->scale(1.0f / cubeChild->shape->largeExtent());
+
+        glUniform3fv(debugShader->getUniform("boxMin"), 1, value_ptr(cubeChild->min));
+        glUniform3fv(debugShader->getUniform("boxMax"), 1, value_ptr(cubeChild->max));
+        glUniform1i(debugShader->getUniform("collided"), cubeChild->collided);
+
+        GLSLUtils::setModel(debugShader, Model);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        cubeChild->shape->draw(debugShader);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        Model->popMatrix();
     }
     debugShader->unbind();
 

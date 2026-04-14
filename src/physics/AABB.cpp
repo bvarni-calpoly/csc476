@@ -26,6 +26,12 @@ int AABB::intersectsCamera(Camera& cam, const GameObject& obj) // FIXME optimize
 
 int AABB::intersectsObject(const GameObject& obj1, const GameObject& obj2)
 {
-    std::cout << "not yet implemented" << std::endl;
-    return 0;
+    // check each axis for collision
+    bool xCollision = (obj1.max.x > obj2.min.x) && (obj1.min.x < obj2.max.x);
+    bool yCollision = (obj1.max.y > obj2.min.y) && (obj1.min.y < obj2.max.y);
+    bool zCollision = (obj1.max.z > obj2.min.z) && (obj1.min.z < obj2.max.z);
+
+    if (xCollision && yCollision && zCollision) return 1; // collision detected
+
+    return 0; // no collision
 }
