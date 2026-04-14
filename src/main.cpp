@@ -112,9 +112,12 @@ int main(int argc, char *argv[])
 		static bool showDemoWindow = false;
 		static float position = 0.0f;
 		ImGui::Checkbox("Show Demo Window", &showDemoWindow);
+		ImGui::SliderFloat("Camera Speed", &application->cameraSpeed, -5.0f, 25.0f);
 		ImGui::SliderFloat("g_Spin", &application->g_Spin, 0.0f, 20.0f);
 		ImGui::SliderFloat3("light pos", &application->callbacks->lightTrans.x, -20.0f, 20.0f);
 		ImGui::SliderFloat3("skybox position", &application->skybox->position.x, -5.0f, 5.0f);
+		ImGui::Text("objectCount %d", application->objectCount);
+		ImGui::Text("objectCollisionCount %d", application->objectCollisionCount);
 
 		if (showDemoWindow) ImGui::ShowDemoWindow(); // Show demo window! :)
 

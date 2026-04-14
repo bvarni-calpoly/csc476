@@ -53,6 +53,7 @@ public:
     // Camera
     std::shared_ptr<Camera> mainCamera = std::make_shared<Camera>();
     std::shared_ptr<Callbacks> callbacks;
+    float cameraSpeed = 5.0;
 
     // scene / level
     std::shared_ptr<GameObject> scene;
@@ -60,9 +61,10 @@ public:
 
     std::shared_ptr<GameObject> cube;
     std::shared_ptr<GameObject> arrow;
-
-    glm::vec3 skyboxMin, skyboxMax; // fixme
     glm::vec3 gMin;
+
+    int objectCount = 0;
+    int objectCollisionCount = 0;
 
     // global data for ground plane - direct load constant defined CPU data to GPU (not obj)
     GLuint GrndBuffObj, GrndNorBuffObj, GrndTexBuffObj, GIndxBuffObj;
@@ -75,6 +77,7 @@ public:
     std::shared_ptr<Texture> texture1;
 
     // animation data
+    float timer = 1.0f;
     float g_Spin = 3.14 / 180 * 2; // 2 deg
     float sTheta = 0;
     float eTheta = 0;

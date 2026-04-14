@@ -299,16 +299,17 @@ void Application::initGeom(const std::string &resourceDirectory)
         // create children nodes for arrow
         auto arrowChild = make_unique<GameObject>(
             arrow->shape,
-            vec3(rand() % 10, 0.0f, rand() % 10),
+            vec3(rand() % 10 + 2, 0.0f, rand() % 10 + 2),
             0.0f,
             vec3(0.0f, radians((float)(rand() % 360)), 0.0f),
             vec3(1.0f),
             arrow->localMin,
             arrow->localMax);
-        arrowChild->velocity = vec3(0.5, 0.0, 0.0);
+        arrowChild->velocity = vec3(rand() % 10, 0, rand() % 10);
 
         arrowChild->updateBounds();
         arrow->addChild(std::move(arrowChild));
+        objectCount += 1;
     }
 
     // create gameobjects for cube walls
@@ -544,15 +545,66 @@ void Application::render(float frametime)
 
     // Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));a
 
-    vec3 velocity = vec3(0);
+    // timer to create new arrow
+    if(timer > 0.0f)
+    {
+        timer -= frametime;
+    }
+    else
+    {
+        auto arrowChild = make_unique<GameObject>(
+            arrow->shape,
+            vec3(rand() % 10 + 2, 0.0f, rand() % 10 + 2),
+            0.0f,
+            vec3(0.0f, radians((float)(rand() % 360)), 0.0f),
+            vec3(1.0f),
+            arrow->localMin,
+            arrow->localMax);
+        arrowChild->velocity = vec3(rand() % 10, 0, rand() % 10);
+
+        arrowChild->updateBounds();
+        arrow->addChild(std::move(arrowChild));
+        timer = 1.0f; // reset timer
+        objectCount += 1;
+        cout << "Timer is finished, adding another object";
+    }
+
     // iterate over each child of arrow
     for (auto &arrowChild : arrow->children)
     {
         Model->pushMatrix();
         Model->loadIdentity();
 
+        // physics updates
+        if (arrowChild->collided > 10)
+        {
+            arrowChild->position = vec3(0);
+        }
+        else if (arrowChild->collided > 5 || arrowChild->cameraCollided)
+        {
+            arrowChild->position += vec3(5 * sin(5 * glfwGetTime()), 1.0, 0.0) * deltaTime;
+        }
+        else
+        {
+            arrowChild->position += arrowChild->velocity * deltaTime;
+        }
+
+        // change rotation to be in direction of velocity
+        vec3 forward = -normalize(arrowChild->velocity); // normalize to velocity vector and flip
+        vec3 right = normalize(cross(vec3(0, 1, 0), forward));
+        vec3 up = cross(forward, right);
+
+        mat4 rotationMat(1.0f);
+        rotationMat[0] = vec4(right, 0);  // column 1, x axis
+        rotationMat[1] = vec4(up, 0);       // column 2, y axis
+        rotationMat[2] = vec4(forward, 0);    // column 3, z axis
+        rotationMat[3] = vec4(vec3(0), 1);  // column 4, w axis
+
+        arrowChild->updateBounds();
+
         // Model->translate(arrow->getChild() + velocity));
         Model->translate(arrowChild->position);
+        Model->multMatrix(rotationMat);
         Model->scale(1.0 / arrowChild->shape->largeExtent());
 
         GLSLUtils::setModel(texProg, Model);
@@ -626,7 +678,7 @@ void Application::render(float frametime)
     if (callbacks->cinematicCamera)
         mainCamera->updateUsingCameraPath(deltaTime, splinepath);
     if (callbacks->freeCamera)                                                  // FIXME MOVE TO BEGINNING
-        mainCamera->cameraMovement(windowManager->getHandle(), 3.0, deltaTime); // smooth camera movements
+        mainCamera->cameraMovement(windowManager->getHandle(), cameraSpeed, deltaTime); // smooth camera movements
     // else
     //	playerMovement(windowManager->getHandle(), 3.0); // control the player
 
@@ -635,11 +687,19 @@ void Application::render(float frametime)
     // -- COLLISION CHECKING --- FIXME / TODO PUT THIS IN ANOTHER CLASS
     skybox->collided = AABB::intersectsCamera(*mainCamera, *skybox);
 
+
     for (auto &arrowChild : arrow->children)
     {
         if (AABB::intersectsCamera(*mainCamera, *arrowChild) != 0)
         {
-            arrowChild->collided += 1;
+            if (arrowChild->collisionsEnabled > 0)
+            {
+                arrowChild->cameraCollided += 1;
+                arrowChild->collided += 1;
+                objectCollisionCount += 1;
+                objectCount -= 1;
+            }
+            arrowChild->collisionsEnabled = 0;
             break;
         }
     }
@@ -660,8 +720,28 @@ void Application::render(float frametime)
         {
             if (AABB::intersectsObject(*arrowChild, *cubeChild) != 0)
             {
+                arrowChild->velocity = -arrowChild->velocity; // reverse direction; 
                 arrowChild->collided = 1;
                 cubeChild->collided = 1;
+
+                arrowChild->cameraCollided = 0;
+                arrowChild->collided = 0;
+                break;
+            }
+        }
+    }
+
+    // check if arrow hits another arrow
+    for (auto &arrowChild1 : arrow->children)
+    {
+        for (auto &arrowChild2 : arrow->children)
+        {
+            if (AABB::intersectsObject(*arrowChild1, *arrowChild2) != 0)
+            {
+                arrowChild1->velocity = -arrowChild1->velocity; // reverse direction; 
+                arrowChild2->velocity = -arrowChild2->velocity; // reverse direction; 
+                arrowChild1->collided = 1;
+                arrowChild2->collided = 1;
                 break;
             }
         }
@@ -678,7 +758,6 @@ void Application::render(float frametime)
     // Set model (M) matrix
     Model->pushMatrix();
     Model->loadIdentity();
-
 
     glUniform3fv(debugShader->getUniform("boxMin"), 1, value_ptr(skybox->min));
     glUniform3fv(debugShader->getUniform("boxMax"), 1, value_ptr(skybox->max));
@@ -702,20 +781,6 @@ void Application::render(float frametime)
     {
         Model->pushMatrix();
         Model->loadIdentity();
-        // physics updates
-        if (arrowChild->collided > 5)
-        {
-            arrowChild->position = vec3(0);
-        }
-        else if (arrowChild->collided > 0)
-        {
-            arrowChild->position += vec3(5 * sin(5 * glfwGetTime()), 1.0, 0.0) * deltaTime;
-        }
-        else
-        {
-            arrowChild->position += arrowChild->velocity * deltaTime;
-        }
-        arrowChild->updateBounds();
 
         Model->translate(arrowChild->position);
         // Model->rotate(1, arrowChild->rotation);

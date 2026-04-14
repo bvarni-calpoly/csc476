@@ -45,7 +45,13 @@ public:
 	glm::vec3 min = glm::vec3(std::numeric_limits<float>::max()); // World space
 	glm::vec3 max = glm::vec3(std::numeric_limits<float>::lowest());
 	
+	// orientation
+	glm::vec3 up = glm::vec3(0, 1, 0);
+	glm::vec3 forward = glm::vec3(1, 0, 0);
+
 	// physics
 	glm::vec3 velocity = glm::vec3(0);
+	int cameraCollided = 0;
+	int collisionsEnabled = 1;
 	int collided = 0;
 };

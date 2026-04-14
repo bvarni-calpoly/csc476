@@ -2,6 +2,7 @@
     test out a basic map with moving objects
 
 -- FOR ANOTHER DAY --
+lookat function/matrix
 -make a function for drawing collision shapes (like drawSkybox)
 -move init functions to another class
 -add rotations to aabb
