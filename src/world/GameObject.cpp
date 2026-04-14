@@ -19,7 +19,13 @@ void GameObject::addChild(std::unique_ptr<GameObject> child)
     children.push_back(std::move(child)); // fixme
 }
 
-void GameObject::removeChild()
+void GameObject::removeChild(int id) // FIXME
 {
-    std::cout << "GameObject::removeChild not yet implemented" << std::endl;
+    for(int i = 0; i < children.size(); i++)
+    {
+        if(children[i]->id == id)
+        {
+            isMarked = true;
+        }
+    }
 }

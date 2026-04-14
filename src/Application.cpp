@@ -608,7 +608,7 @@ void Application::render(float frametime)
         Model->scale(1.0 / arrowChild->shape->largeExtent());
 
         GLSLUtils::setModel(texProg, Model);
-        arrowChild->shape->draw(texProg);
+        if(!arrowChild->isMarked) arrowChild->shape->draw(texProg);
 
         Model->popMatrix();
     }
@@ -687,7 +687,6 @@ void Application::render(float frametime)
     // -- COLLISION CHECKING --- FIXME / TODO PUT THIS IN ANOTHER CLASS
     skybox->collided = AABB::intersectsCamera(*mainCamera, *skybox);
 
-
     for (auto &arrowChild : arrow->children)
     {
         if (AABB::intersectsCamera(*mainCamera, *arrowChild) != 0)
@@ -696,6 +695,7 @@ void Application::render(float frametime)
             {
                 arrowChild->cameraCollided += 1;
                 arrowChild->collided += 1;
+                arrowChild->isMarked = true;
                 objectCollisionCount += 1;
                 objectCount -= 1;
             }
@@ -736,13 +736,14 @@ void Application::render(float frametime)
     {
         for (auto &arrowChild2 : arrow->children)
         {
-            if (AABB::intersectsObject(*arrowChild1, *arrowChild2) != 0)
+            if (arrowChild1 != arrowChild2 && AABB::intersectsObject(*arrowChild1, *arrowChild2) != 0)
             {
-                arrowChild1->velocity = -arrowChild1->velocity; // reverse direction; 
-                arrowChild2->velocity = -arrowChild2->velocity; // reverse direction; 
+                vec3 tmp = arrowChild1->velocity;
+                arrowChild1->velocity = -arrowChild2->velocity; // reverse direction
+                arrowChild2->velocity = -arrowChild1->velocity; // reverse direction
                 arrowChild1->collided = 1;
                 arrowChild2->collided = 1;
-                break;
+                //break;
             }
         }
     }
