@@ -139,6 +139,8 @@ void Application::init(const std::string &resourceDirectory)
     debugShader->addUniform("boxMax");
     debugShader->addUniform("collided");
     debugShader->addAttribute("vertPos");
+    debugShader->addAttribute("vertNor"); // silence error
+    debugShader->addAttribute("vertTex"); // silence error
 
     // read in a load the texture
     texture0 = make_shared<Texture>();
@@ -257,10 +259,29 @@ void Application::initGeom(const std::string &resourceDirectory)
         arrow->shape->createShape(TOshapesArrow[0]);
         arrow->shape->measure();
         arrow->shape->init();
+
+        arrow->localMin = arrow->shape->min;
+        arrow->localMax = arrow->shape->max;
     }
 
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();
+
+    // create gameobjects for arrow
+    for(int i = 0; i < 10; i++)
+    {
+        // create children nodes for arrow
+        auto childArrow = make_unique<GameObject>(
+            arrow->shape,
+            vec3(rand() % 10, 1.0f, rand() % 10),
+            vec3(0.0f, radians((float) (rand() % 360)), 0.0f),
+            vec3(1.0f),
+            arrow->localMin,
+            arrow->localMax
+        );
+
+        arrow->addChild(std::move(childArrow));
+    }
 }
 
 // directly pass quad for the ground to the GPU
@@ -463,21 +484,23 @@ void Application::render(float frametime)
     // drawSkybox(texProg, Model, skybox);
     // drawHierMap(texProg, Model, scene); // FIXME, SCALE IS WRONG
 
-    // Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
+    // Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));a
 
-    vec3 velocity = vec3(0);
-    for(int i = 0; i < 1; i++)
-    {
-        Model->pushMatrix();
+        vec3 velocity = vec3(0);
+        // iterate over each child of arrow
+        for(int i = 0; i < 10; i++)
+        {
+            Model->pushMatrix();
 
-        Model->scale(1.0 / arrow->shape->largeExtent());
-        Model->translate(vec3(1.0f, 1.0f, rand() % 10));
+            Model->scale(1.0 / arrow->children[i]->shape->largeExtent());
+            //Model->translate(arrow->getChild() + velocity));
+            Model->translate(arrow->children[i]->position);
 
-        GLSLUtils::setModel(texProg, Model);
-        arrow->shape->draw(texProg);
-        
-        Model->popMatrix();
-    }
+            GLSLUtils::setModel(texProg, Model);
+            arrow->shape->draw(texProg);
+            
+            Model->popMatrix();
+        }
     
     texProg->unbind();
 
