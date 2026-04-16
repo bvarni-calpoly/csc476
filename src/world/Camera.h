@@ -18,6 +18,7 @@ public:
     void cameraMovement(GLFWwindow *window, float cameraSpeed, float deltaTime); //fixme make deltatime a variable
 	void playerMovement(GLFWwindow *window, float cameraSpeed, float deltaTime);
    	void SetView(std::shared_ptr<Program> shader);
+   	void SetPortalView(std::shared_ptr<Program> shader);
     void updateUsingCameraPath(float frametime, Spline *splinepath);
 
     glm::vec3 view          = glm::vec3(0, 0, 1);

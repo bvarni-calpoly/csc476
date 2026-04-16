@@ -52,6 +52,7 @@ public:
 
     // Camera
     std::shared_ptr<Camera> mainCamera = std::make_shared<Camera>();
+    std::shared_ptr<Camera> portalCamera = std::make_shared<Camera>();
     std::shared_ptr<Callbacks> callbacks;
     float cameraSpeed = 5.0;
 

@@ -491,48 +491,130 @@ void Application::render(float frametime)
     glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
     glViewport(0, 0, width, height);
 
-    // Clear framebuffer.
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // FIXME STENCIL BUFFERS https://learnopengl.com/Advanced-OpenGL/Stencil-testing
-    // Stencil buffers
-    glEnable(GL_STENCIL_TEST);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // Clear framebuffer and stencilbuffer
-
-    // glStencilMask(0x00); // each bit ends up as 0 in the stencil buffer (disabling writes)
-
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glStencilFunc(GL_ALWAYS, 1, 0xFF); // only draw the 1 from the stencil buffer
-    glStencilMask(0xFF);               // each bit is written to the stencil buffer as is
-
-    // READ ME <<<
-    // https://ajknowles11.github.io/projects/portals/
-    // https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
-    // https://www.youtube.com/watch?v=cWpFZbjtSQg
-    // https://medium.com/@alikomurcu/portals-with-opengl-d74da6241dd4
-
-    // END OF FIXME FOR STENCIL BUFFERS
-
     // Use the matrix stack for Lab 6
     float aspect = width / (float)height;
 
     // Create the matrix stacks - please leave these alone for now
     auto Projection = make_shared<MatrixStack>();
+    auto ProjectionPortal = make_shared<MatrixStack>();
     auto Model = make_shared<MatrixStack>();
-
-    // FIXME move camerea functions here <<<
-
-    // update the camera position
-    // mainCamera->updateUsingCameraPath(frametime, splinepath);
 
     // Apply perspective projection.
     Projection->pushMatrix();
     Projection->perspective(45.0f, aspect, 0.01f, 1000.0f); // FIXME, was 100
+    ProjectionPortal->pushMatrix();
+    ProjectionPortal->perspective(45.0f, aspect, 0.01f, 1000.0f); // FIXME, was 100
 
-    // use the texture shader
+    // FIXME move camerea functions here <<<
+    // update the camera position
+    // mainCamera->updateUsingCameraPath(frametime, splinepath);
+    
+    // Setup stencil buffers to draw portal objects
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // Clear framebuffer and stencilbuffer
+    //glStencilMask(0x00);               // each bit ends up as 0 in the stencil buffer (disabling writes)
+    //glStencilFunc(GL_ALWAYS, 1, 0xFF); // only draw the 1 from the stencil buffer
+    //glStencilMask(0xFF);               // each bit is written to the stencil buffer as is
+
+    glStencilFunc(GL_ALWAYS, 1, 0xFF); // only draw the 1 from the stencil buffer
+    glStencilMask(0xFF);               // each bit is written to the stencil buffer as is
+    
+    // Draw portal frame
+    prog->bind();
+    // set up all the matrices
+    glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+    mainCamera->SetView(prog); // CHANGE TO PORTAL CAMERA FOR DIFFERENT RESULTS
+    //portalCamera->SetView(prog);
+    // glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
+    glUniform3fv(texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+    Model->pushMatrix();
+    Model->loadIdentity();
+
+    // update matrices
+    skybox->updateBounds();
+    skybox->rotation = vec3(0, -1, 0);
+    skybox->angle = g_Spin * glfwGetTime();
+
+    Model->translate(skybox->position + vec3(5.0f, 1.0, 5.0));
+    Model->translate(skybox->position); // move to ground (half of height)
+    Model->rotate(skybox->angle, skybox->rotation);
+    Model->scale(1.0 / skybox->shape->largeExtent() + 0.5f); // normalize
+
+    GLSLUtils::SetMaterial(prog, 0);
+    GLSLUtils::setModel(prog, Model);
+    skybox->shape->draw(prog);
+    Model->popMatrix();
+    prog->unbind();
+    
+    // Setup stencil buffer to draw other objects over the portal
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilMask(0x00);
+    glDisable(GL_DEPTH_TEST);
+
+    // DRAW BORDER OBJECTS HERE
+    prog->bind();
+    // set up all the matrices
+    glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+    mainCamera->SetView(prog);
+    // glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
+    glUniform3fv(texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+    Model->pushMatrix();
+    Model->loadIdentity();
+
+    // update matrices
+    skybox->updateBounds();
+    skybox->rotation = vec3(0, -1, 0);
+    skybox->angle = g_Spin * glfwGetTime();
+
+    Model->translate(skybox->position + vec3(5.0f, 2.0, 5.0));
+    Model->translate(skybox->position); // move to ground (half of height)
+    Model->rotate(skybox->angle, skybox->rotation);
+    Model->scale(1.0 / skybox->shape->largeExtent() + 0.1); // normalize
+
+    GLSLUtils::SetMaterial(prog, 1);
+    GLSLUtils::setModel(prog, Model);
+    skybox->shape->draw(prog);
+    Model->popMatrix();
+    prog->unbind();
+
+    // Reset stencil buffer state
+    glStencilMask(0xFF);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+
+    // enable drawing only on stencil buffer 1's
+    glStencilFunc(GL_LEQUAL, 1, 0xFF);
+
+    // Redraw scene but with portal view (portal camera)
+    prog->bind();
+    // set up all the matrices
+    glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+    portalCamera->SetPortalView(prog);
+    // glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
+    glUniform3fv(prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+    Model->pushMatrix();
+    Model->loadIdentity();
+
+    // update matrices
+    skybox->updateBounds();
+    skybox->rotation = vec3(0, -1, 0);
+    skybox->angle = g_Spin * glfwGetTime();
+
+    Model->translate(skybox->position + vec3(5.0f, 1.5, 5.0));
+    Model->translate(skybox->position); // move to ground (half of height)
+    Model->rotate(skybox->angle, skybox->rotation);
+    Model->scale(1.0 / skybox->shape->largeExtent() + 10.0); // normalize
+
+    GLSLUtils::SetMaterial(prog, 1);
+    GLSLUtils::setModel(prog, Model);
+    skybox->shape->draw(prog);
+    Model->popMatrix();
+    prog->unbind();
+
+    // REDRAW SCENE IN PORTALS
     texProg->bind();
     glUniformMatrix4fv(texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-    mainCamera->SetView(texProg);
+    portalCamera->SetPortalView(texProg);
     glUniform3fv(texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
     glUniform1f(texProg->getUniform("MatShine"), 27.9);
     glUniform1i(texProg->getUniform("flip"), 1);
@@ -615,11 +697,97 @@ void Application::render(float frametime)
 
     texProg->unbind();
 
-    // STENCIL AGAIN
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilMask(0x00);
-    glDisable(GL_DEPTH_TEST);
-    // END STENCIL TEST
+    // Reset stencil buffer state
+    glStencilMask(0xFF);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    glEnable(GL_DEPTH_TEST);
+    
+    // --- DRAW MAIN CAMERA SCENE ---
+    // use the texture shader
+    texProg->bind();
+    glUniformMatrix4fv(texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+    mainCamera->SetView(texProg);
+    glUniform3fv(texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+    glUniform1f(texProg->getUniform("MatShine"), 27.9);
+    glUniform1i(texProg->getUniform("flip"), 1);
+    texture1->bind(texProg->getUniform("Texture0"));
+
+    glUniform1i(texProg->getUniform("flip"), 0);
+    // drawGround(texProg);
+    // drawSkybox(texProg, Model, skybox);
+    // drawHierMap(texProg, Model, scene); // FIXME, SCALE IS WRONG
+
+    // Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));a
+
+    // timer to create new arrow
+    if(timer > 0.0f)
+    {
+        timer -= frametime;
+    }
+    else
+    {
+        auto arrowChild = make_unique<GameObject>(
+            arrow->shape,
+            vec3(rand() % 10 + 2, 0.0f, rand() % 10 + 2),
+            0.0f,
+            vec3(0.0f, radians((float)(rand() % 360)), 0.0f),
+            vec3(1.0f),
+            arrow->localMin,
+            arrow->localMax);
+        arrowChild->velocity = vec3(rand() % 10, 0, rand() % 10);
+
+        arrowChild->updateBounds();
+        arrow->addChild(std::move(arrowChild));
+        timer = 1.0f; // reset timer
+        objectCount += 1;
+        cout << "Timer is finished, adding another object";
+    }
+
+    // iterate over each child of arrow
+    for (auto &arrowChild : arrow->children)
+    {
+        Model->pushMatrix();
+        Model->loadIdentity();
+
+        // physics updates
+        if (arrowChild->collided > 10)
+        {
+            arrowChild->position = vec3(0);
+        }
+        else if (arrowChild->collided > 5 || arrowChild->cameraCollided)
+        {
+            arrowChild->position += vec3(5 * sin(5 * glfwGetTime()), 1.0, 0.0) * deltaTime;
+        }
+        else
+        {
+            arrowChild->position += arrowChild->velocity * deltaTime;
+        }
+
+        // change rotation to be in direction of velocity
+        vec3 forward = -normalize(arrowChild->velocity); // normalize to velocity vector and flip
+        vec3 right = normalize(cross(vec3(0, 1, 0), forward));
+        vec3 up = cross(forward, right);
+
+        mat4 rotationMat(1.0f);
+        rotationMat[0] = vec4(right, 0);  // column 1, x axis
+        rotationMat[1] = vec4(up, 0);       // column 2, y axis
+        rotationMat[2] = vec4(forward, 0);    // column 3, z axis
+        rotationMat[3] = vec4(vec3(0), 1);  // column 4, w axis
+
+        arrowChild->updateBounds();
+
+        // Model->translate(arrow->getChild() + velocity));
+        Model->translate(arrowChild->position);
+        Model->multMatrix(rotationMat);
+        Model->scale(1.0 / arrowChild->shape->largeExtent());
+
+        GLSLUtils::setModel(texProg, Model);
+        //if(!arrowChild->isMarked) arrowChild->shape->draw(texProg);
+
+        Model->popMatrix();
+    }
+
+    texProg->unbind();
 
     // use the material shader
     prog->bind();
@@ -664,7 +832,7 @@ void Application::render(float frametime)
     }
 
     prog->unbind();
-
+    
     // --- CAMERA AND COLLISION LOGIC --- FIXME
     // animation updates
     sTheta = sin(glfwGetTime());
@@ -822,10 +990,4 @@ void Application::render(float frametime)
         Model->popMatrix();
     }
     debugShader->unbind();
-
-    // STENCIL FIX ME AGAIN!
-    glStencilMask(0xFF);
-    glEnable(GL_DEPTH_TEST);
-    glDisable(GL_STENCIL_TEST);
-    // END OF FIXME
 }

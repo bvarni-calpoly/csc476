@@ -1,11 +1,35 @@
 /*
-    Project!
-
+    Project! - A Portal Game, with Quake styled movement or something like that
 
 	Useful links!
-	Ray Tracing - https://raytracing.github.io/
-	IMGUI Explorer - https://pthom.github.io/imgui_explorer/
+	General
+	https://research.ncl.ac.uk/game/mastersdegree/graphicsforgames/
+
+	Portals
+    https://ajknowles11.github.io/projects/portals/
+    https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
+    https://www.youtube.com/watch?v=cWpFZbjtSQg
+    https://medium.com/@alikomurcu/portals-with-opengl-d74da6241dd4
+	Stencil Test - https://learnopengl.com/Advanced-OpenGL/Stencil-testing
+	Basic Portal - https://en.wikibooks.org/wiki/OpenGL_Programming/Mini-Portal
+	Recursive Portal - https://en.wikibooks.org/wiki/OpenGL_Programming/Mini-Portal_Recursive
+	Smooth Portal - https://en.wikibooks.org/wiki/OpenGL_Programming/Mini-Portal_Smooth
+	Scissor Clipping - https://en.wikibooks.org/wiki/OpenGL_Programming/Mini-Portal_Optimization
+
+	Physics
 	3D Collision Detection - https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+
+	Lighting
+	Ray Tracing - https://raytracing.github.io/
+	
+	Post Processing
+	Implementation - https://learnopengl.com/In-Practice/2D-Game/Postprocessing
+	Wave Effect - https://en.wikibooks.org/wiki/OpenGL_Programming/Post-Processing
+
+	Debug Shader
+	IMGUI Explorer - https://pthom.github.io/imgui_explorer/
+	Draw Bounding Box - https://en.wikibooks.org/wiki/OpenGL_Programming/Bounding_box
+	Geom Shader to visualize Normals - https://learnopengl.com/Advanced-OpenGL/Geometry-Shader
 */
 
 
@@ -113,6 +137,7 @@ int main(int argc, char *argv[])
 		ImGui::Checkbox("Show Demo Window", &showDemoWindow);
 		ImGui::Checkbox("Reset Camera", &showDemoWindow); // FIXME
 		ImGui::SliderFloat("Camera Speed", &application->cameraSpeed, -5.0f, 25.0f);
+		ImGui::SliderFloat3("Portal Camera position", &application->portalCamera->eye.x, -5.0f, 5.0f);
 		ImGui::SliderFloat("g_Spin", &application->g_Spin, 0.0f, 20.0f);
 		ImGui::SliderFloat3("light pos", &application->callbacks->lightTrans.x, -20.0f, 20.0f);
 		ImGui::SliderFloat3("skybox position", &application->skybox->position.x, -5.0f, 5.0f);

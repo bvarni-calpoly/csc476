@@ -74,6 +74,15 @@ void Camera::SetView(std::shared_ptr<Program> shader)
 	glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, glm::value_ptr(Cam));
 }
 
+void Camera::SetPortalView(std::shared_ptr<Program> shader)
+{
+	// Generate the virtual camera’s view matrix using the view frustum clipping method.
+	lookAtTarget = eye + forward; // FIXME <<<
+	glm::mat4 Cam = glm::lookAt(eye, lookAtTarget, glm::vec3(0, 1, 0));
+	//glm::mat4 Cam = glm::lookAt(glm::vec3(1.0f), glm::vec3(5.0f, 0.0f, 5.0f), glm::vec3(0, 1, 0));
+	glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, glm::value_ptr(Cam));
+}
+
 void Camera::updateUsingCameraPath(float frametime, Spline *splinepath)
 {
 	if (!splinepath[0].isDone())
