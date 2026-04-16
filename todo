@@ -1,5 +1,8 @@
 -- FOR TODAY --
+    put render shaders/programs in their own functions
+    cleanup render
     test out a basic map with moving objects
+    frustrum culling
 
 -- FOR ANOTHER DAY --
 lookat function/matrix

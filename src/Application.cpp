@@ -498,6 +498,9 @@ void Application::render(float frametime)
     auto Projection = make_shared<MatrixStack>();
     auto ProjectionPortal = make_shared<MatrixStack>();
     auto Model = make_shared<MatrixStack>();
+    auto ModelPortalSource = make_shared<MatrixStack>();
+    auto ModelPortalDestination = make_shared<MatrixStack>();
+    ModelPortalDestination->translate(vec3(1.0f));
 
     // Apply perspective projection.
     Projection->pushMatrix();
@@ -528,23 +531,23 @@ void Application::render(float frametime)
     //portalCamera->SetView(prog);
     // glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
     glUniform3fv(texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-    Model->pushMatrix();
-    Model->loadIdentity();
+    ModelPortalSource->pushMatrix();
+    ModelPortalSource->loadIdentity();
 
     // update matrices
     skybox->updateBounds();
     skybox->rotation = vec3(0, -1, 0);
     skybox->angle = g_Spin * glfwGetTime();
 
-    Model->translate(skybox->position + vec3(5.0f, 1.0, 5.0));
-    Model->translate(skybox->position); // move to ground (half of height)
-    Model->rotate(skybox->angle, skybox->rotation);
-    Model->scale(1.0 / skybox->shape->largeExtent() + 0.5f); // normalize
+    ModelPortalSource->translate(skybox->position + vec3(5.0f, 1.0, 5.0));
+    ModelPortalSource->translate(skybox->position); // move to ground (half of height)
+    ModelPortalSource->rotate(skybox->angle, skybox->rotation);
+    ModelPortalSource->scale(1.0 / skybox->shape->largeExtent() + 0.5f); // normalize
 
     GLSLUtils::SetMaterial(prog, 0);
-    GLSLUtils::setModel(prog, Model);
+    GLSLUtils::setModel(prog, ModelPortalSource);
     skybox->shape->draw(prog);
-    Model->popMatrix();
+    ModelPortalSource->popMatrix();
     prog->unbind();
     
     // Setup stencil buffer to draw other objects over the portal
@@ -589,7 +592,7 @@ void Application::render(float frametime)
     prog->bind();
     // set up all the matrices
     glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-    portalCamera->SetPortalView(prog);
+    portalCamera->SetPortalView(prog, mainCamera, Model, ModelPortalSource, ModelPortalDestination);
     // glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
     glUniform3fv(prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
     Model->pushMatrix();
@@ -614,7 +617,7 @@ void Application::render(float frametime)
     // REDRAW SCENE IN PORTALS
     texProg->bind();
     glUniformMatrix4fv(texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-    portalCamera->SetPortalView(texProg);
+    //portalCamera->SetPortalView(texProg);
     glUniform3fv(texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
     glUniform1f(texProg->getUniform("MatShine"), 27.9);
     glUniform1i(texProg->getUniform("flip"), 1);

@@ -5,6 +5,11 @@
 	General
 	https://research.ncl.ac.uk/game/mastersdegree/graphicsforgames/
 
+	Engine Architecture
+	Godot Engine Architecture - https://docs.godotengine.org/en/stable/engine_details/architecture/godot_architecture_diagram.html
+	ECS - https://en.wikipedia.org/wiki/Entity_component_system#Common_patterns_in_ECS_use
+	Scene Graph - https://learnopengl.com/Guest-Articles/2021/Scene/Scene-Graph
+
 	Portals
     https://ajknowles11.github.io/projects/portals/
     https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
@@ -30,6 +35,9 @@
 	IMGUI Explorer - https://pthom.github.io/imgui_explorer/
 	Draw Bounding Box - https://en.wikibooks.org/wiki/OpenGL_Programming/Bounding_box
 	Geom Shader to visualize Normals - https://learnopengl.com/Advanced-OpenGL/Geometry-Shader
+
+	Optimization
+	https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling
 */
 
 
