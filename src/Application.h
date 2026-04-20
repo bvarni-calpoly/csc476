@@ -1,6 +1,8 @@
 #pragma once
 
 // fixme dependencies
+#include "SceneInitializer.h"
+#include "SceneRender.h"
 #include "core/WindowManager.h"
 #include "core/Callbacks.h"
 #include "world/GameObject.h"
@@ -28,10 +30,8 @@ public:
     void resizeCallback(GLFWwindow *window, int width, int height);
 
     void init(const std::string &resourceDirectory);
-    void initGeom(const std::string &resourceDirectory);
     void render(float frametime);
 
-    void initGround();
     void drawHierMap(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::vector<std::shared_ptr<Shape>> shape);
     void drawGround(std::shared_ptr<Program> curS);
     void drawSkybox(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<Shape> shape);
@@ -40,42 +40,14 @@ public:
     void setModel(std::shared_ptr<Program> prog, std::shared_ptr<MatrixStack> M);
     // void drawHierModel(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::vector<std::shared_ptr<Shape>> Shape, glm::vec3 min, glm::vec3 max, int material = 0, glm::vec3 trans = glm::vec3(0.0), float rotateDeg = 0, glm::vec3 rotate = glm::vec3(0.0), glm::vec3 scale = glm::vec3(1.0));
 
+    std::shared_ptr<SceneInitializer> scene;
+    std::shared_ptr<SceneRender> sceneRender;
+    std::shared_ptr<Callbacks> callbacks;
+        
     float deltaTime;
     int windowWidth = 1920, windowHeight = 1080;
 
     WindowManager *windowManager = nullptr;
-
-    // Our shader program - use this one for Blinn-Phong has diffuse
-    std::shared_ptr<Program> prog;
-    std::shared_ptr<Program> texProg; // Our shader program for textures
-    std::shared_ptr<Program> debugShader; // shader program for debug information and collision visualization
-
-    // Camera
-    std::shared_ptr<Camera> mainCamera = std::make_shared<Camera>();
-    std::shared_ptr<Camera> portalCamera = std::make_shared<Camera>();
-    std::shared_ptr<Callbacks> callbacks;
-    float cameraSpeed = 5.0;
-
-    // scene / level
-    std::shared_ptr<GameObject> scene;
-    std::shared_ptr<GameObject> skybox;
-
-    std::shared_ptr<GameObject> cube;
-    std::shared_ptr<GameObject> arrow;
-    glm::vec3 gMin;
-
-    int objectCount = 0;
-    int objectCollisionCount = 0;
-
-    // global data for ground plane - direct load constant defined CPU data to GPU (not obj)
-    GLuint GrndBuffObj, GrndNorBuffObj, GrndTexBuffObj, GIndxBuffObj;
-    int g_GiboLen;
-    // ground VAO
-    GLuint GroundVertexArrayID;
-
-    // the image to use as a texture
-    std::shared_ptr<Texture> texture0;
-    std::shared_ptr<Texture> texture1;
 
     // animation data
     float timer = 1.0f;
@@ -83,7 +55,4 @@ public:
     float sTheta = 0;
     float eTheta = 0;
     float hTheta = 0;
-
-    // player
-    Spline splinepath[4];
 };

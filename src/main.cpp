@@ -99,6 +99,7 @@ int main(int argc, char *argv[])
 	}
 
 	Application *application = new Application(0);
+	SceneInitializer *sceneInitializer = new SceneInitializer();
 
 	// Your main will always include a similar set up to establish your window
 	// and GL context, etc.
@@ -108,11 +109,9 @@ int main(int argc, char *argv[])
 	windowManager->setEventCallbacks(application);
 	application->windowManager = windowManager;
 
-	// This is the code that will likely change program to program as you
-	// may need to initialize or set up different data and state
-
+	sceneInitializer->initGeom(resourceDir);
+	sceneInitializer->init(resourceDir);
 	application->init(resourceDir);
-	application->initGeom(resourceDir);
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -144,13 +143,13 @@ int main(int argc, char *argv[])
 		static bool showDemoWindow = false;
 		ImGui::Checkbox("Show Demo Window", &showDemoWindow);
 		ImGui::Checkbox("Reset Camera", &showDemoWindow); // FIXME
-		ImGui::SliderFloat("Camera Speed", &application->cameraSpeed, -5.0f, 25.0f);
-		ImGui::SliderFloat3("Portal Camera position", &application->portalCamera->eye.x, -5.0f, 5.0f);
+		ImGui::SliderFloat("Camera Speed", &sceneInitializer->cameraSpeed, -5.0f, 25.0f);
+		ImGui::SliderFloat3("Portal Camera position", &sceneInitializer->portalCamera->eye.x, -5.0f, 5.0f);
 		ImGui::SliderFloat("g_Spin", &application->g_Spin, 0.0f, 20.0f);
 		ImGui::SliderFloat3("light pos", &application->callbacks->lightTrans.x, -20.0f, 20.0f);
-		ImGui::SliderFloat3("skybox position", &application->skybox->position.x, -5.0f, 5.0f);
-		ImGui::Text("objectCount %d", application->objectCount);
-		ImGui::Text("objectCollisionCount %d", application->objectCollisionCount);
+		ImGui::SliderFloat3("skybox position", &sceneInitializer->skybox->position.x, -5.0f, 5.0f);
+		ImGui::Text("objectCount %d", sceneInitializer->objectCount);
+		ImGui::Text("objectCollisionCount %d", sceneInitializer->objectCollisionCount);
 
 		if (showDemoWindow) ImGui::ShowDemoWindow(); // Show demo window! :)
 
