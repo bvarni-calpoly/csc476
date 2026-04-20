@@ -37,13 +37,16 @@ public:
     // Camera
     std::shared_ptr<Camera> mainCamera = std::make_shared<Camera>();
     std::shared_ptr<Camera> portalCamera = std::make_shared<Camera>();
-    float cameraSpeed = 5.0;
+    float cameraSpeed = 10.0;
     Spline splinepath[4];
 
     // scene / level
     std::shared_ptr<GameObject> scene;
     std::shared_ptr<GameObject> skybox;
-    std::shared_ptr<GameObject> portalDoor;
+    std::shared_ptr<GameObject> portalEntranceDoor;
+    std::shared_ptr<GameObject> portalExitDoor;
+    glm::vec3 portalEntrancePos = glm::vec3(0);
+    glm::vec3 portalExitPos = glm::vec3(0, 0, 10);
 
     std::shared_ptr<GameObject> cube;
     std::shared_ptr<GameObject> arrow;

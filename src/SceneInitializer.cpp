@@ -178,16 +178,27 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
 
         skybox->updateBounds(); // FIXME
 
-        portalDoor = make_shared<GameObject>();
-        portalDoor->shape = make_shared<Shape>();
-        portalDoor->shape->createShape(TOshapesSkybox[0]);
-        portalDoor->shape->measure();
-        portalDoor->shape->init();
+        portalEntranceDoor = make_shared<GameObject>();
+        portalEntranceDoor->shape = make_shared<Shape>();
+        portalEntranceDoor->shape->createShape(TOshapesSkybox[0]);
+        portalEntranceDoor->shape->measure();
+        portalEntranceDoor->shape->init();
 
-        portalDoor->localMin = portalDoor->shape->min;
-        portalDoor->localMax = portalDoor->shape->max;
+        portalEntranceDoor->localMin = portalEntranceDoor->shape->min;
+        portalEntranceDoor->localMax = portalEntranceDoor->shape->max;
 
-        portalDoor->updateBounds(); // FIXME
+        portalEntranceDoor->updateBounds(); // FIXME
+
+        portalExitDoor = make_shared<GameObject>();
+        portalExitDoor->shape = make_shared<Shape>();
+        portalExitDoor->shape->createShape(TOshapesSkybox[0]);
+        portalExitDoor->shape->measure();
+        portalExitDoor->shape->init();
+
+        portalExitDoor->localMin = portalExitDoor->shape->min;
+        portalExitDoor->localMax = portalExitDoor->shape->max;
+
+        portalExitDoor->updateBounds(); // FIXME
     }
 
     // Initialize arrow mesh

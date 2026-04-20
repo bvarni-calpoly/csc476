@@ -108,13 +108,13 @@ void SceneRender::drawHierMap(shared_ptr<Program> curS, shared_ptr<MatrixStack> 
 void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
 {
     Model->pushMatrix();
-    Model->loadIdentity();
+    //Model->loadIdentity();
 
     // update matrices
     obj->updateBounds();
 
-    Model->translate(obj->position + glm::vec3(5.0f, 1.0, 5.0));
-    Model->translate(obj->position); // move to ground (half of height)
+    Model->translate(obj->position);
+    //Model->translate(obj->position); // move to ground (half of height)
     Model->rotate(obj->angle, obj->rotation);
     Model->scale(obj->scale);
     Model->scale(1.0 / obj->shape->largeExtent()); // normalize

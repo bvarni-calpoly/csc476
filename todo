@@ -1,4 +1,7 @@
--- FOR TODAY --
+-- FOR TODAY / SOON --
+    glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans)); FIX THIS LINE
+
+    make a function to load obj files
     put render shaders/programs in their own functions
     cleanup render
     test out a basic map with moving objects
