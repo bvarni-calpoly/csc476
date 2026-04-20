@@ -43,6 +43,7 @@ public:
     // scene / level
     std::shared_ptr<GameObject> scene;
     std::shared_ptr<GameObject> skybox;
+    std::shared_ptr<GameObject> portalDoor;
 
     std::shared_ptr<GameObject> cube;
     std::shared_ptr<GameObject> arrow;

@@ -105,7 +105,7 @@ void SceneRender::drawHierMap(shared_ptr<Program> curS, shared_ptr<MatrixStack> 
     model->popMatrix();
 }
 
-void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj)
+void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
 {
     Model->pushMatrix();
     Model->loadIdentity();
@@ -119,7 +119,7 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
     Model->scale(obj->scale);
     Model->scale(1.0 / obj->shape->largeExtent()); // normalize
 
-    GLSLUtils::SetMaterial(curS, 0);
+    GLSLUtils::SetMaterial(curS, material);
     GLSLUtils::setModel(curS, Model);
     obj->shape->draw(curS);
     Model->popMatrix();
