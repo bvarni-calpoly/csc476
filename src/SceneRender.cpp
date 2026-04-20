@@ -124,3 +124,21 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
     obj->shape->draw(curS);
     Model->popMatrix();
 }
+
+void SceneRender::drawTextureMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj)
+{
+    Model->pushMatrix();
+    //Model->loadIdentity();
+
+    // update matrices
+    obj->updateBounds();
+
+    Model->translate(obj->position);
+    Model->rotate(obj->angle, obj->rotation);
+    Model->scale(obj->scale);
+    Model->scale(1.0 / obj->shape->largeExtent()); // normalize
+
+    GLSLUtils::setModel(curS, Model);
+    obj->shape->draw(curS);
+    Model->popMatrix();
+}

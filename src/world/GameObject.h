@@ -13,7 +13,7 @@ class GameObject
 {
 
 public:
-	GameObject() : shape(nullptr), position(0.0f), angle(0.0f), rotation(0.0f), scale(1.0f), localMin(0.0f), localMax(0.0f) {}
+	GameObject() : shape(nullptr), position(0.0f), angle(0.0f), rotation(glm::vec3(0.0f, 1.0f, 0.0f)), scale(1.0f), localMin(0.0f), localMax(0.0f) {}
 	GameObject(std::shared_ptr<Shape> s, glm::vec3 pos, float ang, glm::vec3 rot, glm::vec3 scl, glm::vec3 mi, glm::vec3 ma)
 		: shape(s),
 		  position(pos),

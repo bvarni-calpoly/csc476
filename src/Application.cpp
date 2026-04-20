@@ -133,9 +133,11 @@ void Application::render(float frametime)
 
     ModelPortalSource->loadIdentity();
     ModelPortalSource->translate(scene->portalEntranceDoor->position);
+    ModelPortalSource->rotate(scene->portalEntranceDoor->angle, scene->portalEntranceDoor->rotation);
 
     ModelPortalDestination->loadIdentity();
     ModelPortalDestination->translate(scene->portalExitDoor->position);
+    //ModelPortalDestination->rotate(scene->portalExitDoor->angle, scene->portalExitDoor->rotation);
 
     // FIXME move camerea functions here <<<
     // update the camera position
@@ -160,13 +162,8 @@ void Application::render(float frametime)
         // set up all the matrices
         glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
         glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-        //scene->mainCamera->SetPortalView(scene->prog, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
-        
+
         ModelPortalSource->pushMatrix();
-            //ModelPortalSource->loadIdentity();
-
-            //scene->portalCamera->eye = scene->portalExitPos;
-
             sceneRender->drawMesh(scene->prog, ModelPortalSource, scene->portalEntranceDoor, 1);
         ModelPortalSource->popMatrix();
     scene->prog->unbind();
@@ -180,8 +177,6 @@ void Application::render(float frametime)
         glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
         
         ModelPortalDestination->pushMatrix();
-            //ModelPortalDestination->loadIdentity();
-
             sceneRender->drawMesh(scene->prog, ModelPortalDestination, scene->portalExitDoor, 2);
         ModelPortalDestination->popMatrix();
     scene->prog->unbind();
@@ -225,6 +220,48 @@ void Application::render(float frametime)
     glStencilFunc(GL_LEQUAL, 1, 0xFF);
 
     // REDRAW SCENE IN PORTAL - Redraw scene but with portal view (portal camera)
+    scene->texProg->bind();
+        scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
+        
+        // set up all the matrices
+        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+
+        scene->mapGeomNoHier->position = vec3(5.0f, -10.0f, 5.0f);
+        scene->mapGeomNoHier->scale = vec3(50.0f);
+
+        Model->pushMatrix();
+            Model->loadIdentity();
+            sceneRender->drawTextureMesh(scene->texProg, Model, scene->mapGeomNoHier);
+        Model->popMatrix();
+    scene->texProg->unbind();
+
+    // use the material shader
+    scene->prog->bind();
+        // set up all the matrices
+        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+        scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
+        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+
+    // DRAW WALLS
+    for (auto &cubeChild : scene->cube->children)
+    {
+        Model->pushMatrix();
+        Model->loadIdentity();
+
+        cubeChild->updateBounds();
+        Model->translate(cubeChild->position);
+        Model->scale(cubeChild->scale);
+        Model->scale(1.0 / cubeChild->shape->largeExtent());
+
+        GLSLUtils::SetMaterial(scene->prog, 1);
+        GLSLUtils::setModel(scene->prog, Model);
+        cubeChild->shape->draw(scene->prog);
+
+        Model->popMatrix();
+    }
+    scene->prog->unbind();
+
     scene->prog->bind();
         scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
 
@@ -235,7 +272,7 @@ void Application::render(float frametime)
         Model->pushMatrix();
             Model->loadIdentity();
             sceneRender->drawMesh(scene->prog, Model, scene->skybox, 0);
-        Model->pushMatrix();
+        Model->popMatrix();
     scene->prog->unbind();
 
     // Reset stencil buffer state
@@ -333,13 +370,29 @@ void Application::render(float frametime)
     scene->texProg->unbind();
     */
 
+    scene->texProg->bind();
+        //scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
+        scene->mainCamera->SetView(scene->texProg);
+
+        // set up all the matrices
+        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+
+        scene->mapGeomNoHier->position = vec3(5.0f, -10.0f, 5.0f);
+        scene->mapGeomNoHier->scale = vec3(50.0f);
+
+        Model->pushMatrix();
+            Model->loadIdentity();
+            sceneRender->drawTextureMesh(scene->texProg, Model, scene->mapGeomNoHier);
+        Model->popMatrix();
+    scene->texProg->unbind();
+
     // use the material shader
     scene->prog->bind();
         // set up all the matrices
         glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
         scene->mainCamera->SetView(scene->prog);
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
 
     // DRAW WALLS
     for (auto &cubeChild : scene->cube->children)

@@ -16,6 +16,7 @@ public:
     ~SceneInitializer();
 
     void init(const std::string &resourceDirectory);
+    void loadGeom(const std::string &resourceDirectory, const std::string &fileName, std::shared_ptr<GameObject> &obj);
     void initGeom(const std::string &resourceDirectory);
     void initGround();
 
@@ -41,7 +42,8 @@ public:
     Spline splinepath[4];
 
     // scene / level
-    std::shared_ptr<GameObject> scene;
+    std::shared_ptr<GameObject> mapGeom;
+    std::shared_ptr<GameObject> mapGeomNoHier;
     std::shared_ptr<GameObject> skybox;
     std::shared_ptr<GameObject> portalEntranceDoor;
     std::shared_ptr<GameObject> portalExitDoor;

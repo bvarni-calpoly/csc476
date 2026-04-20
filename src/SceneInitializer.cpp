@@ -93,6 +93,32 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     splinepath[3] = Spline(glm::vec3(0, 4, -2), glm::vec3(1, 2, 0), glm::vec3(-1, 2, 0), glm::vec3(0, 2, 0), 2);
 }
 
+void SceneInitializer::loadGeom(const std::string &resourceDirectory, const std::string &fileName, std::shared_ptr<GameObject> &obj)
+{
+    vector<tinyobj::shape_t> TOshapes;
+    vector<tinyobj::material_t> objMaterials;
+    string errStr;
+    // load in the mesh and make the shape(s)
+    bool rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr, (resourceDirectory + fileName).c_str());
+    if (!rc)
+    {
+        cerr << errStr << endl;
+    }
+    else
+    {
+        obj = make_shared<GameObject>();
+        obj->shape = make_shared<Shape>();
+        obj->shape->createShape(TOshapes[0]);
+        obj->shape->measure();
+        obj->shape->init();
+
+        obj->localMin = obj->shape->min;
+        obj->localMax = obj->shape->max;
+
+        obj->updateBounds(); // FIXME
+    }
+}
+
 void SceneInitializer::initGeom(const std::string &resourceDirectory)
 {
     // EXAMPLE set up to read one shape from one obj file - convert to read several
@@ -130,7 +156,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     }
     else
     {
-        scene = make_shared<GameObject>();
+        mapGeom = make_shared<GameObject>();
 
         for (int i = 0; i < TOshapesScene.size(); i++)
         {
@@ -152,54 +178,14 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
             // scene->min = min(scene->min, part->min);
             // scene->max = max(scene->max, part->max);
 
-            scene->addChild(move(part));
+            mapGeom->addChild(move(part));
         }
     }
 
-    // Initialize skybox mesh
-    vector<tinyobj::shape_t> TOshapesSkybox;
-    vector<tinyobj::material_t> objMaterialsSkybox;
-    // load in the mesh and make the shape(s)
-    rc = tinyobj::LoadObj(TOshapesSkybox, objMaterialsSkybox, errStr, (resourceDirectory + "/objects/cube.obj").c_str());
-    if (!rc)
-    {
-        cerr << errStr << endl;
-    }
-    else
-    {
-        skybox = make_shared<GameObject>();
-        skybox->shape = make_shared<Shape>();
-        skybox->shape->createShape(TOshapesSkybox[0]);
-        skybox->shape->measure();
-        skybox->shape->init();
-
-        skybox->localMin = skybox->shape->min;
-        skybox->localMax = skybox->shape->max;
-
-        skybox->updateBounds(); // FIXME
-
-        portalEntranceDoor = make_shared<GameObject>();
-        portalEntranceDoor->shape = make_shared<Shape>();
-        portalEntranceDoor->shape->createShape(TOshapesSkybox[0]);
-        portalEntranceDoor->shape->measure();
-        portalEntranceDoor->shape->init();
-
-        portalEntranceDoor->localMin = portalEntranceDoor->shape->min;
-        portalEntranceDoor->localMax = portalEntranceDoor->shape->max;
-
-        portalEntranceDoor->updateBounds(); // FIXME
-
-        portalExitDoor = make_shared<GameObject>();
-        portalExitDoor->shape = make_shared<Shape>();
-        portalExitDoor->shape->createShape(TOshapesSkybox[0]);
-        portalExitDoor->shape->measure();
-        portalExitDoor->shape->init();
-
-        portalExitDoor->localMin = portalExitDoor->shape->min;
-        portalExitDoor->localMax = portalExitDoor->shape->max;
-
-        portalExitDoor->updateBounds(); // FIXME
-    }
+    loadGeom(resourceDirectory, "/objects/cube.obj", skybox);
+    loadGeom(resourceDirectory, "/objects/cube.obj", portalEntranceDoor);
+    loadGeom(resourceDirectory, "/objects/cube.obj", portalExitDoor);
+    loadGeom(resourceDirectory, "/scene/blender_test.obj", mapGeomNoHier);
 
     // Initialize arrow mesh
     vector<tinyobj::shape_t> TOshapesArrow;
