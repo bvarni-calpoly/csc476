@@ -29,6 +29,12 @@ public:
     glm::vec3 up            = glm::vec3(0, 1, 0);
     glm::vec3 forward       = glm::vec3(0, 0, 1);
     glm::vec3 lookAtTarget  = glm::vec3(0, 1, -4);
+
+    // move into player class
+	bool airborne = false;
+	float gravity = -9.81/32;
+	glm::vec3 velocity = glm::vec3(0);
+	glm::vec3 acceleration = glm::vec3(0, -9.81/32, 0);
 };
 
 #endif

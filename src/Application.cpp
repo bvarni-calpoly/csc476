@@ -228,7 +228,7 @@ void Application::render(float frametime)
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
         scene->mapGeomNoHier->position = vec3(5.0f, -10.0f, 5.0f);
-        scene->mapGeomNoHier->scale = vec3(50.0f);
+        //scene->mapGeomNoHier->scale = vec3(50.0f);
 
         Model->pushMatrix();
             Model->loadIdentity();
@@ -441,8 +441,8 @@ void Application::render(float frametime)
         scene->mainCamera->updateUsingCameraPath(deltaTime, scene->splinepath);
     if (callbacks->freeCamera)                                                          // FIXME MOVE TO BEGINNING
         scene->mainCamera->cameraMovement(windowManager->getHandle(), scene->cameraSpeed, deltaTime); // smooth camera movements
-    // else
-    //	playerMovement(windowManager->getHandle(), 3.0); // control the player
+    else
+        scene->mainCamera->playerMovement(windowManager->getHandle(), 1.0, deltaTime); // control the player
 
     scene->mainCamera->lookAtTarget = scene->mainCamera->eye + scene->mainCamera->forward; // FIXME, put this before?
 

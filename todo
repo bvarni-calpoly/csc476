@@ -1,6 +1,7 @@
 -- FOR TODAY / SOON --
     glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans)); FIX THIS LINE
 
+    move camera player movements into player class
     make a function to load obj files
     put render shaders/programs in their own functions
     cleanup render

@@ -62,9 +62,63 @@ void Camera::cameraMovement(GLFWwindow *window, float cameraSpeed, float deltaTi
 	}
 }
 
-void Camera::playerMovement(GLFWwindow *window, float cameraSpeed, float deltaTime)
+void Camera::playerMovement(GLFWwindow *window, float playerSpeed, float deltaTime)
 {
-	// fixme
+	strafe = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0))); // get side basis vector (points right)
+	up = normalize(glm::cross(forward, strafe));					  // get vertical basis vector (points up)
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		velocity += forward * deltaTime * playerSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		velocity -= forward * deltaTime * playerSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		velocity -= strafe * deltaTime * playerSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		velocity += strafe * deltaTime * playerSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		//velocity += glm::vec3(0, 1, 0) * deltaTime * cameraSpeed;
+		if(!airborne)
+			velocity.y = 0.1f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	{
+		velocity -= glm::vec3(0, 1, 0) * deltaTime * playerSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+	{
+		velocity -= up * deltaTime * playerSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+	{
+		velocity += up * deltaTime * playerSpeed;
+	}
+
+	// physics updates
+	velocity += acceleration * deltaTime;
+
+	// apply to camera
+	eye += velocity;
+	if(eye.y < -5.0f)
+		eye.y = -5.0f;
+
+	// do not skate if airborne
+	if(!airborne)
+	{
+		velocity.x = 0;
+		velocity.z = 0;
+	}
+
+	if(eye.y > -4.5f) airborne = true;
+	else airborne = false;
 }
 
 void Camera::SetView(std::shared_ptr<Program> shader)

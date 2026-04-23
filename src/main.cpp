@@ -147,13 +147,13 @@ int main(int argc, char *argv[])
 		ImGui::SliderFloat("Main Camera speed", &application->scene->cameraSpeed, -5.0f, 25.0f);
 		ImGui::SliderFloat3("Main Camera rotation", &application->scene->mainCamera->lookAtTarget.x, -5.0f, 25.0f);
 		ImGui::SliderFloat3("Main Camera position", &application->scene->mainCamera->eye.x, -25.0f, 25.0f);
-		ImGui::SliderFloat3("Portal Entrance position", &application->scene->portalEntrancePos.x, -5.0f, 5.0f);
+		ImGui::SliderFloat3("Portal Entrance position", &application->scene->portalEntrancePos.x, -10.0f, 10.0f);
 		ImGui::SliderFloat3("Portal Exit rotation", &application->scene->portalExitDoor->angle, -5.0f, 5.0f);
-		ImGui::SliderFloat3("Portal Exit position", &application->scene->portalExitPos.x, -5.0f, 5.0f);
-		ImGui::SliderFloat3("Portal Camera position", &application->scene->portalCamera->eye.x, -5.0f, 5.0f);
+		ImGui::SliderFloat3("Portal Exit position", &application->scene->portalExitPos.x, -10.0f, 10.0f);
+		ImGui::SliderFloat3("Portal Camera position", &application->scene->portalCamera->eye.x, -10.0f, 10.0f);
 		ImGui::SliderFloat("g_Spin", &application->g_Spin, 0.0f, 20.0f);
 		ImGui::SliderFloat3("light pos", &application->callbacks->lightTrans.x, -20.0f, 20.0f);
-		ImGui::SliderFloat3("skybox position", &application->scene->skybox->position.x, -5.0f, 5.0f);
+		ImGui::SliderFloat3("skybox position", &application->scene->skybox->position.x, -10.0f, 10.0f);
 		ImGui::Text("objectCount %d", application->scene->objectCount);
 		ImGui::Text("objectCollisionCount %d", application->scene->objectCollisionCount);
 
