@@ -15,9 +15,6 @@ void SceneInitializer::init(const std::string &resourceDirectory)
 {
     GLSL::checkVersion();
 
-    // might not work on WSL?
-    // glfwSetInputMode(windowManager->getHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
     // Set background color.
     glClearColor(.72f, .84f, 1.06f, 1.0f);
     // Enable z-buffer test.

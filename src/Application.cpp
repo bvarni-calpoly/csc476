@@ -91,6 +91,11 @@ void Application::resizeCallback(GLFWwindow *window, int width, int height)
 
 void Application::render(float frametime)
 {
+    //FIXME, DO NOT SET EVERY FRAME
+	// Does not work on WSL
+    if(callbacks->mouseEnabled) glfwSetInputMode(windowManager->getHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    else glfwSetInputMode(windowManager->getHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
     // Get current frame buffer size.
     int width, height;
     glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
@@ -129,7 +134,10 @@ void Application::render(float frametime)
 
     // update matrices
     scene->skybox->rotation = vec3(0, 1, 0);
-    //scene->skybox->angle = g_Spin * glfwGetTime();
+    scene->skybox->angle = g_Spin * glfwGetTime();
+
+    scene->mapGeomNoHier->scale = vec3(50.0f);
+    scene->mapGeomNoHier->position = vec3(0, -10.0f, 0);
 
     ModelPortalSource->loadIdentity();
     ModelPortalSource->translate(scene->portalEntranceDoor->position);
@@ -151,34 +159,34 @@ void Application::render(float frametime)
     // glStencilFunc(GL_ALWAYS, 1, 0xFF); // only draw the 1 from the stencil buffer
     // glStencilMask(0xFF);               // each bit is written to the stencil buffer as is
 
+    glStencilMask(0x00);
+    
+    // DRAW MAP
+    scene->texProg->bind();
+        // set up all the matrices
+        scene->mainCamera->SetView(scene->texProg);
+        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+        
+        sceneRender->drawTextureMesh(scene->texProg, Model, scene->mapGeomNoHier);
+    scene->texProg->unbind();
+    
     glStencilFunc(GL_ALWAYS, 1, 0xFF);    // only draw the 1 from the stencil buffer
     glStencilMask(0xFF);                  // each bit is written to the stencil buffer as is
-
-    // Draw portal ENTRANCE frame
+    
+    // DRAW PORTAL FRAMES
     scene->prog->bind();
-        //scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
         scene->mainCamera->SetView(scene->prog);
-
-        // set up all the matrices
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-        ModelPortalSource->pushMatrix();
-            sceneRender->drawMesh(scene->prog, ModelPortalSource, scene->portalEntranceDoor, 1);
-        ModelPortalSource->popMatrix();
-    scene->prog->unbind();
-
-    // Draw portal EXIT frame
-    scene->prog->bind();
-        scene->mainCamera->SetView(scene->prog);    
-
+        
         // set up all the matrices
         glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
         glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
         
-        ModelPortalDestination->pushMatrix();
-            sceneRender->drawMesh(scene->prog, ModelPortalDestination, scene->portalExitDoor, 2);
-        ModelPortalDestination->popMatrix();
+        // Draw portal ENTRANCE frame
+        sceneRender->drawMesh(scene->prog, ModelPortalSource, scene->portalEntranceDoor, 1);
+        
+        // Draw portal EXIT frame
+        sceneRender->drawMesh(scene->prog, ModelPortalDestination, scene->portalExitDoor, 2);
     scene->prog->unbind();
 
     // Setup stencil buffer to draw other objects over the portal
@@ -187,30 +195,19 @@ void Application::render(float frametime)
     glDisable(GL_DEPTH_TEST);
 
     // DRAW BORDER OBJECTS HERE
-    // scene->prog->bind();
-    // // set up all the  matrices
-    // glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-    // scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
-    // //scene->mainCamera->SetView(scene->prog); // CHANGE TO PORTAL CAMERA FOR DIFFERENT RESULTS
-    // // portalCamera->SetView(prog);
-    // //  glUniform3f(prog->getUniform("lightPos"), 2.0 + callbacks->lightTrans, 2.0, 2.9);
-    // glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-    //     Model->pushMatrix();
-    //         Model->loadIdentity();
-    //         // update matrices
-    //         scene->skybox->updateBounds();
-
-    //         ModelPortalDestination->translate(scene->skybox->position + glm::vec3(5.0f, 1.0, 5.0));
-    //         ModelPortalDestination->translate(scene->skybox->position); // move to ground (half of height)
-    //         ModelPortalDestination->rotate(scene->skybox->angle, scene->skybox->rotation);
-    //         ModelPortalDestination->scale(1.0 / scene->skybox->shape->largeExtent() + 0.25); // normalize
-
-    //         GLSLUtils::SetMaterial(scene->prog, 2);
-    //         GLSLUtils::setModel(scene->prog, ModelPortalDestination);
-    //         scene->skybox->shape->draw(scene->prog);
-    //     Model->pushMatrix();
-    // scene->prog->unbind();
+    scene->prog->bind();
+        scene->mainCamera->SetView(scene->prog);
+        
+        // set up all the matrices
+        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+        
+        // Draw portal ENTRANCE frame
+        sceneRender->drawMesh(scene->prog, ModelPortalSource, scene->portalEntranceDoor, 1, vec3(0), 0, vec3(0), vec3(1.1f));
+        
+        // Draw portal EXIT frame
+        sceneRender->drawMesh(scene->prog, ModelPortalDestination, scene->portalExitDoor, 2, vec3(0), 0, vec3(0), vec3(1.1f));
+    scene->prog->unbind();
 
     // Reset stencil buffer state
     glStencilMask(0xFF);
@@ -220,59 +217,24 @@ void Application::render(float frametime)
     glStencilFunc(GL_LEQUAL, 1, 0xFF);
 
     // REDRAW SCENE IN PORTAL - Redraw scene but with portal view (portal camera)
+    // DRAW MAP
     scene->texProg->bind();
+    // set up all the matrices
         scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
-        
-        // set up all the matrices
         glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
-        scene->mapGeomNoHier->position = vec3(5.0f, -10.0f, 5.0f);
-        //scene->mapGeomNoHier->scale = vec3(50.0f);
-
-        Model->pushMatrix();
-            Model->loadIdentity();
-            sceneRender->drawTextureMesh(scene->texProg, Model, scene->mapGeomNoHier);
-        Model->popMatrix();
+        sceneRender->drawTextureMesh(scene->texProg, Model, scene->mapGeomNoHier);
     scene->texProg->unbind();
 
-    // use the material shader
     scene->prog->bind();
         // set up all the matrices
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
         scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
+        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
-    // DRAW WALLS
-    for (auto &cubeChild : scene->cube->children)
-    {
-        Model->pushMatrix();
-        Model->loadIdentity();
-
-        cubeChild->updateBounds();
-        Model->translate(cubeChild->position);
-        Model->scale(cubeChild->scale);
-        Model->scale(1.0 / cubeChild->shape->largeExtent());
-
-        GLSLUtils::SetMaterial(scene->prog, 1);
-        GLSLUtils::setModel(scene->prog, Model);
-        cubeChild->shape->draw(scene->prog);
-
-        Model->popMatrix();
-    }
-    scene->prog->unbind();
-
-    scene->prog->bind();
-        scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
-
-        // set up all the matrices
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-        Model->pushMatrix();
-            Model->loadIdentity();
-            sceneRender->drawMesh(scene->prog, Model, scene->skybox, 0);
-        Model->popMatrix();
+        sceneRender->drawSceneGraph(scene->prog, Model, scene->cube, 1);
+        sceneRender->drawMesh(scene->prog, Model, scene->skybox, 0);
     scene->prog->unbind();
 
     // Reset stencil buffer state
@@ -281,151 +243,99 @@ void Application::render(float frametime)
     glEnable(GL_DEPTH_TEST);
 
     // --- DRAW MAIN CAMERA SCENE ---
+    // DRAW WALLS
+    scene->prog->bind();
+        // set up all the matrices
+        scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
+        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+
+        sceneRender->drawSceneGraph(scene->prog, Model, scene->cube, 1);
+    scene->prog->unbind();
+
     /*
     // use the texture shader
     scene->texProg->bind();
-    glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-    scene->mainCamera->SetView(scene->texProg);
-    glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-    glUniform1f(scene->texProg->getUniform("MatShine"), 27.9);
-    glUniform1i(scene->texProg->getUniform("flip"), 1);
-    scene->texture1->bind(scene->texProg->getUniform("Texture0"));
-    
-    glUniform1i(scene->texProg->getUniform("flip"), 0);
-    /*
-    // drawGround(texProg);
-    // drawSkybox(texProg, Model, skybox);
-    // drawHierMap(texProg, Model, scene); // FIXME, SCALE IS WRONG
+        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+        scene->mainCamera->SetView(scene->texProg);
+        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+        glUniform1f(scene->texProg->getUniform("MatShine"), 27.9);
+        glUniform1i(scene->texProg->getUniform("flip"), 1);
+        scene->texture1->bind(scene->texProg->getUniform("Texture0"));
+        
+        glUniform1i(scene->texProg->getUniform("flip"), 0);
+        /*
 
-    // Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));a
-
-    /*
-    // timer to create new arrow
-    if (timer > 0.0f)
-    {
-        timer -= frametime;
-    }
-    else
-    {
-        auto arrowChild = make_unique<GameObject>(
-            scene->arrow->shape,
-            vec3(rand() % 10 + 2, 0.0f, rand() % 10 + 2),
-            0.0f,
-            vec3(0.0f, radians((float)(rand() % 360)), 0.0f),
-            vec3(1.0f),
-            scene->arrow->localMin,
-            scene->arrow->localMax);
-        arrowChild->velocity = vec3(rand() % 10, 0, rand() % 10);
-
-        arrowChild->updateBounds();
-        scene->arrow->addChild(std::move(arrowChild));
-        timer = 1.0f; // reset timer
-        scene->objectCount += 1;
-        cout << "Timer is finished, adding another object";
-    }
-
-    // iterate over each child of arrow
-    for (auto &arrowChild : scene->arrow->children)
-    {
-        Model->pushMatrix();
-        Model->loadIdentity();
-
-        // physics updates
-        if (arrowChild->collided > 10)
+        /*
+        // timer to create new arrow
+        if (timer > 0.0f)
         {
-            arrowChild->position = vec3(0);
-        }
-        else if (arrowChild->collided > 5 || arrowChild->cameraCollided)
-        {
-            arrowChild->position += vec3(5 * sin(5 * glfwGetTime()), 1.0, 0.0) * deltaTime;
+            timer -= frametime;
         }
         else
         {
-            arrowChild->position += arrowChild->velocity * deltaTime;
+            auto arrowChild = make_unique<GameObject>(
+                scene->arrow->shape,
+                vec3(rand() % 10 + 2, 0.0f, rand() % 10 + 2),
+                0.0f,
+                vec3(0.0f, radians((float)(rand() % 360)), 0.0f),
+                vec3(1.0f),
+                scene->arrow->localMin,
+                scene->arrow->localMax);
+            arrowChild->velocity = vec3(rand() % 10, 0, rand() % 10);
+
+            arrowChild->updateBounds();
+            scene->arrow->addChild(std::move(arrowChild));
+            timer = 1.0f; // reset timer
+            scene->objectCount += 1;
+            cout << "Timer is finished, adding another object";
         }
 
-        // change rotation to be in direction of velocity
-        vec3 forward = -normalize(arrowChild->velocity); // normalize to velocity vector and flip
-        vec3 right = normalize(cross(vec3(0, 1, 0), forward));
-        vec3 up = cross(forward, right);
+        // iterate over each child of arrow
+        for (auto &arrowChild : scene->arrow->children)
+        {
+            Model->pushMatrix();
+            Model->loadIdentity();
 
-        mat4 rotationMat(1.0f);
-        rotationMat[0] = vec4(right, 0);   // column 1, x axis
-        rotationMat[1] = vec4(up, 0);      // column 2, y axis
-        rotationMat[2] = vec4(forward, 0); // column 3, z axis
-        rotationMat[3] = vec4(vec3(0), 1); // column 4, w axis
+            // physics updates
+            if (arrowChild->collided > 10)
+            {
+                arrowChild->position = vec3(0);
+            }
+            else if (arrowChild->collided > 5 || arrowChild->cameraCollided)
+            {
+                arrowChild->position += vec3(5 * sin(5 * glfwGetTime()), 1.0, 0.0) * deltaTime;
+            }
+            else
+            {
+                arrowChild->position += arrowChild->velocity * deltaTime;
+            }
 
-        arrowChild->updateBounds();
+            // change rotation to be in direction of velocity
+            vec3 forward = -normalize(arrowChild->velocity); // normalize to velocity vector and flip
+            vec3 right = normalize(cross(vec3(0, 1, 0), forward));
+            vec3 up = cross(forward, right);
 
-        // Model->translate(arrow->getChild() + velocity));
-        Model->translate(arrowChild->position);
-        Model->multMatrix(rotationMat);
-        Model->scale(1.0 / arrowChild->shape->largeExtent());
+            mat4 rotationMat(1.0f);
+            rotationMat[0] = vec4(right, 0);   // column 1, x axis
+            rotationMat[1] = vec4(up, 0);      // column 2, y axis
+            rotationMat[2] = vec4(forward, 0); // column 3, z axis
+            rotationMat[3] = vec4(vec3(0), 1); // column 4, w axis
 
-        GLSLUtils::setModel(scene->texProg, Model);
-        // if(!arrowChild->isMarked) arrowChild->shape->draw(texProg);
+            arrowChild->updateBounds();
 
-        Model->popMatrix();
-    }
+            // Model->translate(arrow->getChild() + velocity));
+            Model->translate(arrowChild->position);
+            Model->multMatrix(rotationMat);
+            Model->scale(1.0 / arrowChild->shape->largeExtent());
+
+            GLSLUtils::setModel(scene->texProg, Model);
+            // if(!arrowChild->isMarked) arrowChild->shape->draw(texProg);
+
+            Model->popMatrix();
+        }
     scene->texProg->unbind();
     */
-
-    scene->texProg->bind();
-        //scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
-        scene->mainCamera->SetView(scene->texProg);
-
-        // set up all the matrices
-        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-        scene->mapGeomNoHier->position = vec3(5.0f, -10.0f, 5.0f);
-        scene->mapGeomNoHier->scale = vec3(50.0f);
-
-        Model->pushMatrix();
-            Model->loadIdentity();
-            sceneRender->drawTextureMesh(scene->texProg, Model, scene->mapGeomNoHier);
-        Model->popMatrix();
-    scene->texProg->unbind();
-
-    // use the material shader
-    scene->prog->bind();
-        // set up all the matrices
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        scene->mainCamera->SetView(scene->prog);
-        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-    // DRAW WALLS
-    for (auto &cubeChild : scene->cube->children)
-    {
-        Model->pushMatrix();
-        Model->loadIdentity();
-
-        cubeChild->updateBounds();
-        Model->translate(cubeChild->position);
-        Model->scale(cubeChild->scale);
-        Model->scale(1.0 / cubeChild->shape->largeExtent());
-
-        GLSLUtils::SetMaterial(scene->prog, 1);
-        GLSLUtils::setModel(scene->prog, Model);
-        cubeChild->shape->draw(scene->prog);
-
-        Model->popMatrix();
-    }
-    scene->prog->unbind();
-
-    scene->prog->bind();
-        scene->mainCamera->SetView(scene->prog);
-
-        // set up all the matrices
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-        Model->pushMatrix();
-            Model->loadIdentity();
-
-            sceneRender->drawMesh(scene->prog, Model, scene->skybox, 3);
-        Model->pushMatrix();
-    scene->prog->unbind();
 
     // --- CAMERA AND COLLISION LOGIC --- FIXME
     // animation updates
@@ -540,27 +450,6 @@ void Application::render(float frametime)
     Model->popMatrix();
 
     // glUniform4f(debugShader->getUniform("debugColor"), 0.0f, 0.0f, 1.0f, 0.5f);
-
-    for (auto &arrowChild : scene->arrow->children)
-    {
-        Model->pushMatrix();
-        Model->loadIdentity();
-
-        Model->translate(arrowChild->position);
-        // Model->rotate(1, arrowChild->rotation);
-        Model->scale(1.0f / arrowChild->shape->largeExtent());
-        Model->scale(vec3(1.1f));
-
-        glUniform3fv(scene->debugShader->getUniform("boxMin"), 1, value_ptr(arrowChild->min));
-        glUniform3fv(scene->debugShader->getUniform("boxMax"), 1, value_ptr(arrowChild->max));
-        glUniform1i(scene->debugShader->getUniform("collided"), arrowChild->collided);
-
-        GLSLUtils::setModel(scene->debugShader, Model);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        arrowChild->shape->draw(scene->debugShader);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        Model->popMatrix();
-    }
 
     for (auto &cubeChild : scene->cube->children)
     {

@@ -105,7 +105,7 @@ void SceneRender::drawHierMap(shared_ptr<Program> curS, shared_ptr<MatrixStack> 
     model->popMatrix();
 }
 
-void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
+void SceneRender::drawTextureMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj)
 {
     Model->pushMatrix();
     //Model->loadIdentity();
@@ -119,13 +119,12 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
     Model->scale(obj->scale);
     Model->scale(1.0 / obj->shape->largeExtent()); // normalize
 
-    GLSLUtils::SetMaterial(curS, material);
     GLSLUtils::setModel(curS, Model);
     obj->shape->draw(curS);
     Model->popMatrix();
 }
 
-void SceneRender::drawTextureMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj)
+void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
 {
     Model->pushMatrix();
     //Model->loadIdentity();
@@ -134,11 +133,52 @@ void SceneRender::drawTextureMesh(shared_ptr<Program> curS, shared_ptr<MatrixSta
     obj->updateBounds();
 
     Model->translate(obj->position);
+
     Model->rotate(obj->angle, obj->rotation);
     Model->scale(obj->scale);
     Model->scale(1.0 / obj->shape->largeExtent()); // normalize
 
+    GLSLUtils::SetMaterial(curS, material);
     GLSLUtils::setModel(curS, Model);
     obj->shape->draw(curS);
     Model->popMatrix();
+}
+
+void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material, glm::vec3 translate, float angle, glm::vec3 rotate, glm::vec3 scale)
+{
+    Model->pushMatrix();
+    //Model->loadIdentity();
+
+    // update matrices
+    obj->updateBounds();
+
+    Model->translate(obj->position + translate);
+
+    Model->rotate(obj->angle + angle, obj->rotation + rotate);
+    Model->scale(obj->scale + scale);
+    Model->scale(1.0 / obj->shape->largeExtent()); // normalize
+
+    GLSLUtils::SetMaterial(curS, material);
+    GLSLUtils::setModel(curS, Model);
+    obj->shape->draw(curS);
+    Model->popMatrix();
+}
+
+void SceneRender::drawSceneGraph(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
+{
+    for (auto &child : obj->children)
+    {
+        Model->pushMatrix();
+            Model->loadIdentity();
+
+            child->updateBounds();
+            Model->translate(child->position);
+            Model->scale(child->scale);
+            Model->scale(1.0 / child->shape->largeExtent());
+
+            GLSLUtils::SetMaterial(curS, material);
+            GLSLUtils::setModel(curS, Model);
+            child->shape->draw(curS);
+        Model->popMatrix();
+    }
 }

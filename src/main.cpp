@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
 	windowManager->setEventCallbacks(application);
 	application->windowManager = windowManager;
 
+
 	//sceneInitializer->initGeom(resourceDir);
 	//sceneInitializer->init(resourceDir);
 	application->init(resourceDir);
