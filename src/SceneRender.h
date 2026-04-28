@@ -1,9 +1,11 @@
 #pragma once
 
+#include "core/Callbacks.h"
 #include "renderer/MatrixStack.h"
 #include "renderer/Program.h"
 #include "renderer/Shape.h"
 #include "world/GameObject.h"
+#include "SceneInitializer.h"
 
 class SceneRender
 {
@@ -21,4 +23,8 @@ public:
     void drawTextureMesh(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj);
     void drawTextureMesh(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj, glm::vec3 translate, float angle, glm::vec3 rotate, glm::vec3 scale);
     void drawSceneGraph(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj, int material);
+    
+    void drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, bool useMainCamera);
+    void drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks);
+    void drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, std::shared_ptr<MatrixStack> viewMat, std::shared_ptr<MatrixStack> Projection, int maxRecursionLevel, int recursionLevel);
 };

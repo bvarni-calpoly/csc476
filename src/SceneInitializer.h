@@ -58,4 +58,11 @@ public:
 
     int objectCount = 0;
     int objectCollisionCount = 0;
+
+    // Create the matrix stacks
+    std::shared_ptr<MatrixStack> Projection;
+    std::shared_ptr<MatrixStack> ProjectionPortal;
+    std::shared_ptr<MatrixStack> Model;
+    std::shared_ptr<MatrixStack> ModelPortalSource;
+    std::shared_ptr<MatrixStack> ModelPortalDestination;
 };

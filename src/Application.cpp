@@ -105,19 +105,25 @@ void Application::render(float frametime)
     float aspect = width / (float)height;
 
     // Create the matrix stacks
-    auto Projection = make_shared<MatrixStack>();
-    auto ProjectionPortal = make_shared<MatrixStack>();
-    auto Model = make_shared<MatrixStack>();
-    auto ModelPortalSource = make_shared<MatrixStack>();
-    auto ModelPortalDestination = make_shared<MatrixStack>();
+    //auto Projection = make_shared<MatrixStack>();
+    //auto ProjectionPortal = make_shared<MatrixStack>();
+    //auto Model = make_shared<MatrixStack>();
+    //auto ModelPortalSource = make_shared<MatrixStack>();
+    //auto ModelPortalDestination = make_shared<MatrixStack>();
     //ModelPortalSource->translate(scene->portalEntrancePos);
     //ModelPortalDestination->translate(scene->portalExitPos);
 
+    scene->Projection = make_shared<MatrixStack>();
+    scene->ProjectionPortal = make_shared<MatrixStack>();
+    scene->Model = make_shared<MatrixStack>();
+    scene->ModelPortalSource = make_shared<MatrixStack>();
+    scene->ModelPortalDestination = make_shared<MatrixStack>();
+
     // Apply perspective projection.
-    Projection->pushMatrix();
-    Projection->perspective(45.0f, aspect, 0.01f, 1000.0f); // FIXME, was 100
-    ProjectionPortal->pushMatrix();
-    ProjectionPortal->perspective(45.0f, aspect, 0.01f, 1000.0f); // FIXME, was 100
+    scene->Projection->pushMatrix();
+    scene->Projection->perspective(45.0f, aspect, 0.01f, 1000.0f); // FIXME, was 100
+    scene->ProjectionPortal->pushMatrix();
+    scene->ProjectionPortal->perspective(45.0f, aspect, 0.01f, 1000.0f); // FIXME, was 100
 
     // CREATE PORTAL MATRICES
     scene->portalEntranceDoor->updateBounds();
@@ -139,12 +145,12 @@ void Application::render(float frametime)
     scene->mapGeomNoHier->scale = vec3(50.0f);
     scene->mapGeomNoHier->position = vec3(0, -10.0f, 0);
 
-    ModelPortalSource->loadIdentity();
-    ModelPortalSource->translate(scene->portalEntranceDoor->position);
-    ModelPortalSource->rotate(scene->portalEntranceDoor->angle, scene->portalEntranceDoor->rotation);
+    scene->ModelPortalSource->loadIdentity();
+    scene->ModelPortalSource->translate(scene->portalEntranceDoor->position);
+    scene->ModelPortalSource->rotate(scene->portalEntranceDoor->angle, scene->portalEntranceDoor->rotation);
 
-    ModelPortalDestination->loadIdentity();
-    ModelPortalDestination->translate(scene->portalExitDoor->position);
+    scene->ModelPortalDestination->loadIdentity();
+    scene->ModelPortalDestination->translate(scene->portalExitDoor->position);
     //ModelPortalDestination->rotate(scene->portalExitDoor->angle, scene->portalExitDoor->rotation);
 
     // FIXME move camerea functions here <<<
@@ -176,148 +182,8 @@ void Application::render(float frametime)
     // Recursive portals
     // https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
     // https://github.com/ThomasRinsma/opengl-game-test/blob/8363bbf/src/scene.cc#L81
-    for(int n = 0; n < 5; n++)
-    {
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Color buffer
-    glDepthMask(GL_FALSE); // Depth buffer
-
-    glDisable(GL_DEPTH_TEST);
-
-    glEnable(GL_STENCIL_TEST); // enable writing to the stencil buffer
+    sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, scene->Projection, scene->Projection, 5, 0);
     
-    glStencilFunc(GL_NOTEQUAL, n, 0xFF);
-
-    glStencilOp(GL_INCR, GL_KEEP, GL_KEEP);
-    
-    glStencilMask(0xFF); // each bit is written to the stencil buffer as is
-
-    // DRAW PORTAL FRAMES
-    scene->prog->bind();
-        scene->mainCamera->SetView(scene->prog);
-        //scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
-        
-        // set up all the matrices
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-        
-        // Draw portal ENTRANCE frame
-        sceneRender->drawMesh(scene->prog, ModelPortalSource, scene->portalEntranceDoor, 1);
-        
-        // Draw portal EXIT frame
-        sceneRender->drawMesh(scene->prog, ModelPortalDestination, scene->portalExitDoor, 2);
-    scene->prog->unbind();
-    
-    // CALCULATE VIEW MATRIX
-
-    // render inside of portal
-    if(true) // FIXME
-    {
-        // Setup stencil buffer to draw other objects over the portal
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // Color buffer
-        glDepthMask(GL_TRUE); // Depth buffer
-
-        glClear(GL_DEPTH_BUFFER_BIT); // Clear depth buffer
-
-        glEnable(GL_DEPTH_TEST);
-
-        glEnable(GL_STENCIL_TEST);
-        
-        glStencilMask(0x00); // Do not write to stencil buffer
-        
-        glStencilFunc(GL_EQUAL, n + 1, 0xFF);
-
-        // REDRAW SCENE IN PORTAL - Redraw scene but with portal view (portal camera)
-        // DRAW MAP
-        scene->texProg->bind();
-        // set up all the matrices
-            scene->portalCamera->SetRecursivePortalView(scene->texProg, scene->tempCamera, ModelPortalSource, ModelPortalDestination);
-            glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-            glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-            sceneRender->drawTextureMesh(scene->texProg, Model, scene->mapGeomNoHier);
-        scene->texProg->unbind();
-
-        scene->prog->bind();
-            // set up all the matrices
-            scene->portalCamera->SetRecursivePortalView(scene->texProg, scene->tempCamera, ModelPortalSource, ModelPortalDestination);
-            glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-            glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-            scene->skybox->position = vec3(1.0f);
-            sceneRender->drawSceneGraph(scene->prog, Model, scene->cube, 1);
-            sceneRender->drawMesh(scene->prog, Model, scene->skybox, 0);
-        scene->prog->unbind();
-    }
-    else
-    {
-        // Recursion Case
-    }
-
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Color buffer
-    glDepthMask(GL_FALSE); // Depth buffer
-
-    glEnable(GL_STENCIL_TEST);
-    glStencilMask(0xFF); // Enalbe write to stencil buffer
-
-    glStencilFunc(GL_NOTEQUAL, n + 1, 0xFF);
-
-    glStencilOp(GL_DECR, GL_KEEP, GL_KEEP);
-
-    // DRAW PORTAL FRAMES
-    scene->prog->bind();
-        scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);    
-        //scene->mainCamera->SetView(scene->prog);
-        
-        // set up all the matrices
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-        // Draw portal ENTRANCE frame
-        sceneRender->drawMesh(scene->prog, ModelPortalSource, scene->portalEntranceDoor, 1);
-        // Draw portal EXIT frame
-        sceneRender->drawMesh(scene->prog, ModelPortalDestination, scene->portalExitDoor, 2);
-    scene->prog->unbind();
-    }
-
-    glDisable(GL_STENCIL_TEST);
-    glStencilMask(0x00);
-    
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-
-    glDepthFunc(GL_ALWAYS);
-
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    // DRAW PORTAL FRAMES
-    scene->prog->bind();
-        scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);    
-        //scene->mainCamera->SetView(scene->prog);
-        
-        // set up all the matrices
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-        // Draw portal ENTRANCE frame
-        sceneRender->drawMesh(scene->prog, ModelPortalSource, scene->portalEntranceDoor, 1);
-        // Draw portal EXIT frame
-        sceneRender->drawMesh(scene->prog, ModelPortalDestination, scene->portalExitDoor, 2);
-    scene->prog->unbind();
-
-    glDepthFunc(GL_LESS);
-
-    glEnable(GL_STENCIL_TEST);
-    glStencilMask(0x00);
-
-    glStencilFunc(GL_LEQUAL, 5, 0xFF); // FIXME
-
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glDepthMask(GL_TRUE);
-
-    glEnable(GL_DEPTH_TEST);
-
     // rest of scene drawn past here
 
     // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
@@ -389,10 +255,10 @@ void Application::render(float frametime)
     scene->prog->bind();
         // set up all the matrices
         scene->mainCamera->SetView(scene->texProg);
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(scene->Projection->topMatrix()));
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
-        sceneRender->drawSceneGraph(scene->prog, Model, scene->cube, 1);
+        sceneRender->drawSceneGraph(scene->prog, scene->Model, scene->cube, 1);
     scene->prog->unbind();
 
     /*
