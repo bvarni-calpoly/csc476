@@ -20,6 +20,7 @@ public:
 	void playerMovement(GLFWwindow *window, float cameraSpeed, float deltaTime);
    	void SetView(std::shared_ptr<Program> shader);
    	void SetPortalView(std::shared_ptr<Program> shader, std::shared_ptr<Camera> mainCamera, std::shared_ptr<MatrixStack> sourcePortal, std::shared_ptr<MatrixStack> destinationPortal);
+    void SetRecursivePortalView(std::shared_ptr<Program> shader, std::shared_ptr<Camera> mainCamera, std::shared_ptr<MatrixStack> sourcePortal, std::shared_ptr<MatrixStack> destinationPortal);
     void updateUsingCameraPath(float frametime, Spline *splinepath);
 
     glm::vec3 view          = glm::vec3(0, 0, 1);

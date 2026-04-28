@@ -148,6 +148,26 @@ void Camera::SetPortalView(std::shared_ptr<Program> shader, std::shared_ptr<Came
 	glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, glm::value_ptr(virtualView));
 }
 
+void Camera::SetRecursivePortalView(std::shared_ptr<Program> shader, std::shared_ptr<Camera> virtualCamera, std::shared_ptr<MatrixStack> portalSource, std::shared_ptr<MatrixStack> portalDestination)
+{
+	//https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
+	
+	// Generate the virtual camera’s view matrix using the view frustum clipping method, check main file sources for more information
+	//TD = TB^-1 * R * TA * TC
+	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0, 1, 0)); // R, rotate 180 degrees
+	glm::mat4 mainView = glm::lookAt(virtualCamera->eye, virtualCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
+	glm::mat4 portalA = portalSource->topMatrix();	// TA
+	glm::mat4 portalB = portalDestination->topMatrix();	// TB
+
+	// 1. inverse(PortalB) - Move from world space -> destination local space
+	// 2. Rotation		   - (optional) flip orientation 180 degrees
+	// 3. Portal A		   - Move from rotated destination local space -> source world space
+	// 4. mainView		   - Move from source world space -> camera space
+	glm::mat4 virtualView = mainView * portalA * rotation * glm::inverse(portalB);
+
+	glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, glm::value_ptr(virtualView));
+}
+
 void Camera::updateUsingCameraPath(float frametime, Spline *splinepath)
 {
 	if (!splinepath[0].isDone())

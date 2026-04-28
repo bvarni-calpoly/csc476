@@ -31,7 +31,19 @@ void GLSLUtils::SetMaterial(shared_ptr<Program> curS, int i)
         glUniform3f(curS->getUniform("MatSpec"), sin(glfwGetTime() * 2.0f), sin(glfwGetTime() * 2.0f), sin(glfwGetTime() * 2.0f));
         glUniform1f(curS->getUniform("MatShine"), 150.0);
         break;
-    case 3: // purple
+    case 3: // blue
+        glUniform3f(curS->getUniform("MatAmb"), 1.0, 0.5, 0.0);
+        glUniform3f(curS->getUniform("MatDif"), 1.0, 0.5, 0.0);
+        glUniform3f(curS->getUniform("MatSpec"), 1.0, 0.5, 0.0);
+        glUniform1f(curS->getUniform("MatShine"), 120.0);
+        break;
+    case 4: // orange
+        glUniform3f(curS->getUniform("MatAmb"), 0.0, 0.0, 1.0);
+        glUniform3f(curS->getUniform("MatDif"), 0.0, 0.0, 1.0);
+        glUniform3f(curS->getUniform("MatSpec"), 0.0, 0.0, 1.0);
+        glUniform1f(curS->getUniform("MatShine"), 120.0);
+        break;
+    case 5: // purple
         glUniform3f(curS->getUniform("MatAmb"), 0.046, 0.046, 0.095);
         glUniform3f(curS->getUniform("MatDif"), 0.046, 0.46, 0.95);
         glUniform3f(curS->getUniform("MatSpec"), 0.046, 0.23, 0.45);

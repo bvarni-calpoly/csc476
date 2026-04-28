@@ -134,7 +134,7 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
 
     Model->translate(obj->position);
 
-    Model->rotate(obj->angle, obj->rotation);
+    Model->rotate(obj->angle, obj->rotation); // FIXME
     Model->scale(obj->scale);
     Model->scale(1.0 / obj->shape->largeExtent()); // normalize
 
@@ -154,7 +154,7 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
 
     Model->translate(obj->position + translate);
 
-    Model->rotate(obj->angle + angle, obj->rotation + rotate);
+    Model->rotate(obj->angle + angle, obj->rotation + rotate); // FIXME
     Model->scale(obj->scale + scale);
     Model->scale(1.0 / obj->shape->largeExtent()); // normalize
 
