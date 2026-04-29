@@ -1,3 +1,4 @@
+#include <iostream>
 #include <glad/glad.h>
 #include "SceneRender.h"
 #include "core/GLSLUtils.h"
@@ -157,12 +158,33 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
     //Model->loadIdentity();
 
     // update matrices
-    obj->updateBounds();
 
     Model->translate(obj->position + translate);
 
     Model->rotate(obj->angle + angle, obj->rotation + rotate); // FIXME
     Model->scale(obj->scale + scale);
+    Model->scale(1.0 / obj->shape->largeExtent()); // normalize
+
+    GLSLUtils::SetMaterial(curS, material);
+    GLSLUtils::setModel(curS, Model);
+    obj->shape->draw(curS);
+    Model->popMatrix();
+}
+
+void SceneRender::drawHierMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
+{
+    //TODO - implement this
+    
+    Model->pushMatrix();
+    //Model->loadIdentity();
+
+    // update matrices
+    obj->updateBounds();
+
+    Model->translate(obj->position);
+
+    Model->rotate(obj->angle, obj->rotation); // FIXME
+    Model->scale(obj->scale);
     Model->scale(1.0 / obj->shape->largeExtent()); // normalize
 
     GLSLUtils::SetMaterial(curS, material);
@@ -190,13 +212,14 @@ void SceneRender::drawSceneGraph(shared_ptr<Program> curS, shared_ptr<MatrixStac
     }
 }
 
-void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, bool useMainCamera)
+void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, bool useMainCamera)
 {
     scene->prog->bind();
         if(useMainCamera)
             scene->mainCamera->SetView(scene->prog);
         else
-            scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);    
+            glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(viewMat));
+            //scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);    
             
         // set up all the matrices
         glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
@@ -210,12 +233,13 @@ void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::
     scene->prog->unbind();
 }
 
-void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks)
+void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 destView)
 {
-    // DRAW MAP
+    // Draw map
     scene->texProg->bind();
     // set up all the matrices
-        scene->portalCamera->SetRecursivePortalView(scene->texProg, scene->tempCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
+        //scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
+	    glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
         glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
@@ -224,17 +248,86 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
 
     scene->prog->bind();
         // set up all the matrices
-        scene->portalCamera->SetRecursivePortalView(scene->texProg, scene->tempCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
+        //scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
+	    glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
         glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
         scene->skybox->position = glm::vec3(1.0f);
         sceneRender->drawSceneGraph(scene->prog, scene->Model, scene->cube, 1);
         sceneRender->drawMesh(scene->prog, scene->Model, scene->skybox, 0);
+        sceneRender->drawMesh(scene->prog, scene->Model, scene->skybox, 0);
     scene->prog->unbind();
+
+    /*
+    // -- COLLISION CHECKING --- FIXME / TODO PUT THIS IN ANOTHER CLASS
+    scene->skybox->collided = AABB::intersectsCamera(*scene->mainCamera, *scene->skybox);
+
+    for (auto &arrowChild : scene->arrow->children)
+    {
+        if (AABB::intersectsCamera(*scene->mainCamera, *arrowChild) != 0)
+        {
+            if (arrowChild->collisionsEnabled > 0)
+            {
+                arrowChild->cameraCollided += 1;
+                arrowChild->collided += 1;
+                arrowChild->isMarked = true;
+                scene->objectCollisionCount += 1;
+                scene->objectCount -= 1;
+            }
+            arrowChild->collisionsEnabled = 0;
+            break;
+        }
+    }
+
+    for (auto &cubeChild : scene->cube->children)
+    {
+        if (AABB::intersectsCamera(*scene->mainCamera, *cubeChild) != 0)
+        {
+            cubeChild->collided = 1;
+            break;
+        }
+    }
+
+    // check if arrow hits wall
+    for (auto &arrowChild : scene->arrow->children)
+    {
+        for (auto &cubeChild : scene->cube->children)
+        {
+            if (AABB::intersectsObject(*arrowChild, *cubeChild) != 0)
+            {
+                arrowChild->velocity = -arrowChild->velocity; // reverse direction;
+                arrowChild->collided = 1;
+                cubeChild->collided = 1;
+
+                arrowChild->cameraCollided = 0;
+                arrowChild->collided = 0;
+                break;
+            }
+        }
+    }
+
+    // check if arrow hits another arrow
+    for (auto &arrowChild1 : scene->arrow->children)
+    {
+        for (auto &arrowChild2 : scene->arrow->children)
+        {
+            if (arrowChild1 != arrowChild2 && AABB::intersectsObject(*arrowChild1, *arrowChild2) != 0)
+            {
+                vec3 tmp = arrowChild1->velocity;
+                arrowChild1->velocity = -arrowChild2->velocity; // reverse direction
+                arrowChild2->velocity = -arrowChild1->velocity; // reverse direction
+                arrowChild1->collided = 1;
+                arrowChild2->collided = 1;
+                // break;
+            }
+        }
+    }
+    */
 }
 
-void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, shared_ptr<MatrixStack> viewMat, shared_ptr<MatrixStack> Projection, int maxRecursionLevel, int recursionLevel)
+// https://github.com/ThomasRinsma/opengl-game-test/blob/8363bbf/src/scene.cc#L81
+void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, shared_ptr<MatrixStack> Projection, int maxRecursionLevel, int recursionLevel)
 {
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Color buffer
     glDepthMask(GL_FALSE); // Depth buffer
@@ -250,12 +343,16 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
     glStencilMask(0xFF); // each bit is written to the stencil buffer as is
 
     // DRAW PORTAL FRAMES
-    drawPortalFrame(scene, sceneRender, callbacks, true);
+    drawPortalFrame(scene, sceneRender, callbacks, viewMat, true);
         
-    // Calculate view matrix as if the player was already teleported
-    //glm::mat4 destView = viewMat * portal.modelMat()
-    //    * glm::rotate(glm::mat4(1.0f), 180.0f, glm::vec3(0.0f, 1.0f, 0.0f) * portal.orientation())
-    //    * glm::inverse(portal.destination()->modelMat());
+    // shared_ptr<MatrixStack> destView = viewMat->topMatrix() * scene->ModelPortalSource->topMatrix()
+    //    * glm::rotate(glm::mat4(1.0f), 180.0f, glm::vec3(0.0f, 1.0f, 0.0f) * scene->ModelPortalSource.orientation())
+    //    * glm::inverse(scene->ModelPortalDestination->topMatrix());
+
+    glm::mat4 destView = viewMat
+        * scene->ModelPortalSource->topMatrix()
+        * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f))
+        * glm::inverse(scene->ModelPortalDestination->topMatrix());
 
     // render inside of portal
     if(recursionLevel == maxRecursionLevel)
@@ -275,12 +372,12 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
         glStencilFunc(GL_EQUAL, recursionLevel + 1, 0xFF);
 
         // REDRAW SCENE IN PORTAL - Redraw scene but with portal view (portal camera)
-        drawNonPortals(scene, sceneRender, callbacks);
+        drawNonPortals(scene, sceneRender, callbacks, destView);
     }
     else
     {
         // Recursion Case
-        drawRecursivePortals(scene, sceneRender, callbacks, viewMat, Projection, maxRecursionLevel, recursionLevel + 1);
+        drawRecursivePortals(scene, sceneRender, callbacks, destView, Projection, maxRecursionLevel, recursionLevel + 1);
     }
 
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Color buffer
@@ -293,7 +390,7 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
 
     glStencilOp(GL_DECR, GL_KEEP, GL_KEEP);
 
-    drawPortalFrame(scene, sceneRender, callbacks, false);
+    drawPortalFrame(scene, sceneRender, callbacks, viewMat, false);
 
     glDisable(GL_STENCIL_TEST);
     glStencilMask(0x00);
@@ -308,19 +405,19 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
     glClear(GL_DEPTH_BUFFER_BIT);
 
     // DRAW PORTAL FRAMES
-    drawPortalFrame(scene, sceneRender, callbacks, false);
+    drawPortalFrame(scene, sceneRender, callbacks, viewMat, false);
 
     glDepthFunc(GL_LESS);
 
     glEnable(GL_STENCIL_TEST);
     glStencilMask(0x00);
 
-    glStencilFunc(GL_LEQUAL, 5, 0xFF); // FIXME
+    glStencilFunc(GL_LEQUAL, recursionLevel, 0xFF);
 
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthMask(GL_TRUE);
 
     glEnable(GL_DEPTH_TEST);
 
-    drawNonPortals(scene, sceneRender, callbacks);
+    drawNonPortals(scene, sceneRender, callbacks, viewMat);
 }

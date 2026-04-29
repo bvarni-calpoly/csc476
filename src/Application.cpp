@@ -142,8 +142,8 @@ void Application::render(float frametime)
     scene->skybox->rotation = vec3(0, 1, 0);
     scene->skybox->angle = g_Spin * glfwGetTime();
 
-    scene->mapGeomNoHier->scale = vec3(50.0f);
-    scene->mapGeomNoHier->position = vec3(0, -10.0f, 0);
+    scene->mapGeomNoHier->scale = vec3(100.0f);
+    scene->mapGeomNoHier->position = vec3(0, -25.0f, 0);
 
     scene->ModelPortalSource->loadIdentity();
     scene->ModelPortalSource->translate(scene->portalEntranceDoor->position);
@@ -156,195 +156,46 @@ void Application::render(float frametime)
     // FIXME move camerea functions here <<<
     // update the camera position
     // mainCamera->updateUsingCameraPath(frametime, splinepath);
-
-    // Setup stencil buffers to draw portal objects
-    //glEnable(GL_STENCIL_TEST); // enable writing to the stencil buffer
-    // glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // Clear framebuffer and stencilbuffer
     
-    // glStencilMask(0x00);               // each bit ends up as 0 in the stencil buffer (disabling writes)
-    // glStencilFunc(GL_ALWAYS, 1, 0xFF); // only draw the 1 from the stencil buffer
-    // glStencilMask(0xFF);               // each bit is written to the stencil buffer as is
-
-    // glStencilMask(0x00);
-    // DRAW MAP
-    // scene->texProg->bind();
-    //     // set up all the matrices
-    //     scene->mainCamera->SetView(scene->texProg);
-    //     glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-    //     glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-        
-    //     sceneRender->drawTextureMesh(scene->texProg, Model, scene->mapGeomNoHier);
-    // scene->texProg->unbind();
-    
-    // glStencilFunc(GL_ALWAYS, 1, 0xFF);    // only draw the 1 from the stencil buffer
-
     // Recursive portals
     // https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
-    // https://github.com/ThomasRinsma/opengl-game-test/blob/8363bbf/src/scene.cc#L81
-    sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, scene->Projection, scene->Projection, 5, 0);
-    
-    // rest of scene drawn past here
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // Clear framebuffer and stencilbuffer
+    glm::mat4 mainView = lookAt(scene->mainCamera->eye, scene->mainCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
+    sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 10, 0);
 
     // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     // glStencilMask(0x00);
     // glDisable(GL_DEPTH_TEST);
-
+    /*
     // DRAW BORDER OBJECTS HERE
-    // scene->prog->bind();
-    //     scene->mainCamera->SetView(scene->prog);
+    scene->prog->bind();
+        scene->mainCamera->SetView(scene->prog);
         
-    //     // set up all the matrices
-    //     glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-    //     glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+        // set up all the matrices
+        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(scene->Projection->topMatrix()));
+        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
         
-    //     // Draw portal ENTRANCE frame
-    //     sceneRender->drawMesh(scene->prog, ModelPortalSource, scene->portalEntranceDoor, 3, vec3(0), 0, vec3(0), vec3(1.1f));
+        // Draw portal ENTRANCE frame
+        sceneRender->drawMesh(scene->prog, scene->ModelPortalSource, scene->portalEntranceDoor, 3, vec3(0), 0, vec3(0), vec3(1.1f));
         
-    //     // Draw portal EXIT frame
-    //     sceneRender->drawMesh(scene->prog, ModelPortalDestination, scene->portalExitDoor, 4, vec3(0), 0, vec3(0), vec3(1.1f));
-    // scene->prog->unbind();
+        // Draw portal EXIT frame
+        sceneRender->drawMesh(scene->prog, scene->ModelPortalDestination, scene->portalExitDoor, 4, vec3(0), 0, vec3(0), vec3(1.1f));
+    scene->prog->unbind();
 
-    // // Reset stencil buffer state
-    // glStencilMask(0xFF);
-    // glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    // Reset stencil buffer state
+    glStencilMask(0xFF);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
     // enable drawing only on stencil buffer 1's
-    /*
+
     glStencilFunc(GL_LEQUAL, 1, 0xFF);
-
-    // REDRAW SCENE IN PORTAL - Redraw scene but with portal view (portal camera)
-    // DRAW MAP
-    scene->texProg->bind();
-    // set up all the matrices
-        scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
-        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-        sceneRender->drawTextureMesh(scene->texProg, Model, scene->mapGeomNoHier);
-    scene->texProg->unbind();
-
-    scene->prog->bind();
-        // set up all the matrices
-        scene->portalCamera->SetPortalView(scene->texProg, scene->mainCamera, ModelPortalSource, ModelPortalDestination);
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-        sceneRender->drawSceneGraph(scene->prog, Model, scene->cube, 1);
-        sceneRender->drawMesh(scene->prog, Model, scene->skybox, 0);
-    scene->prog->unbind();
-    */
 
     // Reset stencil buffer state
     glStencilMask(0xFF);
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
     glEnable(GL_DEPTH_TEST);
-
-    // --- DRAW MAIN CAMERA SCENE ---
-    // DRAW MAP
-    // scene->texProg->bind();
-    //     // set up all the matrices
-    //     scene->mainCamera->SetView(scene->texProg);
-    //     glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-    //     glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-        
-    //     sceneRender->drawTextureMesh(scene->texProg, Model, scene->mapGeomNoHier);
-    // scene->texProg->unbind();
-    
-    // DRAW WALLS
-    scene->prog->bind();
-        // set up all the matrices
-        scene->mainCamera->SetView(scene->texProg);
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(scene->Projection->topMatrix()));
-        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-
-        sceneRender->drawSceneGraph(scene->prog, scene->Model, scene->cube, 1);
-    scene->prog->unbind();
-
-    /*
-    // use the texture shader
-    scene->texProg->bind();
-        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-        scene->mainCamera->SetView(scene->texProg);
-        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-        glUniform1f(scene->texProg->getUniform("MatShine"), 27.9);
-        glUniform1i(scene->texProg->getUniform("flip"), 1);
-        scene->texture1->bind(scene->texProg->getUniform("Texture0"));
-        
-        glUniform1i(scene->texProg->getUniform("flip"), 0);
-        /*
-
-        /*
-        // timer to create new arrow
-        if (timer > 0.0f)
-        {
-            timer -= frametime;
-        }
-        else
-        {
-            auto arrowChild = make_unique<GameObject>(
-                scene->arrow->shape,
-                vec3(rand() % 10 + 2, 0.0f, rand() % 10 + 2),
-                0.0f,
-                vec3(0.0f, radians((float)(rand() % 360)), 0.0f),
-                vec3(1.0f),
-                scene->arrow->localMin,
-                scene->arrow->localMax);
-            arrowChild->velocity = vec3(rand() % 10, 0, rand() % 10);
-
-            arrowChild->updateBounds();
-            scene->arrow->addChild(std::move(arrowChild));
-            timer = 1.0f; // reset timer
-            scene->objectCount += 1;
-            cout << "Timer is finished, adding another object";
-        }
-
-        // iterate over each child of arrow
-        for (auto &arrowChild : scene->arrow->children)
-        {
-            Model->pushMatrix();
-            Model->loadIdentity();
-
-            // physics updates
-            if (arrowChild->collided > 10)
-            {
-                arrowChild->position = vec3(0);
-            }
-            else if (arrowChild->collided > 5 || arrowChild->cameraCollided)
-            {
-                arrowChild->position += vec3(5 * sin(5 * glfwGetTime()), 1.0, 0.0) * deltaTime;
-            }
-            else
-            {
-                arrowChild->position += arrowChild->velocity * deltaTime;
-            }
-
-            // change rotation to be in direction of velocity
-            vec3 forward = -normalize(arrowChild->velocity); // normalize to velocity vector and flip
-            vec3 right = normalize(cross(vec3(0, 1, 0), forward));
-            vec3 up = cross(forward, right);
-
-            mat4 rotationMat(1.0f);
-            rotationMat[0] = vec4(right, 0);   // column 1, x axis
-            rotationMat[1] = vec4(up, 0);      // column 2, y axis
-            rotationMat[2] = vec4(forward, 0); // column 3, z axis
-            rotationMat[3] = vec4(vec3(0), 1); // column 4, w axis
-
-            arrowChild->updateBounds();
-
-            // Model->translate(arrow->getChild() + velocity));
-            Model->translate(arrowChild->position);
-            Model->multMatrix(rotationMat);
-            Model->scale(1.0 / arrowChild->shape->largeExtent());
-
-            GLSLUtils::setModel(scene->texProg, Model);
-            // if(!arrowChild->isMarked) arrowChild->shape->draw(texProg);
-
-            Model->popMatrix();
-        }
-    scene->texProg->unbind();
     */
-
+    
     // --- CAMERA AND COLLISION LOGIC --- FIXME
     // animation updates
     sTheta = sin(glfwGetTime());
@@ -365,70 +216,6 @@ void Application::render(float frametime)
     scene->mainCamera->lookAtTarget = scene->mainCamera->eye + scene->mainCamera->forward; // FIXME, put this before?
 
     /*
-    // -- COLLISION CHECKING --- FIXME / TODO PUT THIS IN ANOTHER CLASS
-    scene->skybox->collided = AABB::intersectsCamera(*scene->mainCamera, *scene->skybox);
-
-    for (auto &arrowChild : scene->arrow->children)
-    {
-        if (AABB::intersectsCamera(*scene->mainCamera, *arrowChild) != 0)
-        {
-            if (arrowChild->collisionsEnabled > 0)
-            {
-                arrowChild->cameraCollided += 1;
-                arrowChild->collided += 1;
-                arrowChild->isMarked = true;
-                scene->objectCollisionCount += 1;
-                scene->objectCount -= 1;
-            }
-            arrowChild->collisionsEnabled = 0;
-            break;
-        }
-    }
-
-    for (auto &cubeChild : scene->cube->children)
-    {
-        if (AABB::intersectsCamera(*scene->mainCamera, *cubeChild) != 0)
-        {
-            cubeChild->collided = 1;
-            break;
-        }
-    }
-
-    // check if arrow hits wall
-    for (auto &arrowChild : scene->arrow->children)
-    {
-        for (auto &cubeChild : scene->cube->children)
-        {
-            if (AABB::intersectsObject(*arrowChild, *cubeChild) != 0)
-            {
-                arrowChild->velocity = -arrowChild->velocity; // reverse direction;
-                arrowChild->collided = 1;
-                cubeChild->collided = 1;
-
-                arrowChild->cameraCollided = 0;
-                arrowChild->collided = 0;
-                break;
-            }
-        }
-    }
-
-    // check if arrow hits another arrow
-    for (auto &arrowChild1 : scene->arrow->children)
-    {
-        for (auto &arrowChild2 : scene->arrow->children)
-        {
-            if (arrowChild1 != arrowChild2 && AABB::intersectsObject(*arrowChild1, *arrowChild2) != 0)
-            {
-                vec3 tmp = arrowChild1->velocity;
-                arrowChild1->velocity = -arrowChild2->velocity; // reverse direction
-                arrowChild2->velocity = -arrowChild1->velocity; // reverse direction
-                arrowChild1->collided = 1;
-                arrowChild2->collided = 1;
-                // break;
-            }
-        }
-    }
-
     scene->debugShader->bind();
     // Set global matrices FIXME-COMMENT
     glUniformMatrix4fv(scene->debugShader->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));

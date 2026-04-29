@@ -116,6 +116,40 @@ void SceneInitializer::loadGeom(const std::string &resourceDirectory, const std:
     }
 }
 
+void SceneInitializer::loadHierGeom(const std::string &resourceDirectory, const std::string &fileName, std::shared_ptr<GameObject> &obj)
+{
+    vector<tinyobj::shape_t> TOshapes;
+    vector<tinyobj::material_t> objMaterials;
+    string errStr;
+    // load in the mesh and make the shape(s)
+    bool rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr, (resourceDirectory + fileName).c_str());
+    if (!rc)
+    {
+        cerr << errStr << endl;
+    }
+    else
+    {
+        obj = make_shared<GameObject>();
+
+        for(int i = 0; i < TOshapes.size(); i++)
+        {
+            auto part = make_unique<GameObject>();
+
+            part->shape = make_shared<Shape>();
+            part->shape->createShape(TOshapes[i]);
+            part->shape->measure();
+            part->shape->init();
+
+            part->localMin = part->shape->min;
+            part->localMax = part->shape->max;
+
+            part->updateBounds();
+
+            //obj->addChild(move(part)); // FIXME
+        }
+    }
+}
+
 void SceneInitializer::initGeom(const std::string &resourceDirectory)
 {
     // EXAMPLE set up to read one shape from one obj file - convert to read several
@@ -180,51 +214,11 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     }
 
     loadGeom(resourceDirectory, "/objects/cube.obj", skybox);
+    loadGeom(resourceDirectory, "/objects/cube.obj", cube);
     loadGeom(resourceDirectory, "/objects/cube.obj", portalEntranceDoor);
     loadGeom(resourceDirectory, "/objects/cube.obj", portalExitDoor);
-    loadGeom(resourceDirectory, "/scene/blender_test.obj", mapGeomNoHier);
-
-    // Initialize arrow mesh
-    vector<tinyobj::shape_t> TOshapesArrow;
-    vector<tinyobj::material_t> objMaterialsArrow;
-    // load in the mesh and make the shape(s)
-    rc = tinyobj::LoadObj(TOshapesArrow, objMaterialsArrow, errStr, (resourceDirectory + "/objects/wedge.obj").c_str());
-    if (!rc)
-    {
-        cerr << errStr << endl;
-    }
-    else
-    {
-        arrow = make_shared<GameObject>();
-        arrow->shape = make_shared<Shape>();
-        arrow->shape->createShape(TOshapesArrow[0]);
-        arrow->shape->measure();
-        arrow->shape->init();
-
-        arrow->localMin = arrow->shape->min;
-        arrow->localMax = arrow->shape->max;
-    }
-
-    // Initialize cube mesh
-    vector<tinyobj::shape_t> TOshapesCube;
-    vector<tinyobj::material_t> objMaterialsCube;
-    // load in the mesh and make the shape(s)
-    rc = tinyobj::LoadObj(TOshapesCube, objMaterialsCube, errStr, (resourceDirectory + "/objects/cube.obj").c_str());
-    if (!rc)
-    {
-        cerr << errStr << endl;
-    }
-    else
-    {
-        cube = make_shared<GameObject>();
-        cube->shape = make_shared<Shape>();
-        cube->shape->createShape(TOshapesCube[0]);
-        cube->shape->measure();
-        cube->shape->init();
-
-        cube->localMin = cube->shape->min;
-        cube->localMax = cube->shape->max;
-    }
+    loadGeom(resourceDirectory, "/objects/wedge.obj", arrow);
+    loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
 
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();
