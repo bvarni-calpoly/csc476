@@ -11,6 +11,8 @@ void GameObject::updateBounds()
     float normScale = 1.0f / shape->largeExtent();
     min = (localMin * normScale * scale) + position;
     max = (localMax * normScale * scale) + position;
+
+    localCenter = (localMax + localMin) / 2.0f;
 }
 
 void GameObject::addChild(std::unique_ptr<GameObject> child)

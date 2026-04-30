@@ -54,32 +54,12 @@ void SceneRender::drawSkybox(shared_ptr<Program> curS, shared_ptr<MatrixStack> M
     curS->bind();
     glUniform1i(curS->getUniform("flip"), 0);
     texture1->bind(curS->getUniform("Texture0"));
-    */
-
-    /*
-    skyboxObject[0] = GameObject( // fixme
-        skybox,
-        vec3(0),
-        vec3(0),
-        vec3(0),
-        skybox->min,
-        skybox->max
-    );
-    */
-
-    /*
-
-    // skyboxObject[0].updateBounds();
 
     // draw the skybox
     Model->pushMatrix();
     Model->loadIdentity();
 
     float halfHeight = (shape->max.y - shape->min.y) / 2.0f;
-
-    Model->scale(vec3(50.0f));
-    Model->rotate(g_Spin * glfwGetTime(), vec3(0, -1, 0));
-    Model->translate(vec3(0, -0.005f, 0)); // translate down 0.01 (so ground shows up)
 
     // normalize
     Model->scale(1.0 / shape->largeExtent());
@@ -132,20 +112,68 @@ void SceneRender::drawTextureMesh(shared_ptr<Program> curS, shared_ptr<MatrixSta
     Model->popMatrix();
 }
 
-void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
+void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj)
 {
     Model->pushMatrix();
     //Model->loadIdentity();
 
     // update matrices
+    //obj->updateBounds();
+
+    Model->translate(obj->position);
+    Model->rotate(obj->angle, obj->rotation);
+    Model->scale(obj->scale);
+    //Model->scale(1.0 / obj->shape->largeExtent()); // normalize
+
+    for(const auto &part : obj->children)
+    {
+        //Model->translate(part->position);
+        //Model->rotate(part->angle, part->rotation);
+        //Model->scale(part->scale);
+        //Model->scale(1.0 / part->shape->largeExtent()); // normalize
+    
+        GLSLUtils::setModel(curS, Model);
+        part->shape->draw(curS);
+    }
+    Model->popMatrix();
+}
+
+void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
+{
+    Model->pushMatrix();
+    //Model->loadIdentity();
+
+    // update matrices
+    //obj->updateBounds();
+
+    //Model->translate(obj->position);
+    //Model->rotate(obj->angle, obj->rotation); // FIXME
+    //Model->translate(-obj->shape->center); // FIXME
+    cout << obj->shape->center.z << endl;
+    
+    GLSLUtils::SetMaterial(curS, material);
+    GLSLUtils::setModel(curS, Model);
+    obj->shape->draw(curS);
+    Model->popMatrix();
+}
+
+
+void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
+{
+    Model->pushMatrix();
+    //Model->loadIdentity();
+    
+
+    // update matrices
     obj->updateBounds();
 
     Model->translate(obj->position);
-
     Model->rotate(obj->angle, obj->rotation); // FIXME
     Model->scale(obj->scale);
     Model->scale(1.0 / obj->shape->largeExtent()); // normalize
-
+    Model->translate(-obj->shape->center); // FIXME
+    cout << obj->shape->center.z << endl;
+    
     GLSLUtils::SetMaterial(curS, material);
     GLSLUtils::setModel(curS, Model);
     obj->shape->draw(curS);
@@ -173,23 +201,23 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
 
 void SceneRender::drawHierMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
 {
-    //TODO - implement this
-    
     Model->pushMatrix();
     //Model->loadIdentity();
 
     // update matrices
-    obj->updateBounds();
+    //obj->updateBounds();
 
-    Model->translate(obj->position);
+    //Model->translate(obj->position);
+    //Model->rotate(obj->angle, obj->rotation);
+    //Model->scale(obj->scale);
+    //Model->scale(1.0 / obj->shape->largeExtent()); // normalize
 
-    Model->rotate(obj->angle, obj->rotation); // FIXME
-    Model->scale(obj->scale);
-    Model->scale(1.0 / obj->shape->largeExtent()); // normalize
-
-    GLSLUtils::SetMaterial(curS, material);
-    GLSLUtils::setModel(curS, Model);
-    obj->shape->draw(curS);
+    for(const auto &part : obj->children)
+    {
+        GLSLUtils::SetMaterial(curS, material);
+        GLSLUtils::setModel(curS, Model);
+        part->shape->draw(curS);
+    }
     Model->popMatrix();
 }
 
@@ -226,10 +254,10 @@ void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::
         glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
         // Draw portal ENTRANCE frame
-        sceneRender->drawMesh(scene->prog, scene->ModelPortalSource, scene->portalEntranceDoor, 1);
+        sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalSource, scene->portalEntranceDoor, 1);
 
         // Draw portal EXIT frame
-        sceneRender->drawMesh(scene->prog, scene->ModelPortalDestination, scene->portalExitDoor, 2);
+        sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalDestination, scene->portalExitDoor, 2);
     scene->prog->unbind();
 }
 
@@ -243,19 +271,23 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
-        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->mapGeomNoHier);
+        sceneRender->drawTextureHierMesh(scene->texProg, scene->Model, scene->mapGeom);
+        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
     scene->texProg->unbind();
 
     scene->prog->bind();
         // set up all the matrices
         //scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
-	    glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
+	    glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
         glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
-        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
-        scene->skybox->position = glm::vec3(1.0f);
-        sceneRender->drawSceneGraph(scene->prog, scene->Model, scene->cube, 1);
-        sceneRender->drawMesh(scene->prog, scene->Model, scene->skybox, 0);
+        // update player position
+        scene->player->position = scene->mainCamera->eye + glm::vec3(0.0f, 1.0f, 0.0f);
+
+        scene->cube->position = glm::vec3(1.0f);
+        //sceneRender->drawSceneGraph(scene->prog, scene->Model, scene->cube, 1);
+        sceneRender->drawMesh(scene->prog, scene->Model, scene->player, 1);
         sceneRender->drawMesh(scene->prog, scene->Model, scene->skybox, 0);
     scene->prog->unbind();
 
@@ -349,10 +381,21 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
     //    * glm::rotate(glm::mat4(1.0f), 180.0f, glm::vec3(0.0f, 1.0f, 0.0f) * scene->ModelPortalSource.orientation())
     //    * glm::inverse(scene->ModelPortalDestination->topMatrix());
 
+    // Generate the virtual camera’s view matrix using the view frustum clipping method, check main file sources for more information
+	//TD = TB^-1 * R * TA * TC
+	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0, 1, 0)); // R, rotate 180 degrees
+	glm::mat4 portalA = scene->ModelPortalSource->topMatrix();	// TA
+	glm::mat4 portalB = scene->ModelPortalDestination->topMatrix();	// TB
+
+	// 1. inverse(PortalB) - Move from world space -> destination local space
+	// 2. Rotation		   - (optional) flip orientation 180 degrees
+	// 3. Portal A		   - Move from rotated destination local space -> source world space
+	// 4. mainView		   - Move from source world space -> camera space
+
     glm::mat4 destView = viewMat
-        * scene->ModelPortalSource->topMatrix()
-        * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f))
-        * glm::inverse(scene->ModelPortalDestination->topMatrix());
+        * portalA
+        * rotation
+        * glm::inverse(portalB);
 
     // render inside of portal
     if(recursionLevel == maxRecursionLevel)

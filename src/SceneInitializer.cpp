@@ -145,7 +145,7 @@ void SceneInitializer::loadHierGeom(const std::string &resourceDirectory, const 
 
             part->updateBounds();
 
-            //obj->addChild(move(part)); // FIXME
+            obj->addChild(move(part)); // FIXME
         }
     }
 }
@@ -176,49 +176,20 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     }
     */
 
-    // Initialize map mesh (hier)
-    vector<tinyobj::shape_t> TOshapesScene;
-    vector<tinyobj::material_t> objMaterialsScene;
-    // load in the mesh and make the shape(s)
-    rc = tinyobj::LoadObj(TOshapesScene, objMaterialsScene, errStr, (resourceDirectory + "/scene/blender_test.obj").c_str());
-    if (!rc)
-    {
-        cerr << errStr << endl;
-    }
-    else
-    {
-        mapGeom = make_shared<GameObject>();
-
-        for (int i = 0; i < TOshapesScene.size(); i++)
-        {
-            // Create temporary empty part
-            auto part = make_unique<GameObject>();
-
-            // Initialize scene part
-            part->shape = make_shared<Shape>();
-            part->shape->createShape(TOshapesScene[i]);
-            part->shape->measure();
-            part->shape->init();
-
-            part->localMin = part->shape->min;
-            part->localMax = part->shape->max;
-
-            part->updateBounds();
-
-            // Add part to scene vector
-            // scene->min = min(scene->min, part->min);
-            // scene->max = max(scene->max, part->max);
-
-            mapGeom->addChild(move(part));
-        }
-    }
-
-    loadGeom(resourceDirectory, "/objects/cube.obj", skybox);
+    loadGeom(resourceDirectory, "/objects/wedge.obj", player);
+    loadGeom(resourceDirectory, "/objects/cylinder.obj", skybox);
     loadGeom(resourceDirectory, "/objects/cube.obj", cube);
     loadGeom(resourceDirectory, "/objects/cube.obj", portalEntranceDoor);
     loadGeom(resourceDirectory, "/objects/cube.obj", portalExitDoor);
     loadGeom(resourceDirectory, "/objects/wedge.obj", arrow);
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
+    loadHierGeom(resourceDirectory, "/scene/test_map_flipped_normals.obj", mapGeom);
+
+    // light
+
+    // skybox
+    skybox->scale = vec3(200.0f);
+    skybox->position = vec3(0.0f, -10.0f, 0.0f);
 
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();

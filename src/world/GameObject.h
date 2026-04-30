@@ -43,6 +43,7 @@ public:
 	glm::vec3 scale;
 	glm::vec3 localMin; // Local space
 	glm::vec3 localMax;
+	glm::vec3 localCenter;
 	// already calculate in shape
 	glm::vec3 min = glm::vec3(std::numeric_limits<float>::max()); // World space
 	glm::vec3 max = glm::vec3(std::numeric_limits<float>::lowest());

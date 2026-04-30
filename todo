@@ -1,4 +1,6 @@
 -- FOR TODAY / SOON --
+    change functions to iterate by reference and not value
+    
     glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans)); FIX THIS LINE
 
     move camera player movements into player class

@@ -39,7 +39,7 @@ public:
     std::shared_ptr<Callbacks> callbacks;
         
     float deltaTime;
-    int windowWidth = 1920, windowHeight = 1080;
+    int windowWidth = 1600, windowHeight = 1000;
 
     WindowManager *windowManager = nullptr;
 

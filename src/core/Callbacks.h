@@ -27,7 +27,7 @@ public:
 	double phi, theta; // FIXME NAMES
 	// theta = -PI/2.0;
 	double lastX, lastY;
-	glm::vec3 lightTrans = glm::vec3(0);
+	glm::vec3 lightTrans = glm::vec3(0.0f, 10.0f, 10.0f);
 	bool cinematicCamera = false;
 	bool freeCamera = true;
 	int mat = 0;
