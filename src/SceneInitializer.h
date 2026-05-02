@@ -18,6 +18,7 @@ public:
     void init(const std::string &resourceDirectory);
     void loadGeom(const std::string &resourceDirectory, const std::string &fileName, std::shared_ptr<GameObject> &obj);
     void loadHierGeom(const std::string &resourceDirectory, const std::string &fileName, std::shared_ptr<GameObject> &obj);
+    void loadMapGeom(const std::string &resourceDirectory, const std::string &fileName, std::shared_ptr<GameObject> &obj);
     void initGeom(const std::string &resourceDirectory);
     void initGround();
 

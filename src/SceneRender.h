@@ -19,6 +19,7 @@ public:
     void drawSkybox(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<Shape> shape);
     void drawHierMap(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> model, std::vector<std::shared_ptr<Shape>> shape);
     void drawPortalMesh(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj, int material);
+    void drawPortalMesh(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, const std::unique_ptr<GameObject> &obj, int material);
     void drawMesh(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj, int material);
     void drawMesh(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj, int material, glm::vec3 translate, float angle, glm::vec3 rotate, glm::vec3 scale);
     void drawHierMesh(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj, int material);

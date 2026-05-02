@@ -127,13 +127,16 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, shared_ptr<Matri
 
     for(const auto &part : obj->children)
     {
-        //Model->translate(part->position);
-        //Model->rotate(part->angle, part->rotation);
-        //Model->scale(part->scale);
-        //Model->scale(1.0 / part->shape->largeExtent()); // normalize
-    
-        GLSLUtils::setModel(curS, Model);
-        part->shape->draw(curS);
+        if(part->portalID == 0)
+        {
+            //Model->translate(part->position);
+            //Model->rotate(part->angle, part->rotation);
+            //Model->scale(part->scale);
+            //Model->scale(1.0 / part->shape->largeExtent()); // normalize
+        
+            GLSLUtils::setModel(curS, Model);
+            part->shape->draw(curS);
+        }
     }
     Model->popMatrix();
 }
@@ -149,7 +152,7 @@ void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStac
     //Model->translate(obj->position);
     //Model->rotate(obj->angle, obj->rotation); // FIXME
     //Model->translate(-obj->shape->center); // FIXME
-    cout << obj->shape->center.z << endl;
+    //cout << obj->shape->center.z << endl;
     
     GLSLUtils::SetMaterial(curS, material);
     GLSLUtils::setModel(curS, Model);
@@ -157,6 +160,24 @@ void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStac
     Model->popMatrix();
 }
 
+void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, const unique_ptr<GameObject> &obj, int material)
+{
+    cout << " does this do anything man...." << endl;
+    Model->pushMatrix();
+    //Model->loadIdentity();
+
+    // update matrices
+    //obj->updateBounds();
+
+    // Model->translate(obj->position);
+    // Model->rotate(obj->angle, obj->rotation); // FIXME
+    // Model->translate(-obj->shape->center); // FIXME
+
+    GLSLUtils::SetMaterial(curS, material);
+    GLSLUtils::setModel(curS, Model);
+    obj->shape->draw(curS);
+    Model->popMatrix();
+}
 
 void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
 {
@@ -172,7 +193,6 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
     Model->scale(obj->scale);
     Model->scale(1.0 / obj->shape->largeExtent()); // normalize
     Model->translate(-obj->shape->center); // FIXME
-    cout << obj->shape->center.z << endl;
     
     GLSLUtils::SetMaterial(curS, material);
     GLSLUtils::setModel(curS, Model);
@@ -214,6 +234,11 @@ void SceneRender::drawHierMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack>
 
     for(const auto &part : obj->children)
     {
+        if(part->portalID > 0)
+        {
+            break;
+        }
+
         GLSLUtils::SetMaterial(curS, material);
         GLSLUtils::setModel(curS, Model);
         part->shape->draw(curS);
@@ -253,6 +278,23 @@ void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::
         glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
         glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
+        // from obj
+        // FIXME
+        for (const auto &child : scene->mapGeom->children)
+        {
+            if (child->portalID != 0)
+            {
+                cout << child->objName << " " << child->portalID << endl;
+                // Draw portal ENTRANCE frame
+                sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalSource, child, 1);
+
+                // Draw portal EXIT frame
+                sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalDestination, child, 2);
+                break;
+            }
+        }
+
+        // hardcoded
         // Draw portal ENTRANCE frame
         sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalSource, scene->portalEntranceDoor, 1);
 

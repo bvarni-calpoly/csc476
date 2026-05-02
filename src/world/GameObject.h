@@ -37,6 +37,9 @@ public:
 	std::vector<std::unique_ptr<GameObject>> children; // fixme make hashmap? check godot docs
 
 	std::shared_ptr<Shape> shape;
+	std::string objName;
+	int portalID;
+
 	glm::vec3 position = glm::vec3(0);
 	float angle = 0;
 	glm::vec3 rotation;

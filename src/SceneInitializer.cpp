@@ -112,7 +112,7 @@ void SceneInitializer::loadGeom(const std::string &resourceDirectory, const std:
         obj->localMin = obj->shape->min;
         obj->localMax = obj->shape->max;
 
-        obj->updateBounds(); // FIXME
+        obj->updateBounds();
     }
 }
 
@@ -150,31 +150,56 @@ void SceneInitializer::loadHierGeom(const std::string &resourceDirectory, const 
     }
 }
 
-void SceneInitializer::initGeom(const std::string &resourceDirectory)
+void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const std::string &fileName, std::shared_ptr<GameObject> &obj)
 {
-    // EXAMPLE set up to read one shape from one obj file - convert to read several
-    //  Initialize mesh
-    //  Load geometry
-    //  Some obj files contain material information.We'll ignore them for this assignment.
     vector<tinyobj::shape_t> TOshapes;
     vector<tinyobj::material_t> objMaterials;
     string errStr;
     // load in the mesh and make the shape(s)
-    bool rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr, (resourceDirectory + "/objects/cube.obj").c_str());
-    /*
+    bool rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr, (resourceDirectory + fileName).c_str());
     if (!rc)
     {
         cerr << errStr << endl;
     }
     else
     {
-        cube = make_shared<GameObject>();
-        cube->shape = make_shared<Shape>();
-        cube->shape->createShape(TOshapes[0]);
-        cube->shape->measure();
-        cube->shape->init();
+        obj = make_shared<GameObject>();
+
+        for(int i = 0; i < TOshapes.size(); i++)
+        {
+            auto part = make_unique<GameObject>();
+
+            part->shape = make_shared<Shape>();
+            part->shape->createShape(TOshapes[i]);
+            part->shape->measure();
+            part->shape->init();
+
+            part->localMin = part->shape->min;
+            part->localMax = part->shape->max;
+
+            part->updateBounds();
+
+            part->objName = TOshapes[i].name;
+            
+            if(part->objName.find("portal") != string::npos)
+            {
+                //part->portalID = part->objName[6]; // get last character / number of the portal
+                part->portalID = 1; // get last character / number of the portal
+                //cout << part->objName << " " << part->portalID << endl;
+            } else {
+                part->portalID = 0;
+            }
+            
+            obj->addChild(move(part)); // FIXME
+        }
     }
-    */
+}
+
+void SceneInitializer::initGeom(const std::string &resourceDirectory)
+{
+    // Initialize mesh, Load geometry
+    // Some obj files contain material information.We'll ignore them for this assignment.
+    // load in the mesh and make the shape(s)
 
     loadGeom(resourceDirectory, "/objects/wedge.obj", player);
     loadGeom(resourceDirectory, "/objects/cylinder.obj", skybox);
@@ -183,7 +208,8 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/cube.obj", portalExitDoor);
     loadGeom(resourceDirectory, "/objects/wedge.obj", arrow);
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
-    loadHierGeom(resourceDirectory, "/scene/test_map_flipped_normals.obj", mapGeom);
+    //loadHierGeom(resourceDirectory, "/scene/test_map_flipped_normals.obj", mapGeom);
+    loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
 
     // light
 
