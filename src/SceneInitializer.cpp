@@ -70,6 +70,18 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     debugShader->addAttribute("vertNor"); // silence error
     debugShader->addAttribute("vertTex"); // silence error
 
+    // Initialize the GLSL program for rendering normal vectors
+    debugNormShader = make_shared<Program>();
+    debugNormShader->setVerbose(true);
+    debugNormShader->setShaderNames(resourceDirectory + "/shaders/debug_normal.vert", resourceDirectory + "/shaders/debug_normal.frag", resourceDirectory + "/shaders/debug_normal.geom");
+    debugNormShader->init();
+    debugNormShader->addUniform("V");
+    debugNormShader->addUniform("M");
+    debugNormShader->addUniform("P");
+    debugNormShader->addAttribute("vertPos");
+    debugNormShader->addAttribute("vertNor");
+    debugNormShader->addAttribute("vertTex"); // silence error
+
     // read in a load the texture
     texture0 = make_shared<Texture>();
     texture0->setFilename(resourceDirectory + "/image.jpg");
@@ -207,8 +219,10 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
 
                 // Calculate rotation
                 //TOshapes[i].mesh.normals
-                glm::vec3 normal = glm::vec3(-1.0f, 0.0f, 0.0f); // HOW TO READ IN THE NORMAL VALUES
+                glm::vec3 normal = glm::vec3(0.0f, 0.0f, -1.0f); // HOW TO READ IN THE NORMAL VALUES
                 glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+                
+                if(part->objName.find("exit") != string::npos) normal = glm::vec3(-1.0f, 0.0f, 0.0f);
                 glm::vec3 right = glm::normalize(glm::cross(worldUp, normal));
                 
                 glm::vec3 localUp = glm::normalize(glm::cross(normal, right)); // or forward depending on orientation

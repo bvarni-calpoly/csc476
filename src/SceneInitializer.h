@@ -32,6 +32,7 @@ public:
     std::shared_ptr<Program> prog;
     std::shared_ptr<Program> texProg; // Our shader program for textures
     std::shared_ptr<Program> debugShader; // shader program for debug information and collision visualization
+    std::shared_ptr<Program> debugNormShader; // shader program for normal vector visualization
 
     // the image to use as a texture
     std::shared_ptr<Texture> texture0;
