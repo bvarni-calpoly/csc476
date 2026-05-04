@@ -177,15 +177,50 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
             part->localMin = part->shape->min;
             part->localMax = part->shape->max;
 
+            part->position = (part->shape->max + part->shape->min) / 2.0f;
+            // part->scale = part->shape->max - part->shape->min;
+
             part->updateBounds();
 
             part->objName = TOshapes[i].name;
             
             if(part->objName.find("portal") != string::npos)
             {
+                // Object is a quad / plane
                 //part->portalID = part->objName[6]; // get last character / number of the portal
-                part->portalID = 1; // get last character / number of the portal
-                //cout << part->objName << " " << part->portalID << endl;
+                if(part->objName.find("entrance") != string::npos)
+                    part->portalID = 1; // get last character / number of the portal
+                    
+                if(part->objName.find("exit") != string::npos)
+                    part->portalID = 2; // get last character / number of the portal
+                
+                cout << "portalID: " << part->portalID << endl;
+
+                // Calculate scale
+                glm::vec3 scale = glm::vec3(std::max(0.01f, part->shape->max.x - part->shape->min.x),
+                                            std::max(0.01f, part->shape->max.y - part->shape->min.y),
+                                            std::max(0.01f, part->shape->max.z - part->shape->min.z));
+
+                //glm::mat4 Model = glm::mat4(1.0f);
+                //Model = glm::scale(Model, scale);
+                part->scale = scale;
+
+                // Calculate rotation
+                //TOshapes[i].mesh.normals
+                glm::vec3 normal = glm::vec3(-1.0f, 0.0f, 0.0f); // HOW TO READ IN THE NORMAL VALUES
+                glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+                glm::vec3 right = glm::normalize(glm::cross(worldUp, normal));
+                
+                glm::vec3 localUp = glm::normalize(glm::cross(normal, right)); // or forward depending on orientation
+                
+                part->rotationMat = glm::mat4(
+                    glm::vec4(right, 0.0f),
+                    glm::vec4(localUp, 0.0f),
+                    glm::vec4(normal, 0.0f),
+                    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+                );
+
+
             } else {
                 part->portalID = 0;
             }

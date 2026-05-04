@@ -122,20 +122,28 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, shared_ptr<Matri
 
     Model->translate(obj->position);
     Model->rotate(obj->angle, obj->rotation);
-    Model->scale(obj->scale);
+    Model->scale(1.0f / 20.0f);
     //Model->scale(1.0 / obj->shape->largeExtent()); // normalize
 
     for(const auto &part : obj->children)
     {
         if(part->portalID == 0)
         {
-            //Model->translate(part->position);
-            //Model->rotate(part->angle, part->rotation);
-            //Model->scale(part->scale);
-            //Model->scale(1.0 / part->shape->largeExtent()); // normalize
-        
-            GLSLUtils::setModel(curS, Model);
-            part->shape->draw(curS);
+            Model->pushMatrix();
+                // move to position
+                //Model->translate(part->position);
+
+                // rotate according to surface normal
+                //Model->multMatrix(obj->rotationMat);
+
+                // normalize
+                // Model->scale(glm::vec3(100.0f));
+                // Model->scale(1.0 / part->shape->largeExtent());
+                // Model->translate(-part->shape->center); // center in world
+            
+                GLSLUtils::setModel(curS, Model);
+                part->shape->draw(curS);
+            Model->popMatrix();
         }
     }
     Model->popMatrix();
@@ -149,10 +157,9 @@ void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStac
     // update matrices
     //obj->updateBounds();
 
-    //Model->translate(obj->position);
-    //Model->rotate(obj->angle, obj->rotation); // FIXME
-    //Model->translate(-obj->shape->center); // FIXME
-    //cout << obj->shape->center.z << endl;
+    Model->translate(obj->position);
+    Model->rotate(obj->angle, obj->rotation); // FIXME
+    Model->translate(-obj->shape->center); // FIXME
     
     GLSLUtils::SetMaterial(curS, material);
     GLSLUtils::setModel(curS, Model);
@@ -160,22 +167,30 @@ void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStac
     Model->popMatrix();
 }
 
-void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, const unique_ptr<GameObject> &obj, int material)
+void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> &Model, const unique_ptr<GameObject> &obj, int material)
 {
-    cout << " does this do anything man...." << endl;
     Model->pushMatrix();
-    //Model->loadIdentity();
+        //Model->loadIdentity();
 
-    // update matrices
-    //obj->updateBounds();
+        // update matrices
+        //obj->updateBounds();
 
-    // Model->translate(obj->position);
-    // Model->rotate(obj->angle, obj->rotation); // FIXME
-    // Model->translate(-obj->shape->center); // FIXME
+        // move to position
+        //Model->translate(obj->position);
 
-    GLSLUtils::SetMaterial(curS, material);
-    GLSLUtils::setModel(curS, Model);
-    obj->shape->draw(curS);
+        // // rotate according to surface normal
+        // Model->multMatrix(obj->rotationMat);
+
+        Model->scale(1 / 20.0f);
+
+        // // normalize
+        //Model->scale(1.0 / obj->shape->largeExtent());
+        
+        //Model->translate(-obj->shape->center); // center in world
+
+        GLSLUtils::SetMaterial(curS, material);
+        GLSLUtils::setModel(curS, Model);
+        obj->shape->draw(curS);
     Model->popMatrix();
 }
 
@@ -183,7 +198,6 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
 {
     Model->pushMatrix();
     //Model->loadIdentity();
-    
 
     // update matrices
     obj->updateBounds();
@@ -284,22 +298,24 @@ void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::
         {
             if (child->portalID != 0)
             {
-                cout << child->objName << " " << child->portalID << endl;
                 // Draw portal ENTRANCE frame
-                sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalSource, child, 1);
+                if(child->objName.find("entrance") != string::npos)
+                    sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalSource, child, child->portalID);
 
                 // Draw portal EXIT frame
-                sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalDestination, child, 2);
-                break;
+                if(child->objName.find("exit") != string::npos)
+                    sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalDestination, child, child->portalID);
+                
+                //break; // FIXME investigate why the other quad draws without this
             }
         }
 
         // hardcoded
         // Draw portal ENTRANCE frame
-        sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalSource, scene->portalEntranceDoor, 1);
+        //sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalSource, scene->portalEntranceDoor, 1);
 
         // Draw portal EXIT frame
-        sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalDestination, scene->portalExitDoor, 2);
+        //sceneRender->drawPortalMesh(scene->prog, scene->ModelPortalDestination, scene->portalExitDoor, 2);
     scene->prog->unbind();
 }
 
@@ -330,7 +346,6 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         scene->cube->position = glm::vec3(1.0f);
         //sceneRender->drawSceneGraph(scene->prog, scene->Model, scene->cube, 1);
         sceneRender->drawMesh(scene->prog, scene->Model, scene->player, 1);
-        sceneRender->drawMesh(scene->prog, scene->Model, scene->skybox, 0);
     scene->prog->unbind();
 
     /*
@@ -416,6 +431,16 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
     
     glStencilMask(0xFF); // each bit is written to the stencil buffer as is
 
+    // Get portals from obj file
+    GameObject* portal1 = nullptr;
+    GameObject* portal2 = nullptr;
+
+    for(auto &child : scene->mapGeom->children)
+    {
+        if(child->portalID == 1) portal1 = child.get();
+        if(child->portalID == 2) portal2 = child.get();
+    }
+
     // DRAW PORTAL FRAMES
     drawPortalFrame(scene, sceneRender, callbacks, viewMat, true);
         
@@ -426,9 +451,8 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
     // Generate the virtual camera’s view matrix using the view frustum clipping method, check main file sources for more information
 	//TD = TB^-1 * R * TA * TC
 	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0, 1, 0)); // R, rotate 180 degrees
-	glm::mat4 portalA = scene->ModelPortalSource->topMatrix();	// TA
+	glm::mat4 portalA = scene->ModelPortalSource->topMatrix();	    // TA
 	glm::mat4 portalB = scene->ModelPortalDestination->topMatrix();	// TB
-
 	// 1. inverse(PortalB) - Move from world space -> destination local space
 	// 2. Rotation		   - (optional) flip orientation 180 degrees
 	// 3. Portal A		   - Move from rotated destination local space -> source world space

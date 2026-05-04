@@ -125,17 +125,17 @@ void Application::render(float frametime)
     scene->ProjectionPortal->pushMatrix();
     scene->ProjectionPortal->perspective(45.0f, aspect, 0.01f, 1000.0f); // FIXME, was 100
 
-    // CREATE PORTAL MATRICES
+    // CREATE PORTAL MATRICES - HARDCODED
     scene->portalEntranceDoor->updateBounds();
     scene->portalEntranceDoor->rotation = vec3(0, 1, 0);
-    scene->portalEntranceDoor->scale = vec3(0.5, 2.0, 2.0);
-    scene->portalEntranceDoor->position = scene->portalEntrancePos;
+    //scene->portalEntranceDoor->scale = vec3(0.5, 2.0, 2.0);
+    //scene->portalEntranceDoor->position = scene->portalEntrancePos;
     //scene->portalEntranceDoor->angle = g_Spin * glfwGetTime();
 
     scene->portalExitDoor->updateBounds();
     scene->portalExitDoor->rotation = vec3(0, 1, 0);
-    scene->portalExitDoor->scale = scene->portalEntranceDoor->scale;
-    scene->portalExitDoor->position = scene->portalExitPos;
+    //scene->portalExitDoor->scale = scene->portalEntranceDoor->scale;
+    //scene->portalExitDoor->position = scene->portalExitPos;
     //scene->portalExitDoor->angle = g_Spin * glfwGetTime();
 
     // update matrices
@@ -143,28 +143,28 @@ void Application::render(float frametime)
     scene->skybox->angle = g_Spin * glfwGetTime();
 
     scene->mapGeom->scale = vec3(1/15.0f);
-    scene->mapGeom->position = vec3(0, -5.0f, 0);
+    //scene->mapGeom->position = vec3(0, -5.0f, 0);
     
     // FIXME
-    mat4 portalSourceTransform = translate(mat4(1.0f), scene->portalEntranceDoor->position)
-        * rotate(mat4(1.0f), scene->portalEntranceDoor->angle, scene->portalEntranceDoor->rotation);
+    // mat4 portalSourceTransform = translate(mat4(1.0f), scene->portalEntranceDoor->position)
+    //     * rotate(mat4(1.0f), scene->portalEntranceDoor->angle, scene->portalEntranceDoor->rotation);
 
-    mat4 portalDestinationTransform = translate(mat4(1.0f), scene->portalExitDoor->position)
-        * rotate(mat4(1.0f), scene->portalExitDoor->angle, scene->portalExitDoor->rotation);
+    // mat4 portalDestinationTransform = translate(mat4(1.0f), scene->portalExitDoor->position)
+    //     * rotate(mat4(1.0f), scene->portalExitDoor->angle, scene->portalExitDoor->rotation);
 
     scene->ModelPortalSource->loadIdentity();
-    scene->ModelPortalSource->multMatrix(portalSourceTransform);
+    //scene->ModelPortalSource->multMatrix(portalSourceTransform);
     //scene->ModelPortalSource->translate(scene->portalEntranceDoor->position);
     //scene->ModelPortalSource->rotate(scene->portalEntranceDoor->angle, scene->portalEntranceDoor->rotation);
-    scene->ModelPortalSource->scale(scene->portalEntranceDoor->scale);
-    scene->ModelPortalSource->scale(1.0 / scene->portalEntranceDoor->shape->largeExtent());
+    //scene->ModelPortalSource->scale(scene->portalEntranceDoor->scale);
+    //scene->ModelPortalSource->scale(1.0 / scene->portalEntranceDoor->shape->largeExtent());
     
     scene->ModelPortalDestination->loadIdentity();
-    scene->ModelPortalDestination->multMatrix(portalDestinationTransform);
+    //scene->ModelPortalDestination->multMatrix(portalDestinationTransform);
     //scene->ModelPortalDestination->translate(scene->portalExitDoor->position);
     //scene->ModelPortalDestination->rotate(scene->portalExitDoor->angle, scene->portalExitDoor->rotation);
-    scene->ModelPortalDestination->scale(scene->portalExitDoor->scale);
-    scene->ModelPortalDestination->scale(1.0 / scene->portalExitDoor->shape->largeExtent());
+    //scene->ModelPortalDestination->scale(scene->portalExitDoor->scale);
+    //scene->ModelPortalDestination->scale(1.0 / scene->portalExitDoor->shape->largeExtent());
     
     //ModelPortalDestination->rotate(scene->portalExitDoor->angle, scene->portalExitDoor->rotation);
 
