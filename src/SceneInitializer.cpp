@@ -47,6 +47,7 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     texProg->addUniform("M");
     texProg->addUniform("flip");
     texProg->addUniform("Texture0");
+    texProg->addUniform("Texture1");
     texProg->addUniform("MatShine");
     texProg->addUniform("lightPos");
     texProg->addAttribute("vertPos");
@@ -90,10 +91,10 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     texture0->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
     texture1 = make_shared<Texture>();
-    texture1->setFilename(resourceDirectory + "/image.jpg");
+    texture1->setFilename(resourceDirectory + "/scene/textures/test_texture.jpg");
     texture1->init();
     texture1->setUnit(1);
-    texture1->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+    texture1->setWrapModes(GL_REPEAT, GL_REPEAT);
 
     // init splines up and down
     splinepath[0] = Spline(glm::vec3(0, 2, 0), glm::vec3(-5, 2, 0), glm::vec3(5, 2, 0), glm::vec3(0, 4, -2), 2);
@@ -184,12 +185,15 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
             part->shape = make_shared<Shape>();
             part->shape->createShape(TOshapes[i]);
             part->shape->measure();
+            //part->shape->init();
+
+            part->position = (part->shape->max + part->shape->min) / 2.0f;
+
             part->shape->init();
 
             part->localMin = part->shape->min;
             part->localMax = part->shape->max;
 
-            part->position = (part->shape->max + part->shape->min) / 2.0f;
             // part->scale = part->shape->max - part->shape->min;
 
             part->updateBounds();
@@ -219,10 +223,10 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
 
                 // Calculate rotation
                 //TOshapes[i].mesh.normals
-                glm::vec3 normal = glm::vec3(0.0f, 0.0f, -1.0f); // HOW TO READ IN THE NORMAL VALUES
-                glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+                glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f); // HOW TO READ IN THE NORMAL VALUES
+                if(part->objName.find("exit") != string::npos) normal = glm::vec3(0.0f, 0.0f, -1.0f);
                 
-                if(part->objName.find("exit") != string::npos) normal = glm::vec3(-1.0f, 0.0f, 0.0f);
+                glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
                 glm::vec3 right = glm::normalize(glm::cross(worldUp, normal));
                 
                 glm::vec3 localUp = glm::normalize(glm::cross(normal, right)); // or forward depending on orientation
@@ -233,7 +237,6 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
                     glm::vec4(normal, 0.0f),
                     glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
                 );
-
 
             } else {
                 part->portalID = 0;
@@ -258,7 +261,8 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/wedge.obj", arrow);
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
     //loadHierGeom(resourceDirectory, "/scene/test_map_flipped_normals.obj", mapGeom);
-    loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
+    //loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
+    loadMapGeom(resourceDirectory, "/scene/twoplane_portal.obj", mapGeom);
 
     // light
 

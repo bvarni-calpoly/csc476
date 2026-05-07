@@ -142,7 +142,7 @@ void Application::render(float frametime)
     scene->skybox->rotation = vec3(0, 1, 0);
     scene->skybox->angle = g_Spin * glfwGetTime();
 
-    scene->mapGeom->scale = vec3(1/15.0f);
+    //scene->mapGeom->scale = vec3(1/20.0f);
     //scene->mapGeom->position = vec3(0, -5.0f, 0);
     
     // FIXME
@@ -176,7 +176,7 @@ void Application::render(float frametime)
     // https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // Clear framebuffer and stencilbuffer
     glm::mat4 mainView = lookAt(scene->mainCamera->eye, scene->mainCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
-    sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 0, 0);
+    sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 1, 0);
 
     // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     // glStencilMask(0x00);

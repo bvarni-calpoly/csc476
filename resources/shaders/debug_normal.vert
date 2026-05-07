@@ -8,6 +8,7 @@ out VS_OUT {
     vec3 normal;
 } vs_out;
 
+uniform mat4 P;
 uniform mat4 V;
 uniform mat4 M;
 

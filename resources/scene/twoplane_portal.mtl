@@ -1,0 +1,32 @@
+# Blender 5.1.1 MTL File: 'Untitled.blend'
+# www.blender.org
+
+newmtl blue_test_texture
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd /home/bvarni/Documents/PROGRAMMING/csc476/resources/scene/textures/blue_test_texture.png
+
+newmtl purple_test_texture
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd /home/bvarni/Documents/PROGRAMMING/csc476/resources/scene/textures/purple_test_texture.png
+
+newmtl test_texture
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd /home/bvarni/Documents/PROGRAMMING/csc476/resources/scene/textures/test_texture.png
