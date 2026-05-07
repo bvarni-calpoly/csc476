@@ -37,6 +37,8 @@ public:
     // the image to use as a texture
     std::shared_ptr<Texture> texture0;
     std::shared_ptr<Texture> texture1;
+    std::shared_ptr<Texture> textureBlue;
+    std::shared_ptr<Texture> texturePurple;
 
     // Camera
     std::shared_ptr<Camera> mainCamera = std::make_shared<Camera>();

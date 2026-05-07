@@ -48,6 +48,8 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     texProg->addUniform("flip");
     texProg->addUniform("Texture0");
     texProg->addUniform("Texture1");
+    texProg->addUniform("TextureBlue");
+    texProg->addUniform("TexturePurple");
     texProg->addUniform("MatShine");
     texProg->addUniform("lightPos");
     texProg->addAttribute("vertPos");
@@ -95,6 +97,18 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     texture1->init();
     texture1->setUnit(1);
     texture1->setWrapModes(GL_REPEAT, GL_REPEAT);
+
+    textureBlue = make_shared<Texture>();
+    textureBlue->setFilename(resourceDirectory + "/scene/textures/blue_test_texture.jpg");
+    textureBlue->init();
+    textureBlue->setUnit(2);
+    textureBlue->setWrapModes(GL_REPEAT, GL_REPEAT);
+
+    texturePurple = make_shared<Texture>();
+    texturePurple->setFilename(resourceDirectory + "/scene/textures/purple_test_texture.jpg");
+    texturePurple->init();
+    texturePurple->setUnit(3);
+    texturePurple->setWrapModes(GL_REPEAT, GL_REPEAT);
 
     // init splines up and down
     splinepath[0] = Spline(glm::vec3(0, 2, 0), glm::vec3(-5, 2, 0), glm::vec3(5, 2, 0), glm::vec3(0, 4, -2), 2);
@@ -199,6 +213,11 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
             part->updateBounds();
 
             part->objName = TOshapes[i].name;
+
+            if(part->objName.find("blue") != string::npos)
+                part->color = 1;
+                if(part->objName.find("purple") != string::npos)
+                part->color = 2;
             
             if(part->objName.find("portal") != string::npos)
             {

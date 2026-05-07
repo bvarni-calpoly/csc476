@@ -110,8 +110,6 @@ void Application::render(float frametime)
     //auto Model = make_shared<MatrixStack>();
     //auto ModelPortalSource = make_shared<MatrixStack>();
     //auto ModelPortalDestination = make_shared<MatrixStack>();
-    //ModelPortalSource->translate(scene->portalEntrancePos);
-    //ModelPortalDestination->translate(scene->portalExitPos);
 
     scene->Projection = make_shared<MatrixStack>();
     scene->ProjectionPortal = make_shared<MatrixStack>();
@@ -128,45 +126,18 @@ void Application::render(float frametime)
     // CREATE PORTAL MATRICES - HARDCODED
     scene->portalEntranceDoor->updateBounds();
     scene->portalEntranceDoor->rotation = vec3(0, 1, 0);
-    //scene->portalEntranceDoor->scale = vec3(0.5, 2.0, 2.0);
-    //scene->portalEntranceDoor->position = scene->portalEntrancePos;
     //scene->portalEntranceDoor->angle = g_Spin * glfwGetTime();
 
     scene->portalExitDoor->updateBounds();
     scene->portalExitDoor->rotation = vec3(0, 1, 0);
-    //scene->portalExitDoor->scale = scene->portalEntranceDoor->scale;
-    //scene->portalExitDoor->position = scene->portalExitPos;
     //scene->portalExitDoor->angle = g_Spin * glfwGetTime();
 
     // update matrices
     scene->skybox->rotation = vec3(0, 1, 0);
     scene->skybox->angle = g_Spin * glfwGetTime();
 
-    //scene->mapGeom->scale = vec3(1/20.0f);
-    //scene->mapGeom->position = vec3(0, -5.0f, 0);
-    
-    // FIXME
-    // mat4 portalSourceTransform = translate(mat4(1.0f), scene->portalEntranceDoor->position)
-    //     * rotate(mat4(1.0f), scene->portalEntranceDoor->angle, scene->portalEntranceDoor->rotation);
-
-    // mat4 portalDestinationTransform = translate(mat4(1.0f), scene->portalExitDoor->position)
-    //     * rotate(mat4(1.0f), scene->portalExitDoor->angle, scene->portalExitDoor->rotation);
-
     scene->ModelPortalSource->loadIdentity();
-    //scene->ModelPortalSource->multMatrix(portalSourceTransform);
-    //scene->ModelPortalSource->translate(scene->portalEntranceDoor->position);
-    //scene->ModelPortalSource->rotate(scene->portalEntranceDoor->angle, scene->portalEntranceDoor->rotation);
-    //scene->ModelPortalSource->scale(scene->portalEntranceDoor->scale);
-    //scene->ModelPortalSource->scale(1.0 / scene->portalEntranceDoor->shape->largeExtent());
-    
     scene->ModelPortalDestination->loadIdentity();
-    //scene->ModelPortalDestination->multMatrix(portalDestinationTransform);
-    //scene->ModelPortalDestination->translate(scene->portalExitDoor->position);
-    //scene->ModelPortalDestination->rotate(scene->portalExitDoor->angle, scene->portalExitDoor->rotation);
-    //scene->ModelPortalDestination->scale(scene->portalExitDoor->scale);
-    //scene->ModelPortalDestination->scale(1.0 / scene->portalExitDoor->shape->largeExtent());
-    
-    //ModelPortalDestination->rotate(scene->portalExitDoor->angle, scene->portalExitDoor->rotation);
 
     // FIXME move camerea functions here <<<
     // update the camera position
@@ -176,7 +147,7 @@ void Application::render(float frametime)
     // https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // Clear framebuffer and stencilbuffer
     glm::mat4 mainView = lookAt(scene->mainCamera->eye, scene->mainCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
-    sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 1, 0);
+    sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 0, 0);
 
     // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     // glStencilMask(0x00);

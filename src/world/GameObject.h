@@ -39,6 +39,7 @@ public:
 	std::shared_ptr<Shape> shape;
 	std::string objName;
 	int portalID;
+	int color; // 0 - default, 1 - blue, 2 - purple
 
 	glm::vec3 position = glm::vec3(0);
 	float angle = 0;
