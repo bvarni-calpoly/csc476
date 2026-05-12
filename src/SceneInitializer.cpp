@@ -286,7 +286,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     // light
 
     // skybox
-    skybox->scale = vec3(200.0f);
+    skybox->scale = vec3(500.0f);
     skybox->position = vec3(0.0f, -10.0f, 0.0f);
 
     // code to load in the ground plane (CPU defined data passed to GPU)

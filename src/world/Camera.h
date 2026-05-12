@@ -17,7 +17,7 @@ public:
     ~Camera();
 
     void cameraMovement(GLFWwindow *window, float cameraSpeed, float deltaTime); //fixme make deltatime a variable
-	void playerMovement(GLFWwindow *window, float cameraSpeed, float deltaTime);
+	void playerMovement(GLFWwindow *window, float maxSpeed, float deltaTime);
    	void SetView(std::shared_ptr<Program> shader);
    	void SetPortalView(std::shared_ptr<Program> shader, std::shared_ptr<Camera> mainCamera, std::shared_ptr<MatrixStack> sourcePortal, std::shared_ptr<MatrixStack> destinationPortal);
     void SetRecursivePortalView(std::shared_ptr<Program> shader, std::shared_ptr<Camera> mainCamera, std::shared_ptr<MatrixStack> sourcePortal, std::shared_ptr<MatrixStack> destinationPortal);
@@ -33,9 +33,8 @@ public:
 
     // move into player class
 	bool airborne = false;
-	float gravity = -9.81/32;
+	float gravity = 200;
 	glm::vec3 velocity = glm::vec3(0);
-	glm::vec3 acceleration = glm::vec3(0, -9.81/32, 0);
 };
 
 #endif
