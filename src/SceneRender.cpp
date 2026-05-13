@@ -1,6 +1,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include "SceneRender.h"
+#include "physics/AABB.h"
 #include "core/GLSLUtils.h"
 #include "core/Callbacks.h"
 #include "world/GameObject.h"
@@ -304,6 +305,8 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         sceneRender->drawMesh(scene->prog, scene->Model, scene->player, 1);
     scene->prog->unbind();
 
+    //scene->mapGeom->collided = AABB::intersectsCamera(*scene->mainCamera, *scene->mapGeom);
+    
     /*
     // -- COLLISION CHECKING --- FIXME / TODO PUT THIS IN ANOTHER CLASS
     scene->skybox->collided = AABB::intersectsCamera(*scene->mainCamera, *scene->skybox);

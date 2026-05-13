@@ -10,6 +10,8 @@
 #include "../renderer/MatrixStack.h"
 #include "../math/Bezier.h"
 #include "../math/Spline.h"
+#include "../physics/AABB.h"
+#include "../SceneInitializer.h"
 #include "Camera.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -61,81 +63,101 @@ void Camera::cameraMovement(GLFWwindow *window, float cameraSpeed, float deltaTi
 		eye += up * deltaTime * cameraSpeed;
 	}
 }
-void Camera::playerMovement(GLFWwindow *window, float maxSpeed, float deltaTime)
+
+void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer> scene, float maxSpeed, float deltaTime)
 {
-    float accel = 10.0f;
-    float friction = 6.0f;
-    float stopSpeed = 100.0f;
-    float speedMult = (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) ? 2.0f : 1.0f;
-    
-    glm::vec3 wishDir = glm::vec3(0.0f);
-    strafe = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0)));
+	float accel = 10;
+    //glm::vec3 accel = glm::vec3(0, -9.81/32, 0);
+	float addSpeed, accelSpeed, currentSpeed, wishSpeed, speed, newSpeed, drop, control, speedMult;
+	float stopSpeed = 100.0f, friction = 6.0f;
+	
+	glm::vec3 wishDir = glm::vec3(0.0f);
+	strafe = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0))); // get side basis vector (points right)
+	up = normalize(glm::cross(forward, strafe));					  // get vertical basis vector (points up)
 
-    // 1. Movement Input
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) wishDir += forward;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) wishDir -= forward;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) wishDir -= strafe;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) wishDir += strafe;
+	// User input
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) wishDir += forward;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) wishDir -= forward;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) wishDir -= strafe;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) wishDir += strafe;
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) if(!airborne) velocity.y = 80;
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		speedMult = 2;
+	else
+		speedMult = 1;
 
-    // 2. Jump Input (Ground only)
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !airborne)
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+	{
+		velocity -= up * deltaTime * maxSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+	{
+		velocity += up * deltaTime * maxSpeed;
+	}
+
+	// Normalize input
+	if (glm::length(wishDir) > 0.001f)
+		wishDir = glm::normalize(wishDir);
+
+	wishSpeed = maxSpeed * speedMult;
+	wishDir.y = 0;
+	
+	// Friction
+	if(!airborne)
+	{
+		speed = glm::length(velocity);
+
+		control = speed < stopSpeed ? stopSpeed : speed;
+		drop += control * friction * deltaTime;
+
+		newSpeed = glm::max(speed - drop, 0.0f);
+		if (speed > 0) newSpeed /= speed;
+		
+		velocity *= newSpeed;
+	}
+	
+	// Accelerate
+	currentSpeed = glm::dot(velocity, wishDir);
+	addSpeed = wishSpeed - currentSpeed;
+	
+	accelSpeed = accel * deltaTime * wishSpeed;
+
+	// Limit max acceleration
+	if (accelSpeed > addSpeed)
+		accelSpeed = addSpeed;
+	
+	// physics updates
+	velocity += accelSpeed * wishDir;
+
+	velocity.y -= gravity * deltaTime;
+
+	// if(eye.y > -5.0f)
+	// {
+	// 	//airborne = true;
+	// 	velocity.y -= gravity * deltaTime;
+	// }
+	// else
+	// {
+	// 	airborne = false;
+	// 	//velocity.y = 0;
+	// 	eye.y = -5.0f;
+	// }
+
+	eye_prev = eye;
+
+	// apply to player position
+	eye += velocity * deltaTime;
+
+	airborne = true;
+    for (auto &mapGeomChild : scene->mapGeom->children)
     {
-        velocity.y = 250.0f; // Quake jump impulse is much higher than 80
-        airborne = true;
+        //scene->mapGeom->collided = AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild);
+        if (AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild))
+			break;
     }
 
-    // 3. Prepare wishDir/wishSpeed
-    wishDir.y = 0; // Keep movement horizontal
-    if (glm::length(wishDir) > 0) 
-        wishDir = glm::normalize(wishDir);
-
-    float wishSpeed = maxSpeed * speedMult;
-
-    // 4. Ground Friction
-    if (!airborne)
-    {
-        float speed = glm::length(velocity);
-        if (speed > 0)
-        {
-            float control = (speed < stopSpeed) ? stopSpeed : speed;
-            float drop = control * friction * deltaTime;
-            float newSpeed = glm::max(speed - drop, 0.0f);
-            velocity *= (newSpeed / speed);
-        }
-    }
-
-    // 5. Acceleration (The Strafe-Jump logic)
-    float currentSpeed = glm::dot(velocity, wishDir);
-    float addSpeed = wishSpeed - currentSpeed;
-
-    if (addSpeed > 0)
-    {
-        float accelSpeed = accel * deltaTime * wishSpeed;
-        if (accelSpeed > addSpeed) accelSpeed = addSpeed;
-        velocity += accelSpeed * wishDir;
-    }
-
-    // 6. Gravity (Always acting if in air)
-    if (airborne)
-    {
-        velocity.y -= gravity * deltaTime;
-    }
-
-    // 7. FINAL POSITION UPDATE (Integrate velocity)
-    eye += velocity * deltaTime;
-
-    // 8. FLOOR COLLISION (The "Snap")
-    // Do this AFTER moving the eye so the jump has a frame to clear the floor
-    if (eye.y <= -5.0f)
-    {
-        eye.y = -5.0f;
-        velocity.y = 0;
-        airborne = false;
-    }
-    else
-    {
-        airborne = true;
-    }
+	if (eye.y < -10.0f)
+		eye = glm::vec3(0, 50.0f, 0);
 }
 
 void Camera::SetView(std::shared_ptr<Program> shader)

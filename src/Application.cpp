@@ -119,9 +119,9 @@ void Application::render(float frametime)
 
     // Apply perspective projection.
     scene->Projection->pushMatrix();
-    scene->Projection->perspective(45.0f, aspect, 0.01f, 1000.0f); // FIXME, was 100
+    scene->Projection->perspective(45.0f, aspect, 0.01f, 3000.0f); // FIXME, was 100
     scene->ProjectionPortal->pushMatrix();
-    scene->ProjectionPortal->perspective(45.0f, aspect, 0.01f, 1000.0f); // FIXME, was 100
+    scene->ProjectionPortal->perspective(45.0f, aspect, 0.01f, 3000.0f); // FIXME, was 100
 
     // CREATE PORTAL MATRICES - HARDCODED
     scene->portalEntranceDoor->updateBounds();
@@ -190,16 +190,20 @@ void Application::render(float frametime)
 
     // save previous camera position for collision
     scene->mainCamera->eye_prev = scene->mainCamera->eye;
-
+    
     // camera movements
     if (callbacks->cinematicCamera)
         scene->mainCamera->updateUsingCameraPath(deltaTime, scene->splinepath);
     if (callbacks->freeCamera)                                                          // FIXME MOVE TO BEGINNING
         scene->mainCamera->cameraMovement(windowManager->getHandle(), scene->cameraSpeed, deltaTime); // smooth camera movements
     else
-        scene->mainCamera->playerMovement(windowManager->getHandle(), 75.0, deltaTime); // control the player
+        scene->mainCamera->playerMovement(windowManager->getHandle(), scene, 100.0, deltaTime); // control the player
 
     scene->mainCamera->lookAtTarget = scene->mainCamera->eye + scene->mainCamera->forward; // FIXME, put this before?
+
+    // Map geom collisions
+    //scene->skybox->collided = AABB::intersectsCamera(*scene->mainCamera, *scene->skybox);
+
 
     /*
     scene->debugShader->bind();

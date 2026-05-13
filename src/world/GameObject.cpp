@@ -15,6 +15,14 @@ void GameObject::updateBounds()
     localCenter = (localMax + localMin) / 2.0f;
 }
 
+void GameObject::updateBoundsMapGeom()
+{
+    min = localMin;
+    max = localMax;
+
+    localCenter = (localMax + localMin) / 2.0f;
+}
+
 void GameObject::addChild(std::unique_ptr<GameObject> child)
 {
     child->parent = this; // fixme

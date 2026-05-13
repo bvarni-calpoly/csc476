@@ -27,4 +27,6 @@ void main() {
 
   //to confirm texture coordinates
   //Outcolor = vec4(vTexCoord.x, vTexCoord.y, 0, 0);
+  
+  Outcolor = vec4(texColor0.xyz, 1.0);
 }

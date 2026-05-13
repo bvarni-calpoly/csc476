@@ -28,6 +28,7 @@ public:
 	void removeChild(int id);
 
 	void updateBounds();
+	void updateBoundsMapGeom();
 
 	// scene graph (godot engine)
 	// std::shared_ptr<GameObject> parent; // fixme shared or raw pointer?

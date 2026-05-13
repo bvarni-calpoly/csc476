@@ -210,7 +210,7 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
 
             // part->scale = part->shape->max - part->shape->min;
 
-            part->updateBounds();
+            part->updateBoundsMapGeom();
 
             part->objName = TOshapes[i].name;
 
@@ -281,12 +281,12 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
     //loadHierGeom(resourceDirectory, "/scene/test_map_flipped_normals.obj", mapGeom);
     //loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
-    loadMapGeom(resourceDirectory, "/scene/twoplane_portal.obj", mapGeom);
+    loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
 
     // light
 
     // skybox
-    skybox->scale = vec3(500.0f);
+    skybox->scale = vec3(2000.0f);
     skybox->position = vec3(0.0f, -10.0f, 0.0f);
 
     // code to load in the ground plane (CPU defined data passed to GPU)
