@@ -4,7 +4,6 @@
 int AABB::intersectsCamera(Camera& cam, const GameObject& obj) // FIXME optimize this, check godot docs
 {
     // adjust for player height
-    cam.playerHeight = 16.0f;
     float camHeight = cam.eye.y - cam.playerHeight;
     // check each axis for collision
     bool xCollision = (cam.eye.x > obj.min.x) && (cam.eye.x < obj.max.x);

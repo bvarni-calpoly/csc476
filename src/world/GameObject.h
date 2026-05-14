@@ -34,8 +34,12 @@ public:
 	// std::shared_ptr<GameObject> parent; // fixme shared or raw pointer?
 	int id = 0;
 	bool isMarked = false;
-	GameObject *parent = nullptr;					   // fixme shared or raw pointer?
+	GameObject* parent = nullptr;					   // fixme shared or raw pointer?
 	std::vector<std::unique_ptr<GameObject>> children; // fixme make hashmap? check godot docs
+
+	// portal logic
+	GameObject* source; 	 // entrance portal
+	GameObject* destination; // exit portal
 
 	std::shared_ptr<Shape> shape;
 	std::string objName;

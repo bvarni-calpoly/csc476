@@ -156,7 +156,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 			break;
     }
 
-	if (eye.y < -10.0f)
+	if (eye.y < -200.0f)
 		eye = glm::vec3(0, 50.0f, 0);
 }
 

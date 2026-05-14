@@ -26,17 +26,17 @@ public:
     void updateUsingCameraPath(float frametime, Spline *splinepath);
 
     glm::vec3 view          = glm::vec3(0, 0, 1);
-    glm::vec3 eye           = glm::vec3(0, 1, 0);
+    glm::vec3 eye           = glm::vec3(0, 50, 0);
     glm::vec3 eye_prev      = glm::vec3(0, 1, 0);
     glm::vec3 strafe        = glm::vec3(1, 0, 0);
     glm::vec3 up            = glm::vec3(0, 1, 0);
     glm::vec3 forward       = glm::vec3(0, 0, 1);
-    glm::vec3 lookAtTarget  = glm::vec3(0, 1, -4);
+    glm::vec3 lookAtTarget  = glm::vec3(0, 1, 0);
 
     // move into player class
 	bool airborne = false;
 	float gravity = 200;
-    float playerHeight = 10.0f;
+    float playerHeight = 16.0f;
 	glm::vec3 velocity = glm::vec3(0);
 };
 

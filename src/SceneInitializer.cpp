@@ -229,6 +229,20 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
                 if(part->objName.find("exit") != string::npos)
                     part->portalID = 2; // get last character / number of the portal
                 
+                part->source = part.get();
+                portals.push_back(part.get());
+
+                if(part->portalID == 2)
+                {
+                    GameObject *first = portals[0];
+                    GameObject *second = portals[1];
+
+                    first->destination = second;
+                    second->destination = first;
+                }
+
+                //portals.insert({part->portalID, part});
+                
                 cout << "portalID: " << part->portalID << endl;
 
                 // Calculate scale
@@ -281,13 +295,13 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
     //loadHierGeom(resourceDirectory, "/scene/test_map_flipped_normals.obj", mapGeom);
     //loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
-    loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
+    loadMapGeom(resourceDirectory, "/scene/single_portals.obj", mapGeom);
 
     // light
 
     // skybox
     skybox->scale = vec3(2000.0f);
-    skybox->position = vec3(0.0f, -10.0f, 0.0f);
+    skybox->position = vec3(0.0f, -200.0f, 0.0f);
 
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();

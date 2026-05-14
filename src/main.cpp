@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 		static bool showDemoWindow = false;
 		ImGui::Checkbox("Show Demo Window", &showDemoWindow);
 		ImGui::Checkbox("Reset Camera", &showDemoWindow); // FIXME
-		ImGui::SliderFloat("Main Camera speed", &application->scene->cameraSpeed, -5.0f, 100.0f);
+		ImGui::SliderFloat("Main Camera speed", &application->scene->cameraSpeed, -5.0f, 1000.0f);
 		ImGui::SliderFloat3("Main Camera rotation", &application->scene->mainCamera->lookAtTarget.x, -5.0f, 25.0f);
 		ImGui::SliderFloat3("Main Camera position", &application->scene->mainCamera->eye.x, -25.0f, 25.0f);
 

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <unordered_map>
 #include "renderer/Program.h"
 #include "renderer/Texture.h"
 #include "world/GameObject.h"
@@ -40,12 +41,16 @@ public:
     std::shared_ptr<Texture> textureBlue;
     std::shared_ptr<Texture> texturePurple;
 
+    // Portal map
+    //std::unordered_map<std::string, GameObject*> portals; // raw pointer because scene graph owns the unique_ptr
+    std::vector<GameObject*> portals; // raw pointer because scene graph owns the unique_ptr
+
     // Camera
     std::shared_ptr<Camera> mainCamera = std::make_shared<Camera>();
     std::shared_ptr<Camera> portalCamera = std::make_shared<Camera>();
     std::shared_ptr<Camera> tempCamera = std::make_shared<Camera>();
 
-    float cameraSpeed = 10.0;
+    float cameraSpeed = 500.0;
     Spline splinepath[4];
 
     // scene / level
