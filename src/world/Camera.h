@@ -35,7 +35,7 @@ public:
 
     // move into player class
 	bool airborne = false;
-	float gravity = 200;
+	float gravity = 400;
     float playerHeight = 16.0f;
 	glm::vec3 velocity = glm::vec3(0);
 };

@@ -106,6 +106,14 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, std::shared_ptr<
                     scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
                 else
                     scene->texture1->bind(scene->texProg->getUniform("Texture0"));
+                
+                if(part->objName.find("stair") != string::npos)
+                {
+                    if (part->collided % 2 == 1)
+                        scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
+                    else
+                        scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
+                }
 
                 GLSLUtils::setModel(curS, Model);
                 part->shape->draw(curS);

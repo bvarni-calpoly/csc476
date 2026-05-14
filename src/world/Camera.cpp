@@ -80,7 +80,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) wishDir -= forward;
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) wishDir -= strafe;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) wishDir += strafe;
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) if(!airborne) velocity.y = 80;
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) if(!airborne) velocity.y = 150;
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		speedMult = 2;
 	else
@@ -161,14 +161,14 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 				if (mapGeomChild->portalID == 1)
 				{
 					std::cout << "Portal1" << std::endl;
-					glm::vec3 offset = eye - (scene->portals[0]->position + glm::vec3(0, 0.0, 2.2f));
+					glm::vec3 offset = eye - (scene->portals[0]->position + glm::vec3(0, 0.0, 1.5f)); // FIXME, z offset
 					eye = scene->portals[1]->position + offset;
 					//eye = scene->portals[1]->position + glm::vec3(0.0f, scene->portals[1]->position.y / 2.0f, -1.5f);
 
 				} else if (mapGeomChild->portalID == 2)
 				{
 					std::cout << "Portal2" << std::endl;
-					glm::vec3 offset = eye - (scene->portals[1]->position + glm::vec3(0, 0, -2.2f));
+					glm::vec3 offset = eye - (scene->portals[1]->position + glm::vec3(0, 0, -1.5f)); // FIXME, z offset
 					eye = scene->portals[0]->position + offset;
 					//eye = scene->portals[0]->position + glm::vec3(0.0f, -scene->portals[0]->position.y / 2.0f, 1.5f);
 				}
@@ -176,6 +176,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		}
 		else if (AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild))
 		{
+			mapGeomChild->collided += 1;
 			break;
 		}
     }
