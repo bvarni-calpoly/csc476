@@ -12,4 +12,5 @@ private:
 public:
     static int intersectsCamera(Camera& cam, const GameObject& obj);
     static int intersectsObject(const GameObject& obj1, const GameObject& obj2);
+    static int intersectsCameraPlane(Camera& cam, const GameObject& obj); // FIXME optimize this, check godot docs
 };

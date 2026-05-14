@@ -148,7 +148,7 @@ void Application::render(float frametime)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // Clear framebuffer and stencilbuffer
     glm::mat4 mainView = lookAt(scene->mainCamera->eye, scene->mainCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
     sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 0, 0);
-
+    
     // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     // glStencilMask(0x00);
     // glDisable(GL_DEPTH_TEST);

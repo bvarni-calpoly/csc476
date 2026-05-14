@@ -40,6 +40,7 @@ public:
 	// portal logic
 	GameObject* source; 	 // entrance portal
 	GameObject* destination; // exit portal
+	glm::vec3 planeNormal;
 
 	std::shared_ptr<Shape> shape;
 	std::string objName;

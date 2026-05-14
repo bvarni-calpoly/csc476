@@ -258,6 +258,7 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
                 //TOshapes[i].mesh.normals
                 glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f); // HOW TO READ IN THE NORMAL VALUES
                 if(part->objName.find("exit") != string::npos) normal = glm::vec3(0.0f, 0.0f, -1.0f);
+                part->planeNormal = normal;
                 
                 glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
                 glm::vec3 right = glm::normalize(glm::cross(worldUp, normal));
@@ -287,7 +288,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     // load in the mesh and make the shape(s)
 
     loadGeom(resourceDirectory, "/objects/wedge.obj", player);
-    loadGeom(resourceDirectory, "/objects/cylinder.obj", skybox);
+    loadGeom(resourceDirectory, "/objects/cube.obj", skybox); // use a cube map
     loadGeom(resourceDirectory, "/objects/cube.obj", cube);
     loadGeom(resourceDirectory, "/objects/cube.obj", portalEntranceDoor);
     loadGeom(resourceDirectory, "/objects/cube.obj", portalExitDoor);
@@ -295,7 +296,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
     //loadHierGeom(resourceDirectory, "/scene/test_map_flipped_normals.obj", mapGeom);
     //loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
-    loadMapGeom(resourceDirectory, "/scene/single_portals.obj", mapGeom);
+    loadMapGeom(resourceDirectory, "/scene/singleportal_review.obj", mapGeom);
 
     // light
 

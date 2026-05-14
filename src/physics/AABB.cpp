@@ -26,6 +26,35 @@ int AABB::intersectsCamera(Camera& cam, const GameObject& obj) // FIXME optimize
     return 0; // no collision
 }
 
+//FIXME THIS MOVE TO ANOTHER CLASS
+int AABB::intersectsCameraPlane(Camera& cam, const GameObject& obj) // FIXME optimize this, check godot docs
+{
+    // adjust for player height
+    float camHeight = cam.eye.y - cam.playerHeight;
+
+    // check each axis for collisionS
+    bool xCollision = (cam.eye.x >= (obj.min.x - 1.0f)) && (cam.eye.x <= (obj.max.x + 1.0f));
+    bool yCollision = (cam.eye.y >= (obj.min.y - 1.0f)) && (camHeight <= (obj.max.y + 1.0f));
+    bool zCollision = (cam.eye.z >= (obj.min.z - 1.0f)) && (cam.eye.z <= (obj.max.z + 1.0f));
+    
+    //std::cout << xCollision << yCollision << zCollision << std::endl;
+
+    if (xCollision && yCollision && zCollision)
+    {
+        std::cout << "inside bounding plane" << std::endl;
+        //cam.eye = cam.eye_prev;
+        //cam.eye = glm::vec3(0, 10, 0);
+        //cam.velocity.y = 0;
+        //cam.airborne = false;
+
+        // check if jailed inside object
+
+        return 1; // collision detected
+    }
+
+    return 0; // no collision
+}
+
 int AABB::intersectsObject(const GameObject& obj1, const GameObject& obj2)
 {
     // check each axis for collision

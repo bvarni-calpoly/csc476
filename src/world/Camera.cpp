@@ -152,8 +152,32 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
     for (auto &mapGeomChild : scene->mapGeom->children)
     {
         //scene->mapGeom->collided = AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild);
-        if (AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild))
+		//std::cout << mapGeomChild->objName << " " << mapGeomChild->portalID << std::endl;
+		
+		if (mapGeomChild->portalID > 0)
+		{
+			if (AABB::intersectsCameraPlane(*scene->mainCamera, *mapGeomChild))
+			{
+				if (mapGeomChild->portalID == 1)
+				{
+					std::cout << "Portal1" << std::endl;
+					glm::vec3 offset = eye - (scene->portals[0]->position + glm::vec3(0, 0.0, 2.2f));
+					eye = scene->portals[1]->position + offset;
+					//eye = scene->portals[1]->position + glm::vec3(0.0f, scene->portals[1]->position.y / 2.0f, -1.5f);
+
+				} else if (mapGeomChild->portalID == 2)
+				{
+					std::cout << "Portal2" << std::endl;
+					glm::vec3 offset = eye - (scene->portals[1]->position + glm::vec3(0, 0, -2.2f));
+					eye = scene->portals[0]->position + offset;
+					//eye = scene->portals[0]->position + glm::vec3(0.0f, -scene->portals[0]->position.y / 2.0f, 1.5f);
+				}
+			}
+		}
+		else if (AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild))
+		{
 			break;
+		}
     }
 
 	if (eye.y < -200.0f)
@@ -175,7 +199,7 @@ void Camera::SetPortalView(std::shared_ptr<Program> shader, std::shared_ptr<Came
 	//TD = TB^-1 * R * TA * TC
 	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0, 1, 0)); // R, rotate 180 degrees
 	glm::mat4 mainView = glm::lookAt(mainCamera->eye, mainCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
-	glm::mat4 portalA = portalSource->topMatrix();	// TA
+	glm::mat4 portalA = portalSource->topMatrix();		// TA
 	glm::mat4 portalB = portalDestination->topMatrix();	// TB
 
 	// 1. inverse(PortalB) - Move from world space -> destination local space
