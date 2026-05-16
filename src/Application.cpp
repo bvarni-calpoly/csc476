@@ -140,6 +140,7 @@ void Application::render(float frametime)
     glm::mat4 mainView = lookAt(scene->mainCamera->eye, scene->mainCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
     //sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 1, 0);
     sceneRender->drawPortals(scene, sceneRender, callbacks, mainView, scene->Projection->topMatrix());
+    sceneRender->drawTool(scene, sceneRender, callbacks, mainView, scene->Projection->topMatrix());
     
     /*
     // DRAW BORDER OBJECTS HERE
@@ -176,7 +177,7 @@ void Application::render(float frametime)
     if (callbacks->freeCamera)                                                          // FIXME MOVE TO BEGINNING
         scene->mainCamera->cameraMovement(windowManager->getHandle(), scene->cameraSpeed, deltaTime); // smooth camera movements
     else
-        scene->mainCamera->playerMovement(windowManager->getHandle(), scene, 100.0, deltaTime); // control the player
+        scene->mainCamera->playerMovement(windowManager->getHandle(), scene, 175.0, deltaTime); // control the player
 
     scene->mainCamera->lookAtTarget = scene->mainCamera->eye + scene->mainCamera->forward; // FIXME, put this before?
 

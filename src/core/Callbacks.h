@@ -29,7 +29,7 @@ public:
 	double lastX, lastY;
 	glm::vec3 lightTrans = glm::vec3(0.0f, 10.0f, 10.0f);
 	bool cinematicCamera = false;
-	bool freeCamera = true;
+	bool freeCamera = false;
 	int mat = 0;
 	bool mouseEnabled = true;
 };

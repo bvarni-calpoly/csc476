@@ -1,3 +1,15 @@
+- add animatino through multiple obj files
+    - using a vertex shader to lerp
+- add lighting
+- add a framebuffer kernel for objecet outlining
+- add a rocket jumper
+- add raycasts?
+- add enemy
+- add backface culling or frustrum culling or whatever the single opengl command is
+- fix obj loader to also read mtl values
+- add broadphase and narrowphase collsiion type (aabb to plane)
+
+
 -- FOR TODAY / SOON --
     change functions to iterate by reference and not value
     
@@ -29,34 +41,13 @@ Setup
         window dimensions
         just compare the two files
 
-File Structure
-    Game Object should have a draw function instead of there being
-        drawSkybox or drawObject.
-
 Shaders
     Write shaders from scratch again
     Blinn-Phong lighting
     Add shadows
     Frustum Culling
 
-Loading
-    make a function to initialize objects in initGeom
-    Fix tiny_obj_loader
-        add mtl loading support
-    add assimp
-
-Map loading and Collisions
-    plane collisions
-    load maps from probably TrenchBroom
-    vertical map
-
-Additional feature
-    Possibly complex collision response?
-
-Portals!
-    The main focus, check pdf for more (gifs not working currently)
-    Stencils buffers or render to texture? (probably stencil buffers)
-
 Optimizations
     Forward declarations versus Full include
+    Pass addresses instead of values
     Having memory be sequential or near each other for objects instead of pointers at random memory addresses

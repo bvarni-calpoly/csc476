@@ -8,6 +8,7 @@
 #include "../math/Spline.h"
 #include <memory>
 
+class SceneRender;
 class SceneInitializer;
 
 class Camera
@@ -19,7 +20,7 @@ public:
     ~Camera();
 
     void cameraMovement(GLFWwindow *window, float cameraSpeed, float deltaTime); //fixme make deltatime a variable
-	void playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer> scene, float maxSpeed, float deltaTime);
+    void playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer> &scene, float maxSpeed, float deltaTime);
    	void SetView(std::shared_ptr<Program> shader);
    	void SetPortalView(std::shared_ptr<Program> shader, std::shared_ptr<Camera> mainCamera, std::shared_ptr<MatrixStack> sourcePortal, std::shared_ptr<MatrixStack> destinationPortal);
     void SetRecursivePortalView(std::shared_ptr<Program> shader, std::shared_ptr<Camera> mainCamera, std::shared_ptr<MatrixStack> sourcePortal, std::shared_ptr<MatrixStack> destinationPortal);

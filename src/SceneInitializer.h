@@ -60,6 +60,7 @@ public:
     std::shared_ptr<GameObject> skybox;
     std::shared_ptr<GameObject> cube;
     std::shared_ptr<GameObject> arrow;
+    std::shared_ptr<GameObject> projectile;
     glm::vec3 gMin;
 
     int objectCount = 0;

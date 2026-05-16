@@ -65,19 +65,22 @@ void Callbacks::keyCallback(GLFWwindow *window, int key, int scancode, int actio
     {
         cinematicCamera = !cinematicCamera;
     }
+    if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_RELEASE)
+    {
+        mouseEnabled = !mouseEnabled;
+        std::cout << "Mouse toggle:" << mouseEnabled << std::endl;
+    }
 }
 
 void Callbacks::mouseCallback(GLFWwindow *window, int button, int action, int mods)
 {    
     double posX, posY;
 
-    if (action == GLFW_PRESS)
+    // if (action == GLFW_PRESS)
+    if (action == GLFW_MOUSE_BUTTON_LEFT)
     {
         glfwGetCursorPos(window, &posX, &posY);
         std::cout << "Pos X " << posX << " Pos Y " << posY << std::endl;
-
-        mouseEnabled = !mouseEnabled;
-        std::cout << "Mouse toggle:" << mouseEnabled << std::endl;
     }
 }
 

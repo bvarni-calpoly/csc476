@@ -12,6 +12,7 @@
 #include "../math/Spline.h"
 #include "../physics/AABB.h"
 #include "../SceneInitializer.h"
+#include "../SceneRender.h"
 #include "Camera.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -64,7 +65,7 @@ void Camera::cameraMovement(GLFWwindow *window, float cameraSpeed, float deltaTi
 	}
 }
 
-void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer> scene, float maxSpeed, float deltaTime)
+void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer> &scene, float maxSpeed, float deltaTime)
 {
 	float accel = 10;
     //glm::vec3 accel = glm::vec3(0, -9.81/32, 0);
@@ -85,15 +86,25 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		speedMult = 2;
 	else
 		speedMult = 1;
-
+	
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
 	{
 		velocity -= up * deltaTime * maxSpeed;
 	}
-	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 	{
 		velocity += up * deltaTime * maxSpeed;
 	}
+
+	// Rocket jumper
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+	{
+		float rocketSpeed = 100.0f;
+		scene->projectile->position = this->eye + (this->forward * (-rocketSpeed + 1.0f));
+		scene->projectile->velocity = this->forward * rocketSpeed;
+	}
+
+	scene->projectile->position += scene->projectile->velocity * deltaTime;
 
 	// Normalize input
 	if (glm::length(wishDir) > 0.001f)
@@ -101,8 +112,6 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 
 	wishSpeed = maxSpeed * speedMult;
 	wishDir.y = 0;
-	
-	// Friction
 	if(!airborne)
 	{
 		speed = glm::length(velocity);
@@ -115,7 +124,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		
 		velocity *= newSpeed;
 	}
-	
+
 	// Accelerate
 	currentSpeed = glm::dot(velocity, wishDir);
 	addSpeed = wishSpeed - currentSpeed;
