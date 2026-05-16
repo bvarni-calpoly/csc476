@@ -123,15 +123,6 @@ void Application::render(float frametime)
     scene->ProjectionPortal->pushMatrix();
     scene->ProjectionPortal->perspective(45.0f, aspect, 0.01f, 3000.0f); // FIXME, was 100
 
-    // CREATE PORTAL MATRICES - HARDCODED
-    scene->portalEntranceDoor->updateBounds();
-    scene->portalEntranceDoor->rotation = vec3(0, 1, 0);
-    //scene->portalEntranceDoor->angle = g_Spin * glfwGetTime();
-
-    scene->portalExitDoor->updateBounds();
-    scene->portalExitDoor->rotation = vec3(0, 1, 0);
-    //scene->portalExitDoor->angle = g_Spin * glfwGetTime();
-
     // update matrices
     scene->skybox->rotation = vec3(0, 1, 0);
     scene->skybox->angle = g_Spin * glfwGetTime();
@@ -147,27 +138,15 @@ void Application::render(float frametime)
     // https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // Clear framebuffer and stencilbuffer
     glm::mat4 mainView = lookAt(scene->mainCamera->eye, scene->mainCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
-    sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 0, 0);
+    //sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 1, 0);
+    sceneRender->drawPortals(scene, sceneRender, callbacks, mainView, scene->Projection->topMatrix());
     
+    /*
+    // DRAW BORDER OBJECTS HERE
+
     // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     // glStencilMask(0x00);
     // glDisable(GL_DEPTH_TEST);
-    /*
-    // DRAW BORDER OBJECTS HERE
-    scene->prog->bind();
-        scene->mainCamera->SetView(scene->prog);
-        
-        // set up all the matrices
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, value_ptr(scene->Projection->topMatrix()));
-        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-        
-        // Draw portal ENTRANCE frame
-        sceneRender->drawMesh(scene->prog, scene->ModelPortalSource, scene->portalEntranceDoor, 3, vec3(0), 0, vec3(0), vec3(1.1f));
-        
-        // Draw portal EXIT frame
-        sceneRender->drawMesh(scene->prog, scene->ModelPortalDestination, scene->portalExitDoor, 4, vec3(0), 0, vec3(0), vec3(1.1f));
-    scene->prog->unbind();
-
     // Reset stencil buffer state
     glStencilMask(0xFF);
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -200,10 +179,6 @@ void Application::render(float frametime)
         scene->mainCamera->playerMovement(windowManager->getHandle(), scene, 100.0, deltaTime); // control the player
 
     scene->mainCamera->lookAtTarget = scene->mainCamera->eye + scene->mainCamera->forward; // FIXME, put this before?
-
-    // Map geom collisions
-    //scene->skybox->collided = AABB::intersectsCamera(*scene->mainCamera, *scene->skybox);
-
 
     /*
     scene->debugShader->bind();

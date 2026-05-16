@@ -288,11 +288,19 @@ void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::
             if (child->portalID != 0)
             {
                 // Draw portal ENTRANCE frame
-                if(child->objName.find("entrance") != string::npos)
+                if(child->objName.find("entrance1") != string::npos)
                     sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portalID);
 
                 // Draw portal EXIT frame
-                if(child->objName.find("exit") != string::npos)
+                else if(child->objName.find("exit1") != string::npos)
+                    sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portalID);
+
+                // Draw portal ENTRANCE frame
+                else if(child->objName.find("entrance2") != string::npos)
+                    sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portalID);
+
+                // Draw portal EXIT frame
+                else if(child->objName.find("exit2") != string::npos)
                     sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portalID);
                 
                 //break; // FIXME investigate why the other quad draws without this
@@ -335,7 +343,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         scene->texture1->bind(scene->texProg->getUniform("Texture1"));
     
         // set up all the matrices
-	    glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
+        glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
         glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
@@ -343,13 +351,13 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         
         scene->texture1->bind(scene->texProg->getUniform("Texture0"));
 
-        //sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
+        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
     scene->texProg->unbind();
 
     scene->prog->bind();
         // set up all the matrices
         //scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
-	    glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
+        glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
         glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
         glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
@@ -432,30 +440,30 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
 
 glm::mat4 const SceneRender::clippedProjMat(GameObject &portal, glm::mat4 const &viewMat, glm::mat4 const &projMat)
 {
-	// float dist = glm::length(d_position);
-	// glm::vec4 clipPlane(d_orientation * glm::vec3(0.0f, 0.0f, -1.0f), dist);
-	float dist = glm::length(portal.position);
-	glm::vec4 clipPlane(glm::vec3(0.0f, 0.0f, -1.0f), dist);
-	clipPlane = glm::inverse(glm::transpose(viewMat)) * clipPlane;
+    // float dist = glm::length(d_position);
+    // glm::vec4 clipPlane(d_orientation * glm::vec3(0.0f, 0.0f, -1.0f), dist);
+    float dist = glm::length(portal.position);
+    glm::vec4 clipPlane(glm::vec3(0.0f, 0.0f, -1.0f), dist);
+    clipPlane = glm::inverse(glm::transpose(viewMat)) * clipPlane;
 
-	if (clipPlane.w > 0.0f)
-		return projMat;
+    if (clipPlane.w > 0.0f)
+        return projMat;
 
-	glm::vec4 q = glm::inverse(projMat) * glm::vec4(
-		glm::sign(clipPlane.x),
-		glm::sign(clipPlane.y),
-		1.0f,
-		1.0f
-	);
+    glm::vec4 q = glm::inverse(projMat) * glm::vec4(
+        glm::sign(clipPlane.x),
+        glm::sign(clipPlane.y),
+        1.0f,
+        1.0f
+    );
 
-	glm::vec4 c = clipPlane * (2.0f / (glm::dot(clipPlane, q)));
+    glm::vec4 c = clipPlane * (2.0f / (glm::dot(clipPlane, q)));
 
-	glm::mat4 newProj = projMat;
-	// third row = clip plane - fourth row
-	newProj = glm::row(newProj, 2, c - glm::row(newProj, 3));
+    glm::mat4 newProj = projMat;
+    // third row = clip plane - fourth row
+    newProj = glm::row(newProj, 2, c - glm::row(newProj, 3));
 
-	return newProj;
-} 
+    return newProj;
+}
 
 // https://github.com/ThomasRinsma/opengl-game-test/blob/8363bbf/src/scene.cc#L81
 void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, shared_ptr<MatrixStack> Projection, int maxRecursionLevel, int recursionLevel)
@@ -563,17 +571,200 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
     glEnable(GL_DEPTH_TEST);
 
     drawNonPortals(scene, sceneRender, callbacks, viewMat);
+}
 
-    // Draw Skybox
-    scene->texProg->bind();
-        scene->texture1->bind(scene->texProg->getUniform("Texture1"));
+/*
+// https://github.com/ThomasRinsma/opengl-game-test/blob/8363bbf/src/scene.cc#L81
+void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, shared_ptr<MatrixStack> Projection, int maxRecursionLevel, int recursionLevel)
+{
+    // for (auto &pair : scene->portals)
+    for (auto &portal : scene->portals)
+    {
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Color buffer
+        glDepthMask(GL_FALSE); // Depth buffer
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+
+        glEnable(GL_STENCIL_TEST); // enable writing to the stencil buffer
+        
+        glStencilFunc(GL_EQUAL, recursionLevel, 0xFF);
+
+        glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+        
+        glStencilMask(0xFF); // Enable writing into all stencil bits
+
+        // Draw portal frames into setencil buffer
+        drawPortalFrame(scene, sceneRender, callbacks, viewMat);            
+        
+        // Setup stencil buffer to draw other objects over the portal
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // Color buffer
+        glDepthMask(GL_TRUE); // Depth buffer
+        
+        glEnable(GL_STENCIL_TEST);
+        
+        glStencilMask(0x00); // Do not write to stencil buffer
+        
+        glStencilFunc(GL_EQUAL, recursionLevel + 1, 0xFF);
+        
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_ALWAYS);
+        
+        //glDepthRange(1, 1);
+        
+        //glDepthRange(0, 1);
+        glDepthFunc(GL_LESS);
+        
+        //glClear(GL_DEPTH_BUFFER_BIT); // Clear depth buffer
+        
+
+        // Generate the virtual camera’s view matrix using the view frustum clipping method, check main file sources for more information
+        //TD = TB^-1 * R * TA * TC
+        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // R, rotate 180 degrees
+        glm::mat4 portalA =  glm::translate(glm::mat4(1.0f), portal->position);                 // TA
+        glm::mat4 portalB =  glm::translate(glm::mat4(1.0f), portal->destination->position);    // TB
+        // 1. inverse(PortalB) - Move from world space -> destination local space
+        // 2. Rotation		   - (optional) flip orientation 180 degrees
+        // 3. Portal A		   - Move from rotated destination local space -> source world space
+        // 4. mainView		   - Move from source world space -> camera space
+
+        glm::mat4 destView = viewMat
+            * portalB
+            //* rotation
+            * glm::inverse(portalA);
+        
+        // render inside of portal
+        if(recursionLevel == maxRecursionLevel)
+        {
+
+            // REDRAW SCENE IN PORTAL - Redraw scene but with portal view (portal camera)
+            drawNonPortals(scene, sceneRender, callbacks, destView);
+            //drawNonPortals(scene, sceneRender, callbacks, clippedProjMat(*portal, destView, Projection->topMatrix()));
+        }
+        else
+        {
+            // Recursion Case
+            drawRecursivePortals(scene, sceneRender, callbacks, destView, Projection, maxRecursionLevel, recursionLevel + 1);
+            //drawRecursivePortals(scene, sceneRender, callbacks, clippedProjMat(*portal, destView, Projection->topMatrix()), Projection, maxRecursionLevel, recursionLevel + 1);
+        }
+
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Color buffer
+        
+        glDepthMask(GL_TRUE); // Depth buffer
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_ALWAYS);
+
+        glEnable(GL_STENCIL_TEST);
+        
+        glStencilFunc(GL_EQUAL, recursionLevel + 1, 0xFF);
+        
+        glStencilMask(0xFF); // Enalbe write to stencil buffer
+
+        glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+
+        drawPortalFrame(scene, sceneRender, portal, callbacks, viewMat);
+        
+        glDepthFunc(GL_LESS);
+    }
+
+    // glDisable(GL_STENCIL_TEST);
+    // glStencilMask(0x00);
     
-        // set up all the matrices
-	    glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(viewMat));
-        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
-        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-        scene->texture1->bind(scene->texProg->getUniform("Texture0"));
+    // glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    
+    // glDepthMask(GL_TRUE);
 
-        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
-    scene->texProg->unbind();
+
+    // glClear(GL_DEPTH_BUFFER_BIT);
+
+    // Draw portals into depth buffer
+    //drawPortalFrame(scene, sceneRender, callbacks, viewMat);
+    //glEnable(GL_STENCIL_TEST);
+    
+    glStencilFunc(GL_LEQUAL, recursionLevel, 0xFF);
+    
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthMask(GL_TRUE);
+    glStencilMask(0x00);
+
+    glEnable(GL_DEPTH_TEST);
+
+    drawNonPortals(scene, sceneRender, callbacks, viewMat);
+}
+*/
+
+// https://github.com/ThomasRinsma/opengl-game-test/blob/8363bbf/src/scene.cc#L81
+void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, glm::mat4 proj)
+{
+    for (auto &portal : scene->portals)
+    {
+        // Disable color and depth buffers
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Color buffer
+        glDepthMask(GL_FALSE); // Depth buffer
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_STENCIL_TEST); // Enable writing to the stencil buffer
+        
+        // Stencil fails on empty pixels, causing GL_INCR to set pixel to 1
+        glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
+        glStencilOp(GL_INCR, GL_KEEP, GL_KEEP);
+        glStencilMask(0xFF); // Enable writing into all stencil bits
+
+        // Draw portal frames into stencil buffer
+        drawPortalFrame(scene, sceneRender, callbacks, viewMat);
+
+        // --- Setup drawing objects inside the portal frame ---
+        // Enable color and depth buffers
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // Color buffer
+        glDepthMask(GL_TRUE); // Depth buffer
+        glEnable(GL_DEPTH_TEST);
+        
+        // glClear(GL_DEPTH_BUFFER_BIT); // Clear depth buffer
+        
+        // Setup depth tests and stencil, only draw pixels where stencil is 1
+        glStencilMask(0x00); // Lock stencil buffer
+        glStencilFunc(GL_EQUAL, 1, 0xFF);
+        
+        // Generate the virtual camera’s view matrix using the view frustum clipping method, check main file sources for more information
+        //TD = TB^-1 * R * TA * TC
+        // 1. inverse(PortalB) - Move from world space -> destination local space
+        // 2. Rotation		   - (optional) flip orientation 180 degrees
+        // 3. Portal A		   - Move from rotated destination local space -> source world space
+        // 4. mainView		   - Move from source world space -> camera space
+
+        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // R, rotate 180 degrees
+        glm::mat4 portalA =  glm::translate(glm::mat4(1.0f), portal->position) * portal->rotationMat;                 // TA
+        glm::mat4 portalB =  glm::translate(glm::mat4(1.0f), portal->destination->position) * portal->destination->rotationMat;    // TB
+        glm::mat4 destView = viewMat * portalB * rotation * glm::inverse(portalA);
+        //glm::mat4 destView = viewMat * portalB * glm::inverse(portalA);
+        
+        // Redraw scene but with portal view (portal camera)
+        drawNonPortals(scene, sceneRender, callbacks, destView);
+        //drawNonPortals(scene, sceneRender, callbacks, clippedProjMat(*portal, destView, Projection->topMatrix()));
+    }
+
+    // --- Draw remaining scene outside of the portals ---
+    // Stop writing to the stencil buffer
+    glDisable(GL_STENCIL_TEST);
+    glStencilMask(0x00);
+    
+    // Change write status to buffers
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Disable writing to the color buffer
+    glDepthMask(GL_TRUE); // Enable writing to the depth buffer
+    glEnable(GL_DEPTH_TEST);
+
+    // Enable depth test and clear depth buffer
+    glDepthFunc(GL_ALWAYS);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glDepthFunc(GL_LESS);
+
+    // Draw portals into depth buffer
+    drawPortalFrame(scene, sceneRender, callbacks, viewMat);
+    
+    // Enable color and depth buffer
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+
+    // Draw whole scene with main camera
+    drawNonPortals(scene, sceneRender, callbacks, viewMat);
 }

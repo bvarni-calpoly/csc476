@@ -33,9 +33,9 @@ int AABB::intersectsCameraPlane(Camera& cam, const GameObject& obj) // FIXME opt
     float camHeight = cam.eye.y - cam.playerHeight;
 
     // check each axis for collisionS
-    bool xCollision = (cam.eye.x >= (obj.min.x - 1.0f)) && (cam.eye.x <= (obj.max.x + 1.0f));
-    bool yCollision = (cam.eye.y >= (obj.min.y - 1.0f)) && (camHeight <= (obj.max.y + 1.0f));
-    bool zCollision = (cam.eye.z >= (obj.min.z - 1.0f)) && (cam.eye.z <= (obj.max.z + 1.0f));
+    bool xCollision = (cam.eye.x >= (obj.min.x - 0.5f)) && (cam.eye.x <= (obj.max.x + 0.5f));
+    bool yCollision = (cam.eye.y >= (obj.min.y - 0.5f)) && (camHeight <= (obj.max.y + 0.5f));
+    bool zCollision = (cam.eye.z >= (obj.min.z - 0.5f)) && (cam.eye.z <= (obj.max.z + 0.5f));
     
     //std::cout << xCollision << yCollision << zCollision << std::endl;
 

@@ -58,11 +58,6 @@ public:
     std::shared_ptr<GameObject> mapGeom;
     std::shared_ptr<GameObject> mapGeomNoHier;
     std::shared_ptr<GameObject> skybox;
-    std::shared_ptr<GameObject> portalEntranceDoor;
-    std::shared_ptr<GameObject> portalExitDoor;
-    glm::vec3 portalEntrancePos = glm::vec3(5.0f, 0.0f, 0.0f);
-    glm::vec3 portalExitPos = glm::vec3(10.0f, 0.0f, 0.0f);
-
     std::shared_ptr<GameObject> cube;
     std::shared_ptr<GameObject> arrow;
     glm::vec3 gMin;

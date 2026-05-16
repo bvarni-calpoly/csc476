@@ -183,7 +183,8 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
     vector<tinyobj::material_t> objMaterials;
     string errStr;
     // load in the mesh and make the shape(s)
-    bool rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr, (resourceDirectory + fileName).c_str());
+    // bool rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr, (resourceDirectory + fileName).c_str());
+    bool rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr, (resourceDirectory + fileName).c_str(), (resourceDirectory + "/scene/textures/").c_str());
     if (!rc)
     {
         cerr << errStr << endl;
@@ -223,19 +224,33 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
             {
                 // Object is a quad / plane
                 //part->portalID = part->objName[6]; // get last character / number of the portal
-                if(part->objName.find("entrance") != string::npos)
+                if(part->objName.find("entrance1") != string::npos)
                     part->portalID = 1; // get last character / number of the portal
-                    
-                if(part->objName.find("exit") != string::npos)
+                else if(part->objName.find("exit1") != string::npos)
                     part->portalID = 2; // get last character / number of the portal
+                //part->portalID = part->objName[6]; // get last character / number of the portal
+                else if(part->objName.find("entrance2") != string::npos)
+                    part->portalID = 3; // get last character / number of the portal
+                else if(part->objName.find("exit2") != string::npos)
+                    part->portalID = 4; // get last character / number of the portal
                 
                 part->source = part.get();
                 portals.push_back(part.get());
 
+                // FIXME currently breaks if entrance is after exit in obj file order
                 if(part->portalID == 2)
                 {
                     GameObject *first = portals[0];
                     GameObject *second = portals[1];
+
+                    first->destination = second;
+                    second->destination = first;
+                }
+
+                if(part->portalID == 4)
+                {
+                    GameObject *first = portals[2];
+                    GameObject *second = portals[3];
 
                     first->destination = second;
                     second->destination = first;
@@ -249,18 +264,24 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
                 glm::vec3 scale = glm::vec3(std::max(0.01f, part->shape->max.x - part->shape->min.x),
                                             std::max(0.01f, part->shape->max.y - part->shape->min.y),
                                             std::max(0.01f, part->shape->max.z - part->shape->min.z));
-
-                //glm::mat4 Model = glm::mat4(1.0f);
-                //Model = glm::scale(Model, scale);
                 part->scale = scale;
 
-                // Calculate rotation
-                //TOshapes[i].mesh.normals
-                glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f); // HOW TO READ IN THE NORMAL VALUES
-                if(part->objName.find("exit") != string::npos) normal = glm::vec3(0.0f, 0.0f, -1.0f);
+                
+                // Read normals from obj file
+                const auto& normals = TOshapes[i].mesh.normals;
+                glm::vec3 objNormal = glm::vec3(normals[0], normals[1], normals[2]);
+                
+                glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f); // default
+                normal = glm::normalize(objNormal);
+                cout << normal.x << " " << normal.y << " " << normal.z << endl;
+
+                //if(part->objName.find("exit") != string::npos) normal = glm::vec3(0.0f, 0.0f, -1.0f);
                 part->planeNormal = normal;
                 
                 glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+                if (glm::abs(glm::dot(normal, worldUp)) > 0.99f) // FIXME CHECK THIS
+                    worldUp = glm::vec3(0.0f, 0.0f, 1.0f);
+                
                 glm::vec3 right = glm::normalize(glm::cross(worldUp, normal));
                 
                 glm::vec3 localUp = glm::normalize(glm::cross(normal, right)); // or forward depending on orientation
@@ -290,13 +311,11 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/wedge.obj", player);
     loadGeom(resourceDirectory, "/objects/cube.obj", skybox); // use a cube map
     loadGeom(resourceDirectory, "/objects/cube.obj", cube);
-    loadGeom(resourceDirectory, "/objects/cube.obj", portalEntranceDoor);
-    loadGeom(resourceDirectory, "/objects/cube.obj", portalExitDoor);
     loadGeom(resourceDirectory, "/objects/wedge.obj", arrow);
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
     //loadHierGeom(resourceDirectory, "/scene/test_map_flipped_normals.obj", mapGeom);
     //loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
-    loadMapGeom(resourceDirectory, "/scene/singleportal_review.obj", mapGeom);
+    loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
 
     // light
 
