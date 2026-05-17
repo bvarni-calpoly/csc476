@@ -99,12 +99,21 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 	// Rocket jumper
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 	{
-		float rocketSpeed = 100.0f;
-		scene->projectile->position = this->eye + (this->forward * (-rocketSpeed + 1.0f));
+		float rocketSpeed = 200.0f;
+		float forwardOffset = 1.5f;
+		float upOffset = 1.0f;
+		float rightOffset = -1.0f;
+		glm::vec3 right = glm::cross(this->forward, this->up);
 		scene->projectile->velocity = this->forward * rocketSpeed;
+		scene->projectile->position = (this->eye
+			+ this->forward * (-rocketSpeed + forwardOffset)
+			+ this->up * upOffset
+			+ right * rightOffset
+			+ scene->projectile->velocity);
 	}
-
+	
 	scene->projectile->position += scene->projectile->velocity * deltaTime;
+	scene->projectile->updateBounds();
 
 	// Normalize input
 	if (glm::length(wishDir) > 0.001f)
@@ -152,6 +161,11 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 	// 	eye.y = -5.0f;
 	// }
 
+	// MOVE THIS TO ANOTHER FUNCTION - pawn tracks player movement
+	glm::vec3 direction = this->eye - glm::vec3(0, this->playerHeight, 0) - scene->pawn->position;
+	//scene->pawn->position.y -= gravity * deltaTime;
+	scene->pawn->position += direction * 1.0f * deltaTime;
+
 	eye_prev = eye;
 
 	// apply to player position
@@ -160,9 +174,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 	airborne = true;
     for (auto &mapGeomChild : scene->mapGeom->children)
     {
-        //scene->mapGeom->collided = AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild);
-		//std::cout << mapGeomChild->objName << " " << mapGeomChild->portalID << std::endl;
-		
+		// Check player collisions between portal or map
 		if (mapGeomChild->portalID > 0)
 		{
 			if (AABB::intersectsCameraPlane(*scene->mainCamera, *mapGeomChild))
@@ -191,10 +203,33 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		}
 		else if (AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild))
 		{
-			mapGeomChild->collided += 1;
-			break;
+			//mapGeomChild->collided += 1;
+			//break;
 		}
-    }
+		
+		// Check projectile collisions on map
+		if (AABB::intersectsObject(*scene->projectile, *mapGeomChild))
+		{
+			std::cout << "projectile collision" << std::endl;
+			mapGeomChild->collided = (mapGeomChild->collided % 2) + 1;
+		}
+	}
+	
+	// Check projectile collisions on map
+    // for (auto &pawnChild : scene->pawn->children)
+    // {
+	// 	if (AABB::intersectsObject(*scene->projectile, *pawnChild))
+	// 	{
+	// 		std::cout << "projectile collision" << std::endl;
+	// 		pawnChild->collided = 1;
+	// 	}
+	// }
+
+	if (AABB::intersectsObject(*scene->projectile, *scene->pawn))
+	{
+		std::cout << "projectile collision" << std::endl;
+		scene->pawn->collided = 1;
+	}
 
 	if (eye.y < -200.0f)
 		eye = glm::vec3(0, 50.0f, 0);

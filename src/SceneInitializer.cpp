@@ -311,7 +311,9 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/wedge.obj", player);
     loadGeom(resourceDirectory, "/objects/cube.obj", skybox); // use a cube map
     loadGeom(resourceDirectory, "/objects/cube.obj", cube);
+    loadGeom(resourceDirectory, "/objects/rocket-jumper.obj", tool);
     loadGeom(resourceDirectory, "/objects/cube.obj", projectile);
+    loadGeom(resourceDirectory, "/objects/cube.obj", pawn);
     loadGeom(resourceDirectory, "/objects/wedge.obj", arrow);
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
     //loadHierGeom(resourceDirectory, "/scene/test_map_flipped_normals.obj", mapGeom);

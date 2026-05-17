@@ -58,9 +58,11 @@ int AABB::intersectsCameraPlane(Camera& cam, const GameObject& obj) // FIXME opt
 int AABB::intersectsObject(const GameObject& obj1, const GameObject& obj2)
 {
     // check each axis for collision
-    bool xCollision = (obj1.max.x > obj2.min.x) && (obj1.min.x < obj2.max.x);
-    bool yCollision = (obj1.max.y > obj2.min.y) && (obj1.min.y < obj2.max.y);
-    bool zCollision = (obj1.max.z > obj2.min.z) && (obj1.min.z < obj2.max.z);
+    bool xCollision = (obj1.max.x >= obj2.min.x) && (obj1.min.x <= obj2.max.x);
+    bool yCollision = (obj1.max.y >= obj2.min.y) && (obj1.min.y <= obj2.max.y);
+    bool zCollision = (obj1.max.z >= obj2.min.z) && (obj1.min.z <= obj2.max.z);
+
+    std::cout << obj1.position.x << " " << obj1.max.x << std::endl;
 
     if (xCollision && yCollision && zCollision) return 1; // collision detected
 

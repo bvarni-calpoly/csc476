@@ -79,7 +79,7 @@ void SceneRender::drawTextureMesh(shared_ptr<Program> curS, shared_ptr<MatrixSta
     // update matrices
     obj->updateBounds();
 
-    Model->translate(obj->position + obj->velocity);
+    Model->translate(obj->position);
     //Model->translate(obj->position); // move to ground (half of height)
     Model->rotate(obj->angle, obj->rotation);
     Model->scale(obj->scale);
@@ -107,7 +107,8 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, std::shared_ptr<
                 else
                     scene->texture1->bind(scene->texProg->getUniform("Texture0"));
                 
-                if(part->objName.find("stair") != string::npos)
+                //if(part->objName.find("stair") != string::npos)
+                if(true)
                 {
                     if (part->collided % 2 == 1)
                         scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
@@ -352,6 +353,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         scene->texture1->bind(scene->texProg->getUniform("Texture0"));
 
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->projectile);
+        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->pawn);
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
     scene->texProg->unbind();
 
@@ -779,10 +781,9 @@ void SceneRender::drawTool(std::shared_ptr<SceneInitializer> scene, std::shared_
         glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(identity));
         glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-        scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
+        scene->texture1->bind(scene->texProg->getUniform("Texture0"));
 
-        //scene->arrow->position = glm::vec3(5.0f, 10.0f, 10.0f);
-        scene->arrow->position = glm::vec3(0.5f, -0.5f, -0.5f) + sin(scene->mainCamera->eye / 20.0f) / 10.0f;
-        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->arrow);
+        scene->tool->position = glm::vec3(0.45f, -0.45f, -0.75f) + sin(scene->mainCamera->eye / 20.0f) / 10.0f;
+        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->tool);
     scene->texProg->unbind();
 }
