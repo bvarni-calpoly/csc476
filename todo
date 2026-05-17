@@ -1,4 +1,6 @@
-- add animatino through multiple obj files
+- fix proj matrix for portals
+- fix which portaldrawframe function to use (automate portal rendering placement)
+- add animation through multiple obj files
     - using a vertex shader to lerp
 - add lighting
 - add a framebuffer kernel for objecet outlining

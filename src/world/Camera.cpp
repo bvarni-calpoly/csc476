@@ -163,7 +163,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 
 	// MOVE THIS TO ANOTHER FUNCTION - pawn tracks player movement
 	glm::vec3 direction = this->eye - glm::vec3(0, this->playerHeight, 0) - scene->pawn->position;
-	//scene->pawn->position.y -= gravity * deltaTime;
+	// scene->pawn->position.y -= 2.0f * deltaTime;
 	scene->pawn->position += direction * 1.0f * deltaTime;
 
 	eye_prev = eye;
@@ -177,7 +177,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		// Check player collisions between portal or map
 		if (mapGeomChild->portalID > 0)
 		{
-			if (AABB::intersectsCameraPlane(*scene->mainCamera, *mapGeomChild))
+			if (AABB::intersectsCameraPlaneAABB(*scene->mainCamera, *mapGeomChild))
 			{
 				if (mapGeomChild->portalID == 1)
 				{
@@ -211,7 +211,15 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		if (AABB::intersectsObject(*scene->projectile, *mapGeomChild))
 		{
 			std::cout << "projectile collision" << std::endl;
+			//scene->projectile->velocity = -scene->projectile->velocity * glm::vec3(1, -1, 1);
+			scene->projectile->velocity = glm::reflect(scene->projectile->velocity, mapGeomChild->planeNormal);
 			mapGeomChild->collided = (mapGeomChild->collided % 2) + 1;
+		}
+		
+		// Check pawn collisions on map
+		if (AABB::intersectsObject(*scene->pawn, *mapGeomChild))
+		{
+			scene->pawn->position.y = mapGeomChild->max.y + scene->pawn->scale.y / 2.0f;
 		}
 	}
 	
@@ -227,8 +235,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 
 	if (AABB::intersectsObject(*scene->projectile, *scene->pawn))
 	{
-		std::cout << "projectile collision" << std::endl;
-		scene->pawn->collided = 1;
+		scene->pawn->collided = (scene->pawn->collided % 2) + 1;
 	}
 
 	if (eye.y < -200.0f)

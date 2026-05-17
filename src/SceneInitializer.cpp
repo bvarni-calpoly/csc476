@@ -316,7 +316,6 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/cube.obj", pawn);
     loadGeom(resourceDirectory, "/objects/wedge.obj", arrow);
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
-    //loadHierGeom(resourceDirectory, "/scene/test_map_flipped_normals.obj", mapGeom);
     //loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
     loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
 
@@ -325,6 +324,12 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     // skybox
     skybox->scale = vec3(2000.0f);
     skybox->position = vec3(0.0f, -200.0f, 0.0f);
+
+    projectile->scale = vec3(2.0f);
+
+    pawn->scale = vec3(1.0f);
+
+    player->scale = vec3(10.0f, 75.0f, 10.0f);
 
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();

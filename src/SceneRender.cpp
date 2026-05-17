@@ -272,7 +272,7 @@ void SceneRender::drawSceneGraph(shared_ptr<Program> curS, shared_ptr<MatrixStac
     }
 }
 
-void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat)
+void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, glm::mat4 projMat)
 {
     scene->prog->bind();
         scene->mainCamera->SetView(scene->prog);
@@ -280,7 +280,7 @@ void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::
         
         // set up all the matrices
         glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(viewMat));
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
+        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
         glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
         // draw portals from the map obj
@@ -310,7 +310,7 @@ void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::
     scene->prog->unbind();
 }
 
-void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, GameObject* portal, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat)
+void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, GameObject* portal, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, glm::mat4 projMat)
 {
     scene->prog->bind();
         scene->mainCamera->SetView(scene->prog);
@@ -318,7 +318,7 @@ void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::
         
         // set up all the matrices
         glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(viewMat));
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
+        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
         glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
         sceneRender->drawPortalMesh(scene->prog, scene->Model, portal, portal->portalID);
@@ -337,7 +337,7 @@ void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::
     scene->prog->unbind();
 }
 
-void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 destView)
+void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 destView, glm::mat4 projMat)
 {
     // Draw map
     scene->texProg->bind();
@@ -345,15 +345,22 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     
         // set up all the matrices
         glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
-        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
+        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
         sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
-        
         scene->texture1->bind(scene->texProg->getUniform("Texture0"));
-
+        
+        
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->projectile);
+        
+        if (scene->pawn->collided % 2 == 1)
+        scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
+        else
+        scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->pawn);
+        scene->texture0->bind(scene->texProg->getUniform("Texture0"));
+        
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
     scene->texProg->unbind();
 
@@ -361,84 +368,16 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         // set up all the matrices
         //scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
         glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
+        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
         glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
-        // update player position
-        scene->player->position = scene->mainCamera->eye + glm::vec3(0.0f, 1.0f, 0.0f);
+        // update player position - FIXME, USE NEAR CLIPPING PLANE
+        scene->player->position = scene->mainCamera->eye + (scene->mainCamera->forward * -15.0f);
 
         scene->cube->position = glm::vec3(1.0f);
         sceneRender->drawSceneGraph(scene->prog, scene->Model, scene->cube, 1);
         sceneRender->drawMesh(scene->prog, scene->Model, scene->player, 1);
     scene->prog->unbind();
-
-    //scene->mapGeom->collided = AABB::intersectsCamera(*scene->mainCamera, *scene->mapGeom);
-    
-    /*
-    // -- COLLISION CHECKING --- FIXME / TODO PUT THIS IN ANOTHER CLASS
-    scene->skybox->collided = AABB::intersectsCamera(*scene->mainCamera, *scene->skybox);
-
-    for (auto &arrowChild : scene->arrow->children)
-    {
-        if (AABB::intersectsCamera(*scene->mainCamera, *arrowChild) != 0)
-        {
-            if (arrowChild->collisionsEnabled > 0)
-            {
-                arrowChild->cameraCollided += 1;
-                arrowChild->collided += 1;
-                arrowChild->isMarked = true;
-                scene->objectCollisionCount += 1;
-                scene->objectCount -= 1;
-            }
-            arrowChild->collisionsEnabled = 0;
-            break;
-        }
-    }
-
-    for (auto &cubeChild : scene->cube->children)
-    {
-        if (AABB::intersectsCamera(*scene->mainCamera, *cubeChild) != 0)
-        {
-            cubeChild->collided = 1;
-            break;
-        }
-    }
-
-    // check if arrow hits wall
-    for (auto &arrowChild : scene->arrow->children)
-    {
-        for (auto &cubeChild : scene->cube->children)
-        {
-            if (AABB::intersectsObject(*arrowChild, *cubeChild) != 0)
-            {
-                arrowChild->velocity = -arrowChild->velocity; // reverse direction;
-                arrowChild->collided = 1;
-                cubeChild->collided = 1;
-
-                arrowChild->cameraCollided = 0;
-                arrowChild->collided = 0;
-                break;
-            }
-        }
-    }
-
-    // check if arrow hits another arrow
-    for (auto &arrowChild1 : scene->arrow->children)
-    {
-        for (auto &arrowChild2 : scene->arrow->children)
-        {
-            if (arrowChild1 != arrowChild2 && AABB::intersectsObject(*arrowChild1, *arrowChild2) != 0)
-            {
-                vec3 tmp = arrowChild1->velocity;
-                arrowChild1->velocity = -arrowChild2->velocity; // reverse direction
-                arrowChild2->velocity = -arrowChild1->velocity; // reverse direction
-                arrowChild1->collided = 1;
-                arrowChild2->collided = 1;
-                // break;
-            }
-        }
-    }
-    */
 }
 
 glm::mat4 const SceneRender::clippedProjMat(GameObject &portal, glm::mat4 const &viewMat, glm::mat4 const &projMat)
@@ -446,7 +385,7 @@ glm::mat4 const SceneRender::clippedProjMat(GameObject &portal, glm::mat4 const 
     // float dist = glm::length(d_position);
     // glm::vec4 clipPlane(d_orientation * glm::vec3(0.0f, 0.0f, -1.0f), dist);
     float dist = glm::length(portal.position);
-    glm::vec4 clipPlane(glm::vec3(0.0f, 0.0f, -1.0f), dist);
+    glm::vec4 clipPlane(portal.planeNormal, dist);
     clipPlane = glm::inverse(glm::transpose(viewMat)) * clipPlane;
 
     if (clipPlane.w > 0.0f)
@@ -468,6 +407,7 @@ glm::mat4 const SceneRender::clippedProjMat(GameObject &portal, glm::mat4 const 
     return newProj;
 }
 
+/*
 // https://github.com/ThomasRinsma/opengl-game-test/blob/8363bbf/src/scene.cc#L81
 void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, shared_ptr<MatrixStack> Projection, int maxRecursionLevel, int recursionLevel)
 {
@@ -575,6 +515,7 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
 
     drawNonPortals(scene, sceneRender, callbacks, viewMat);
 }
+*/
 
 /*
 // https://github.com/ThomasRinsma/opengl-game-test/blob/8363bbf/src/scene.cc#L81
@@ -697,7 +638,7 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
 */
 
 // https://github.com/ThomasRinsma/opengl-game-test/blob/8363bbf/src/scene.cc#L81
-void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, glm::mat4 proj)
+void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, glm::mat4 projMat)
 {
     for (auto &portal : scene->portals)
     {
@@ -713,7 +654,7 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
         glStencilMask(0xFF); // Enable writing into all stencil bits
 
         // Draw portal frames into stencil buffer
-        drawPortalFrame(scene, sceneRender, callbacks, viewMat);
+        drawPortalFrame(scene, sceneRender, callbacks, viewMat, projMat);
 
         // --- Setup drawing objects inside the portal frame ---
         // Enable color and depth buffers
@@ -721,7 +662,7 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
         glDepthMask(GL_TRUE); // Depth buffer
         glEnable(GL_DEPTH_TEST);
         
-        // glClear(GL_DEPTH_BUFFER_BIT); // Clear depth buffer
+        // glClear(GL_DEPTH_BUFFER_BIT); // FIXME, THIS WILL BREAK SOME PORTALS -Clear depth buffer
         
         // Setup depth tests and stencil, only draw pixels where stencil is 1
         glStencilMask(0x00); // Lock stencil buffer
@@ -740,8 +681,11 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
         glm::mat4 destView = viewMat * portalB * rotation * glm::inverse(portalA);
         //glm::mat4 destView = viewMat * portalB * glm::inverse(portalA);
         
+        // proj mat
+        glm::mat4 proj = sceneRender->clippedProjMat(*portal, destView  , projMat);
+
         // Redraw scene but with portal view (portal camera)
-        drawNonPortals(scene, sceneRender, callbacks, destView);
+        drawNonPortals(scene, sceneRender, callbacks, destView, proj);
         //drawNonPortals(scene, sceneRender, callbacks, clippedProjMat(*portal, destView, Projection->topMatrix()));
     }
 
@@ -761,7 +705,7 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
     glDepthFunc(GL_LESS);
 
     // Draw portals into depth buffer
-    drawPortalFrame(scene, sceneRender, callbacks, viewMat);
+    drawPortalFrame(scene, sceneRender, callbacks, viewMat, projMat);
     
     // Enable color and depth buffer
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -769,7 +713,7 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
     glEnable(GL_DEPTH_TEST);
 
     // Draw whole scene with main camera
-    drawNonPortals(scene, sceneRender, callbacks, viewMat);
+    drawNonPortals(scene, sceneRender, callbacks, viewMat, projMat);
 }
 
 void SceneRender::drawTool(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, glm::mat4 proj)
