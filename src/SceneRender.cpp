@@ -351,17 +351,22 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
         scene->texture1->bind(scene->texProg->getUniform("Texture0"));
         
-        
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->projectile);
         
         if (scene->pawn->collided % 2 == 1)
-        scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
+            scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
         else
-        scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
+            scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
+        
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->pawn);
         scene->texture0->bind(scene->texProg->getUniform("Texture0"));
         
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
+
+        scene->texture1->bind(scene->texProg->getUniform("Texture0"));
+        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->plane);
+        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->angledplane);
+        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->testcube);
     scene->texProg->unbind();
 
     scene->prog->bind();
@@ -662,7 +667,8 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
         glDepthMask(GL_TRUE); // Depth buffer
         glEnable(GL_DEPTH_TEST);
         
-        // glClear(GL_DEPTH_BUFFER_BIT); // FIXME, THIS WILL BREAK SOME PORTALS -Clear depth buffer
+        // THIS LINE WILL BREAK SOME PORTALS
+        glClear(GL_DEPTH_BUFFER_BIT); // FIXME, THIS WILL BREAK SOME PORTALS -Clear depth buffer
         
         // Setup depth tests and stencil, only draw pixels where stencil is 1
         glStencilMask(0x00); // Lock stencil buffer

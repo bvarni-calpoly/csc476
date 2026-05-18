@@ -37,10 +37,16 @@ public:
 	GameObject* parent = nullptr;					   // fixme shared or raw pointer?
 	std::vector<std::unique_ptr<GameObject>> children; // fixme make hashmap? check godot docs
 
+	// map collision logic
+	std::vector<glm::vec3> normals;
+
 	// portal logic
 	GameObject* source; 	 // entrance portal
 	GameObject* destination; // exit portal
 	glm::vec3 planeNormal;
+
+	// projectile / entity
+	bool active;
 
 	std::shared_ptr<Shape> shape;
 	std::string objName;

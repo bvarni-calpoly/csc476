@@ -59,6 +59,9 @@ public:
     std::shared_ptr<GameObject> mapGeomNoHier;
     std::shared_ptr<GameObject> skybox;
     std::shared_ptr<GameObject> cube;
+    std::shared_ptr<GameObject> plane;
+    std::shared_ptr<GameObject> angledplane;
+    std::shared_ptr<GameObject> testcube;
     std::shared_ptr<GameObject> arrow;
     std::shared_ptr<GameObject> tool;
     std::shared_ptr<GameObject> projectile;

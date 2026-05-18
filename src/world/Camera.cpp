@@ -99,21 +99,28 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 	// Rocket jumper
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 	{
-		float rocketSpeed = 200.0f;
-		float forwardOffset = 1.5f;
-		float upOffset = 1.0f;
-		float rightOffset = -1.0f;
-		glm::vec3 right = glm::cross(this->forward, this->up);
-		scene->projectile->velocity = this->forward * rocketSpeed;
-		scene->projectile->position = (this->eye
-			+ this->forward * (-rocketSpeed + forwardOffset)
-			+ this->up * upOffset
-			+ right * rightOffset
-			+ scene->projectile->velocity);
+		if (!scene->projectile->active)
+		{
+			scene->projectile->active = true; // projectile spawned
+			float rocketSpeed = 300.0f;
+			float forwardOffset = 1.5f;
+			float upOffset = 1.0f;
+			float rightOffset = -1.0f;
+			glm::vec3 right = glm::cross(this->forward, this->up);
+			scene->projectile->velocity = this->forward * rocketSpeed;
+			scene->projectile->position = (this->eye
+				+ this->forward * (-rocketSpeed + forwardOffset)
+				+ this->up * upOffset
+				+ right * rightOffset
+				+ scene->projectile->velocity);
+		}
 	}
-	
-	scene->projectile->position += scene->projectile->velocity * deltaTime;
-	scene->projectile->updateBounds();
+
+	// reset projectile
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	{
+		scene->projectile->active = false;
+	}
 
 	// Normalize input
 	if (glm::length(wishDir) > 0.001f)
@@ -146,30 +153,21 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 	
 	// physics updates
 	velocity += accelSpeed * wishDir;
-
 	velocity.y -= gravity * deltaTime;
-
-	// if(eye.y > -5.0f)
-	// {
-	// 	//airborne = true;
-	// 	velocity.y -= gravity * deltaTime;
-	// }
-	// else
-	// {
-	// 	airborne = false;
-	// 	//velocity.y = 0;
-	// 	eye.y = -5.0f;
-	// }
-
-	// MOVE THIS TO ANOTHER FUNCTION - pawn tracks player movement
-	glm::vec3 direction = this->eye - glm::vec3(0, this->playerHeight, 0) - scene->pawn->position;
-	// scene->pawn->position.y -= 2.0f * deltaTime;
-	scene->pawn->position += direction * 1.0f * deltaTime;
 
 	eye_prev = eye;
 
 	// apply to player position
 	eye += velocity * deltaTime;
+
+	// Projectile physics updates
+	scene->projectile->position += scene->projectile->velocity * deltaTime;
+	scene->projectile->updateBounds();
+
+	// MOVE THIS TO ANOTHER FUNCTION - pawn tracks player movement
+	glm::vec3 direction = this->eye - glm::vec3(0, this->playerHeight, 0) - scene->pawn->position;
+	// scene->pawn->position.y -= 2.0f * deltaTime;
+	scene->pawn->position += direction * 1.0f * deltaTime;
 
 	airborne = true;
     for (auto &mapGeomChild : scene->mapGeom->children)
@@ -201,19 +199,33 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 				}
 			}
 		}
+		// Check collision against rest of the map
 		else if (AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild))
 		{
-			//mapGeomChild->collided += 1;
-			//break;
 		}
+		// else if (AABB::intersectsCameraPlane(*scene->mainCamera, *mapGeomChild))
+		// {
+		// 	//mapGeomChild->collided += 1;
+		// 	//break;
+		// }
 		
 		// Check projectile collisions on map
 		if (AABB::intersectsObject(*scene->projectile, *mapGeomChild))
 		{
-			std::cout << "projectile collision" << std::endl;
+			//std::cout << "projectile collision" << std::endl;
 			//scene->projectile->velocity = -scene->projectile->velocity * glm::vec3(1, -1, 1);
 			scene->projectile->velocity = glm::reflect(scene->projectile->velocity, mapGeomChild->planeNormal);
-			mapGeomChild->collided = (mapGeomChild->collided % 2) + 1;
+			mapGeomChild->collided += (mapGeomChild->collided % 2) + 1;
+
+			if (scene->projectile->collided > 5)
+			{
+				scene->projectile->active = false; // reset projectile
+				scene->projectile->collided = 0;
+			}
+			else scene->projectile->collided++;
+
+			// rocket jump
+			// velocity.y += 10.0f;
 		}
 		
 		// Check pawn collisions on map
@@ -222,7 +234,11 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 			scene->pawn->position.y = mapGeomChild->max.y + scene->pawn->scale.y / 2.0f;
 		}
 	}
-	
+
+	// AABB::intersectsCameraPlane(*scene->mainCamera, *scene->plane);
+	// AABB::intersectsCameraPlane(*scene->mainCamera, *scene->angledplane);
+	AABB::intersectsCameraPlane(*scene->mainCamera, *scene->testcube);
+		
 	// Check projectile collisions on map
     // for (auto &pawnChild : scene->pawn->children)
     // {
@@ -238,7 +254,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		scene->pawn->collided = (scene->pawn->collided % 2) + 1;
 	}
 
-	if (eye.y < -200.0f)
+	if (eye.y < -400.0f)
 		eye = glm::vec3(0, 50.0f, 0);
 }
 

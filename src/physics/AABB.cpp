@@ -70,23 +70,37 @@ int AABB::intersectsObject(const GameObject& obj1, const GameObject& obj2)
 // FIXME ADD THIS TO ANOTHER CLASS
 int AABB::intersectsCameraPlane(Camera& cam, const GameObject& obj) // FIXME optimize this, check godot docs
 {
+    // vertex normal
+    glm::vec3 normal = glm::normalize(obj.normals[0]);
+
+    // --- distance = (N * P) + d ---
+    // Calculate position of plane relative to normal
+    float d = -glm::dot(normal, obj.position);
+    
     // adjust for player height
-    float camHeight = cam.eye.y - cam.playerHeight;
-    // check each axis for collision
-    bool xCollision = (cam.eye.x > obj.min.x) && (cam.eye.x < obj.max.x);
-    bool yCollision = (cam.eye.y > obj.min.y) && (camHeight < obj.max.y);
-    bool zCollision = (cam.eye.z > obj.min.z) && (cam.eye.z < obj.max.z);
-
-    if (xCollision && yCollision && zCollision)
+    glm::vec3 camHeight = cam.eye - glm::vec3(0, cam.playerHeight, 0);
+    
+    float distance = glm::dot(normal, camHeight) + d;
+    
+    // check if on other side of plane
+    float threshold = 5.0f;
+    if (distance <= 0.0f && distance >= -threshold)
     {
-        //std::cout << "inside bounding box" << std::endl;
-        //cam.eye = cam.eye_prev;
-        cam.eye.y = obj.max.y + cam.playerHeight;
-        cam.velocity.y = 0;
+        // offset position to be on correct side of plane
+        // glm::vec3 correction = normal * glm::abs(distance);
+        // cam.eye += correction;
+        glm::vec3 correction = normal * distance;
+        cam.eye -= correction;
+
+        // push player out in direction of normal
+        float velocityAlongNormal = glm::dot(cam.velocity, normal);
+        if (velocityAlongNormal < 0.0f)
+        {
+            cam.velocity -= normal * velocityAlongNormal;
+        }
+
         cam.airborne = false;
-
-        // check if jailed inside object
-
+        
         return 1; // collision detected
     }
 

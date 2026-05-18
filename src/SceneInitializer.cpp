@@ -140,6 +140,23 @@ void SceneInitializer::loadGeom(const std::string &resourceDirectory, const std:
         obj->localMax = obj->shape->max;
 
         obj->updateBounds();
+
+        // Read normals from obj file
+        const auto& meshNormals = TOshapes[0].mesh.normals;
+        
+        if (!meshNormals.empty())
+        {
+            for (int i = 0; i < meshNormals.size(); i+=3)
+            {
+                // int normalIdx = TOshapes[0].mesh.indices;
+                glm::vec3 objNormal = glm::vec3(meshNormals[i + 0], meshNormals[i + 1], meshNormals[i + 2]);
+                obj->normals.push_back(glm::normalize(objNormal));
+            }
+        }
+        else
+        {
+            std::cout << "No normals in obj file" << std::endl;
+        }
     }
 }
 
@@ -193,12 +210,12 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
     {
         obj = make_shared<GameObject>();
 
-        for(int i = 0; i < TOshapes.size(); i++)
+        for(int currObj = 0; currObj < TOshapes.size(); currObj++)
         {
             auto part = make_unique<GameObject>();
 
             part->shape = make_shared<Shape>();
-            part->shape->createShape(TOshapes[i]);
+            part->shape->createShape(TOshapes[currObj]);
             part->shape->measure();
             //part->shape->init();
 
@@ -213,13 +230,31 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
 
             part->updateBoundsMapGeom();
 
-            part->objName = TOshapes[i].name;
+            part->objName = TOshapes[currObj].name;
 
-            if(part->objName.find("blue") != string::npos)
-                part->color = 1;
-                if(part->objName.find("purple") != string::npos)
-                part->color = 2;
+            // Read normals from obj file
+            const auto& meshNormals = TOshapes[currObj].mesh.normals;
             
+            if (!meshNormals.empty())
+            {
+                for (int i = 0; i < meshNormals.size(); i+=3)
+                {
+                    // int normalIdx = TOshapes[0].mesh.indices;
+                    glm::vec3 objNormal = glm::vec3(meshNormals[i + 0], meshNormals[i + 1], meshNormals[i + 2]);
+                    part->normals.push_back(glm::normalize(objNormal));
+                }
+            }
+            else
+            {
+                std::cout << "No normals in obj file" << std::endl;
+                part->normals.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+
+            // Material properties
+            if(part->objName.find("blue") != string::npos) part->color = 1;
+            if(part->objName.find("purple") != string::npos) part->color = 2;
+            
+            // Portal object
             if(part->objName.find("portal") != string::npos)
             {
                 // Object is a quad / plane
@@ -268,15 +303,7 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
 
                 
                 // Read normals from obj file
-                const auto& normals = TOshapes[i].mesh.normals;
-                glm::vec3 objNormal = glm::vec3(normals[0], normals[1], normals[2]);
-                
-                glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f); // default
-                normal = glm::normalize(objNormal);
-                cout << normal.x << " " << normal.y << " " << normal.z << endl;
-
-                //if(part->objName.find("exit") != string::npos) normal = glm::vec3(0.0f, 0.0f, -1.0f);
-                part->planeNormal = normal;
+                glm::vec3 normal = part->normals[0];
                 
                 glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
                 if (glm::abs(glm::dot(normal, worldUp)) > 0.99f) // FIXME CHECK THIS
@@ -311,6 +338,9 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/wedge.obj", player);
     loadGeom(resourceDirectory, "/objects/cube.obj", skybox); // use a cube map
     loadGeom(resourceDirectory, "/objects/cube.obj", cube);
+    loadGeom(resourceDirectory, "/objects/plane.obj", plane);
+    loadGeom(resourceDirectory, "/objects/angled_plane.obj", angledplane);
+    loadGeom(resourceDirectory, "/objects/testcube.obj", testcube);
     loadGeom(resourceDirectory, "/objects/rocket-jumper.obj", tool);
     loadGeom(resourceDirectory, "/objects/cube.obj", projectile);
     loadGeom(resourceDirectory, "/objects/cube.obj", pawn);
@@ -330,6 +360,15 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     pawn->scale = vec3(1.0f);
 
     player->scale = vec3(10.0f, 75.0f, 10.0f);
+    
+    plane->position = vec3(-100.0f, -10.0f, 10.0f);
+    plane->scale = vec3(100.0f);
+
+    angledplane->position = vec3(-100.0f, -10.0f, 10.0f);
+    angledplane->scale = vec3(100.0f);
+    
+    testcube->position = vec3(0.0f, 10.0f, -50.0f);
+    testcube->scale = vec3(50.0f);
 
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();
