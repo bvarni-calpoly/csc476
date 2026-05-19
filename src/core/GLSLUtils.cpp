@@ -12,10 +12,10 @@ void GLSLUtils::SetMaterial(shared_ptr<Program> curS, int i)
 {
     switch (i)
     {
-    case 0: // purple
-        glUniform3f(curS->getUniform("MatAmb"), 0.096, 0.046, 0.095);
-        glUniform3f(curS->getUniform("MatDif"), 0.96, 0.46, 0.95);
-        glUniform3f(curS->getUniform("MatSpec"), 0.45, 0.23, 0.45);
+    case 0: // light gray
+        glUniform3f(curS->getUniform("MatAmb"), 0.75, 0.75, 0.75);
+        glUniform3f(curS->getUniform("MatDif"), 1.0, 1.0, 1.0);
+        glUniform3f(curS->getUniform("MatSpec"), 1.0, 1.0, 1.0);
         glUniform1f(curS->getUniform("MatShine"), 120.0);
         break;
     case 1:

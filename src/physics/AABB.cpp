@@ -128,15 +128,15 @@ int AABB::intersectsConvexShape(Camera& cam, const GameObject& obj) // FIXME opt
     glm::vec3 pushDir = glm::vec3(0.0f);
     float closestPlaneDistance = -std::numeric_limits<float>::max();
     
-    // vertex normal
-    for (const auto &currPlane : obj.normals)
+    // check collision against every plane
+    for (const auto &currPlane : obj.planes)
     {
-        glm::vec3 normal = glm::normalize(currPlane);
+        glm::vec3 normal = glm::normalize(currPlane.normal);
         
         // --- distance = (N * P) + d ---
         // Calculate position of plane relative to normal
         float d = -glm::dot(normal, obj.position);
-        d = -20.0f;
+        // d = -20.0f;
         
         // Distance from camera to plane
         float currDistance = glm::dot(normal, camHeight) + d;

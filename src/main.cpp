@@ -150,9 +150,10 @@ int main(int argc, char *argv[])
 		ImGui::SliderFloat3("Portal Camera position", &application->scene->portalCamera->eye.x, -10.0f, 10.0f);
 		ImGui::SliderFloat3("Tool position", &application->scene->tool->position.x, -1.0f, 1.0f);
 		ImGui::SliderFloat3("Projectile position", &application->scene->projectile->position.x, -1.0f, 1.0f);
+		ImGui::SliderFloat3("Portalcube position", &application->scene->portalcube->position.x, -100.0f, 100.0f);
 
 		ImGui::SliderFloat("g_Spin", &application->g_Spin, 0.0f, 20.0f);
-		ImGui::SliderFloat3("light pos", &application->callbacks->lightTrans.x, -20.0f, 20.0f);
+		ImGui::SliderFloat3("light pos", &application->callbacks->lightTrans.x, -1000.0f, 1000.0f);
 
 		if (showDemoWindow) ImGui::ShowDemoWindow(); // Show demo window! :)
 

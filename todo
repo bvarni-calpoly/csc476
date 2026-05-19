@@ -10,7 +10,12 @@
 - add backface culling or frustrum culling or whatever the single opengl command is
 - fix obj loader to also read mtl values
 
+attributes versus uniforms
+
 - organize gameobject variables into structs
+
+known issues
+- if there is no skybox all the rendered portals scene show
 
 collision
 - add broadphase and narrowphase collsiion type (aabb to plane)

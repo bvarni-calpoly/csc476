@@ -5,6 +5,11 @@ uniform float MatShine;
 
 uniform int flip;
 
+uniform vec3 portalNormal;
+uniform vec3 portalPos;
+uniform int useSlicing;
+
+in vec3 worldPos;
 in vec2 vTexCoord;
 
 out vec4 Outcolor;
@@ -17,16 +22,24 @@ in vec3 EPos;
 
 void main() {
   vec4 texColor0 = texture(Texture0, vTexCoord);
-
   vec3 normal = normalize(fragNor);
+
   if (flip < 1)
   	normal *= -1.0f;
+  
+  // Lighting
   vec3 light = normalize(lightDir);
   float dC = max(0, dot(normal, light));
-  Outcolor = vec4(dC*texColor0.xyz, 1.0);
+  Outcolor = vec4(dC*texColor0.xyz + 0.05, 1.0);
 
   //to confirm texture coordinates
   //Outcolor = vec4(vTexCoord.x, vTexCoord.y, 0, 0);
   
-  Outcolor = vec4(texColor0.xyz, 1.0);
+  // Outcolor = vec4(texColor0.xyz, 1.0); // fullbright
+
+  if (useSlicing > 0)
+  {
+    float sliceSide = dot(portalNormal, worldPos - portalPos);
+    if (sliceSide < 0.0f) discard;
+  }
 }

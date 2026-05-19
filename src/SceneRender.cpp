@@ -361,6 +361,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
         glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
         glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+        glUniform1i(scene->texProg->getUniform("flip"), 1);
 
         sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
         scene->texture1->bind(scene->texProg->getUniform("Texture0"));
@@ -375,11 +376,21 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->pawn);
         scene->texture0->bind(scene->texProg->getUniform("Texture0"));
         
+        glUniform1i(scene->texProg->getUniform("flip"), 0);
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
+        glUniform1i(scene->texProg->getUniform("flip"), 1);
 
         scene->texture1->bind(scene->texProg->getUniform("Texture0"));
-        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->plane);
-        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->angledplane);
+        // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->plane); // FIXME - DELETE THIS
+        // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->angledplane); // FIXME - DELETE THIS
+
+        // Send portal normal and cube position to frag shader
+        glUniform3fv(scene->texProg->getUniform("portalNormal"), 1, glm::value_ptr(glm::vec3(0, 0, 1))); // FIXME hardcoded
+        glUniform3fv(scene->texProg->getUniform("portalPos"), 1, glm::value_ptr(glm::vec3(0.0f))); // FIXME hardcoded
+        glUniform1i(scene->texProg->getUniform("useSlicing"), 1);
+        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->portalcube);
+        glUniform1i(scene->texProg->getUniform("useSlicing"), 0);
+
         sceneRender->drawTextureMeshNoScale(scene->texProg, scene->Model, scene->testcube);
     scene->texProg->unbind();
 
@@ -682,7 +693,7 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
         glEnable(GL_DEPTH_TEST);
         
         // THIS LINE WILL BREAK SOME PORTALS
-        glClear(GL_DEPTH_BUFFER_BIT); // FIXME, THIS WILL BREAK SOME PORTALS -Clear depth buffer
+        // glClear(GL_DEPTH_BUFFER_BIT); // FIXME, THIS WILL BREAK SOME PORTALS -Clear depth buffer
         
         // Setup depth tests and stencil, only draw pixels where stencil is 1
         glStencilMask(0x00); // Lock stencil buffer
@@ -702,7 +713,8 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
         //glm::mat4 destView = viewMat * portalB * glm::inverse(portalA);
         
         // proj mat
-        glm::mat4 proj = sceneRender->clippedProjMat(*portal, destView  , projMat);
+        //glm::mat4 proj = sceneRender->clippedProjMat(*portal, destView  , projMat);
+        glm::mat4 proj = projMat;
 
         // Redraw scene but with portal view (portal camera)
         drawNonPortals(scene, sceneRender, callbacks, destView, proj);
