@@ -25,6 +25,7 @@ public:
     void drawHierMesh(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj, int material);
     void drawTextureMesh(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj);
     void drawTextureMesh(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj, glm::vec3 translate, float angle, glm::vec3 rotate, glm::vec3 scale);
+    void drawTextureMeshNoScale(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj);
     void drawTextureHierMesh(std::shared_ptr<Program> curS, std::shared_ptr<SceneInitializer> scene, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj);
     void drawSceneGraph(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::shared_ptr<GameObject> obj, int material);
     

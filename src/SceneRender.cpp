@@ -90,6 +90,20 @@ void SceneRender::drawTextureMesh(shared_ptr<Program> curS, shared_ptr<MatrixSta
     Model->popMatrix();
 }
 
+void SceneRender::drawTextureMeshNoScale(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj)
+{
+    Model->pushMatrix();
+        // update matrices
+        obj->updateBounds();
+
+        // Model->translate(obj->position);
+        // Model->rotate(obj->angle, obj->rotation);
+
+        GLSLUtils::setModel(curS, Model);
+        obj->shape->draw(curS);
+    Model->popMatrix();
+}
+
 void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, std::shared_ptr<SceneInitializer> scene, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj)
 {
     Model->pushMatrix();
@@ -366,7 +380,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         scene->texture1->bind(scene->texProg->getUniform("Texture0"));
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->plane);
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->angledplane);
-        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->testcube);
+        sceneRender->drawTextureMeshNoScale(scene->texProg, scene->Model, scene->testcube);
     scene->texProg->unbind();
 
     scene->prog->bind();
@@ -390,7 +404,7 @@ glm::mat4 const SceneRender::clippedProjMat(GameObject &portal, glm::mat4 const 
     // float dist = glm::length(d_position);
     // glm::vec4 clipPlane(d_orientation * glm::vec3(0.0f, 0.0f, -1.0f), dist);
     float dist = glm::length(portal.position);
-    glm::vec4 clipPlane(portal.planeNormal, dist);
+    glm::vec4 clipPlane(portal.normals[0], dist);
     clipPlane = glm::inverse(glm::transpose(viewMat)) * clipPlane;
 
     if (clipPlane.w > 0.0f)

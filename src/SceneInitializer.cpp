@@ -140,7 +140,25 @@ void SceneInitializer::loadGeom(const std::string &resourceDirectory, const std:
         obj->localMax = obj->shape->max;
 
         obj->updateBounds();
-
+        
+        // Read faces from obj file
+        // const auto& meshFaces = TOshapes[0].mesh.indices.x;
+        // if (!meshFaces.empty())
+        // {
+        //     for (int i = 0; i < meshFaces.size(); i+=3)
+        //     {
+        //         glm::vec3 objFace = glm::vec3(meshFaces[i + 0], meshFaces[i + 1], meshFaces[i + 2]);
+        //         obj->faces.push_back(objFace);
+        //         // if (TOshapes[0].name.find("Cube1") != string::npos)
+        //         //     std::cout << objNormal.x << "" << objNormal.y << " " << objNormal.z << std::endl;
+        //     }
+        // }
+        // else
+        // {
+        //     std::cout << "No normals in obj file" << std::endl;
+        //     obj->normals.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
+        // }
+        
         // Read normals from obj file
         const auto& meshNormals = TOshapes[0].mesh.normals;
         
@@ -148,14 +166,16 @@ void SceneInitializer::loadGeom(const std::string &resourceDirectory, const std:
         {
             for (int i = 0; i < meshNormals.size(); i+=3)
             {
-                // int normalIdx = TOshapes[0].mesh.indices;
                 glm::vec3 objNormal = glm::vec3(meshNormals[i + 0], meshNormals[i + 1], meshNormals[i + 2]);
                 obj->normals.push_back(glm::normalize(objNormal));
+                // if (TOshapes[0].name.find("Cube1") != string::npos)
+                //     std::cout << objNormal.x << "" << objNormal.y << " " << objNormal.z << std::endl;
             }
         }
         else
         {
             std::cout << "No normals in obj file" << std::endl;
+            obj->normals.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
         }
     }
 }
@@ -352,7 +372,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     // light
 
     // skybox
-    skybox->scale = vec3(2000.0f);
+    skybox->scale = vec3(5000.0f);
     skybox->position = vec3(0.0f, -200.0f, 0.0f);
 
     projectile->scale = vec3(2.0f);
@@ -368,8 +388,8 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     angledplane->scale = vec3(100.0f);
     
     testcube->position = vec3(0.0f, 10.0f, -50.0f);
-    testcube->scale = vec3(50.0f);
-
+    testcube->position = vec3(0.0f);
+    
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();
 

@@ -13,5 +13,6 @@ public:
     static int intersectsCamera(Camera& cam, const GameObject& obj);
     static int intersectsObject(const GameObject& obj1, const GameObject& obj2);
     static int intersectsCameraPlaneAABB(Camera& cam, const GameObject& obj); // FIXME optimize this, check godot docs
-    static int intersectsCameraPlane(Camera& cam, const GameObject& obj); // FIXME optimize this, check godot docs
+    static int intersectsCameraSinglePlane(Camera& cam, const GameObject& obj); // FIXME optimize this, check godot docs
+    static int intersectsConvexShape(Camera& cam, const GameObject& obj); // FIXME optimize this, check godot docs
 };

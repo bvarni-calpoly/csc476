@@ -175,8 +175,9 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		// Check player collisions between portal or map
 		if (mapGeomChild->portalID > 0)
 		{
-			if (AABB::intersectsCameraPlaneAABB(*scene->mainCamera, *mapGeomChild))
+			if (AABB::intersectsCameraSinglePlane(*scene->mainCamera, *mapGeomChild))
 			{
+				/*
 				if (mapGeomChild->portalID == 1)
 				{
 					std::cout << mapGeomChild->objName << " id:" << mapGeomChild->id << std::endl;
@@ -197,12 +198,11 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 					// offset = glm::vec3(0);
 					// eye = scene->portals[2]->position + offset;
 				}
+					*/
 			}
 		}
 		// Check collision against rest of the map
 		else if (AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild))
-		{
-		}
 		// else if (AABB::intersectsCameraPlane(*scene->mainCamera, *mapGeomChild))
 		// {
 		// 	//mapGeomChild->collided += 1;
@@ -214,7 +214,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		{
 			//std::cout << "projectile collision" << std::endl;
 			//scene->projectile->velocity = -scene->projectile->velocity * glm::vec3(1, -1, 1);
-			scene->projectile->velocity = glm::reflect(scene->projectile->velocity, mapGeomChild->planeNormal);
+			scene->projectile->velocity = glm::reflect(scene->projectile->velocity, mapGeomChild->normals[0]);
 			mapGeomChild->collided += (mapGeomChild->collided % 2) + 1;
 
 			if (scene->projectile->collided > 5)
@@ -237,7 +237,10 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 
 	// AABB::intersectsCameraPlane(*scene->mainCamera, *scene->plane);
 	// AABB::intersectsCameraPlane(*scene->mainCamera, *scene->angledplane);
-	AABB::intersectsCameraPlane(*scene->mainCamera, *scene->testcube);
+	if (AABB::intersectsConvexShape(*scene->mainCamera, *scene->testcube))
+	{
+		std::cout << "cube" << std::endl;
+	}
 		
 	// Check projectile collisions on map
     // for (auto &pawnChild : scene->pawn->children)

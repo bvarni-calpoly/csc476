@@ -119,9 +119,9 @@ void Application::render(float frametime)
 
     // Apply perspective projection.
     scene->Projection->pushMatrix();
-    scene->Projection->perspective(45.0f, aspect, 0.01f, 3000.0f); // FIXME, was 100
+    scene->Projection->perspective(45.0f, aspect, 0.01f, 5000.0f); // FIXME, was 100
     scene->ProjectionPortal->pushMatrix();
-    scene->ProjectionPortal->perspective(45.0f, aspect, 0.01f, 3000.0f); // FIXME, was 100
+    scene->ProjectionPortal->perspective(45.0f, aspect, 0.01f, 5000.0f); // FIXME, was 100
 
     // update matrices
     scene->skybox->rotation = vec3(0, 1, 0);

@@ -9,6 +9,13 @@
 // https://docs.godotengine.org/en/stable/classes/class_node.html#class-node
 // https://github.com/godotengine/godot/blob/1aabcb9e9bc7a222a972731523831ec86b77ee20/scene/main/node.h
 // https://learnopengl.com/code_viewer_gh.php?code=src/7.in_practice/3.2d_game/0.full_source/game_object.h
+
+struct CollisionPlane
+{
+	glm::vec3 normal;
+	glm::vec3 faces;
+};
+
 class GameObject
 {
 
@@ -38,12 +45,12 @@ public:
 	std::vector<std::unique_ptr<GameObject>> children; // fixme make hashmap? check godot docs
 
 	// map collision logic
+	std::vector<CollisionPlane> planes;
 	std::vector<glm::vec3> normals;
 
 	// portal logic
 	GameObject* source; 	 // entrance portal
 	GameObject* destination; // exit portal
-	glm::vec3 planeNormal;
 
 	// projectile / entity
 	bool active;

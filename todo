@@ -9,7 +9,14 @@
 - add enemy
 - add backface culling or frustrum culling or whatever the single opengl command is
 - fix obj loader to also read mtl values
+
+- organize gameobject variables into structs
+
+collision
 - add broadphase and narrowphase collsiion type (aabb to plane)
+- currently convex hull is checking every vector four times...
+
+for portal collision check if the plane is vertical for the threshold
 
 
 -- FOR TODAY / SOON --
@@ -32,16 +39,6 @@ lookat function/matrix
 -add basic map loading (add mtl later)
 
 make callback for toggle mouse movement so imgui can be clicked
-
--- FOR TOMORROW --
--add aabb collision to camera/map
-
--- LONG TERM --
-Setup
-    Review final project code for improvements to
-        camera
-        window dimensions
-        just compare the two files
 
 Shaders
     Write shaders from scratch again
