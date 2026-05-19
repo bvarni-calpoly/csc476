@@ -147,22 +147,31 @@ void SceneInitializer::loadGeom(const std::string &resourceDirectory, const std:
         // Read normals from obj file
         const auto& meshNormals = TOshapes[0].mesh.normals;
         const auto& meshFaces = TOshapes[0].mesh.indices;
-        
-        if (!meshNormals.empty() || !meshFaces.empty())
+
+        if (TOshapes[0].name.find("Cube1") != string::npos)
+            std::cout << "Faces " << TOshapes[0].mesh.indices[3] << std::endl;
+
+        if (!meshNormals.empty())
         {
             for (int i = 0; i < meshNormals.size(); i+=3)
             {
-                glm::vec3 objNormal = glm::vec3(meshNormals[i + 0], meshNormals[i + 1], meshNormals[i + 2]);
-                //glm::vec3 objFace = glm::vec3(meshFaces[i + 0], meshFaces[i + 1], meshFaces[i + 2]);
-                obj->planes.push_back({glm::normalize(objNormal), glm::vec3(0.0f, 1.0f, 0.0f)});
+                glm::vec3 objNormal = glm::vec3(meshNormals[i + 0],
+                                                meshNormals[i + 1],
+                                                meshNormals[i + 2]);
+                
+                glm::vec3 pointOnPlane = glm::vec3(TOshapes[0].mesh.positions[i + 0],
+                                                   TOshapes[0].mesh.positions[i + 1],
+                                                   TOshapes[0].mesh.positions[i + 2]);
+
+                obj->planes.push_back({glm::normalize(objNormal), pointOnPlane});
                 // if (TOshapes[0].name.find("Cube1") != string::npos)
                 //     std::cout << objNormal.x << "" << objNormal.y << " " << objNormal.z << std::endl;
             }
         }
         else
         {
-            std::cout << "No faces or normals in obj file" << std::endl;
-            obj->planes.push_back({glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)});
+            std::cout << "No normals in obj file" << std::endl;
+            obj->planes.push_back({glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f)});
         }
     }
 }
@@ -239,6 +248,8 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
 
             part->objName = TOshapes[currObj].name;
 
+            // FIXME!!!
+            
             // Read normals from obj file
             const auto& meshNormals = TOshapes[currObj].mesh.normals;
             
@@ -255,6 +266,31 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
             {
                 std::cout << "No normals in obj file" << std::endl;
                 part->normals.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+
+            // Read normals from obj file
+            // const auto& meshNormals = TOshapes[0].mesh.normals;
+            const auto& meshFaces = TOshapes[currObj].mesh.indices;
+            
+            if (!meshNormals.empty())
+            {
+                for (int i = 0; i < meshNormals.size(); i+=3)
+                {
+                    glm::vec3 objNormal = glm::vec3(meshNormals[i + 0],
+                                                    meshNormals[i + 1],
+                                                    meshNormals[i + 2]);
+                    
+                    glm::vec3 pointOnPlane = glm::vec3(TOshapes[currObj].mesh.positions[i + 0],
+                                                    TOshapes[currObj].mesh.positions[i + 1],
+                                                    TOshapes[currObj].mesh.positions[i + 2]);
+
+                    part->planes.push_back({glm::normalize(objNormal), pointOnPlane});
+                }
+            }
+            else
+            {
+                std::cout << "No normals in obj file" << std::endl;
+                part->planes.push_back({glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f)});
             }
 
             // Material properties
@@ -307,7 +343,6 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
                                             std::max(0.01f, part->shape->max.y - part->shape->min.y),
                                             std::max(0.01f, part->shape->max.z - part->shape->min.z));
                 part->scale = scale;
-
                 
                 // Read normals from obj file
                 glm::vec3 normal = part->normals[0];
@@ -375,7 +410,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     angledplane->position = vec3(-100.0f, -10.0f, 10.0f);
     angledplane->scale = vec3(100.0f);
     
-    testcube->position = vec3(0.0f, 10.0f, -50.0f);
+    //testcube->position = vec3(0.0f, 10.0f, -50.0f);
     testcube->position = vec3(0.0f);
     
     portalcube->scale = vec3(200.0f);

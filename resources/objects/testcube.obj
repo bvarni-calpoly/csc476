@@ -1,7 +1,7 @@
 # Blender 5.1.1
 # www.blender.org
 mtllib testcube.mtl
-o Cube
+o Cube1
 v 0.000000 -20.000000 28.284271
 v 0.000000 20.000000 28.284271
 v -28.284271 -20.000000 0.000000

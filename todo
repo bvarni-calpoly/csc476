@@ -1,3 +1,8 @@
+TODO TODAY
+- add another function for checking obj to obj collision with the planes
+- do an art pass and make a new level
+- add texture mapping / loading
+
 - fix proj matrix for portals
 - fix which portaldrawframe function to use (automate portal rendering placement)
 - add animation through multiple obj files
@@ -9,6 +14,9 @@
 - add enemy
 - add backface culling or frustrum culling or whatever the single opengl command is
 - fix obj loader to also read mtl values
+    - clean up the normal loading for loadMapGeom()
+
+ADD LIGHT AROUND PLAYER
 
 attributes versus uniforms
 

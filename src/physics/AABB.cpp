@@ -117,10 +117,6 @@ int AABB::intersectsCameraSinglePlane(Camera& cam, const GameObject& obj) // FIX
  */
 int AABB::intersectsConvexShape(Camera& cam, const GameObject& obj) // FIXME optimize this, check godot docs
 {
-    /*
-
-    */
-
     // adjust for player height
     glm::vec3 camHeight = cam.eye - glm::vec3(0, cam.playerHeight, 0);
 
@@ -135,8 +131,8 @@ int AABB::intersectsConvexShape(Camera& cam, const GameObject& obj) // FIXME opt
         
         // --- distance = (N * P) + d ---
         // Calculate position of plane relative to normal
-        float d = -glm::dot(normal, obj.position);
-        // d = -20.0f;
+        //float d = -glm::dot(normal, obj.position);
+        float d = -glm::dot(normal, currPlane.point);
         
         // Distance from camera to plane
         float currDistance = glm::dot(normal, camHeight) + d;
@@ -165,6 +161,10 @@ int AABB::intersectsConvexShape(Camera& cam, const GameObject& obj) // FIXME opt
     // {
     //     cam.velocity -= pushDir * velocityAlongNormal;
     // }
+
+    // remove sliding
+    cam.velocity.y = 0;
+    cam.airborne = false;
             
     return 1; // collision detected
 }

@@ -201,7 +201,8 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 			}
 		}
 		// Check collision against rest of the map
-		else if (AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild))
+		else if (AABB::intersectsConvexShape(*scene->mainCamera, *mapGeomChild))
+		//else if (AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild))
 		// else if (AABB::intersectsCameraPlane(*scene->mainCamera, *mapGeomChild))
 		// {
 		// 	//mapGeomChild->collided += 1;
@@ -213,12 +214,12 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		{
 			//std::cout << "projectile collision" << std::endl;
 			//scene->projectile->velocity = -scene->projectile->velocity * glm::vec3(1, -1, 1);
-			scene->projectile->velocity = glm::reflect(scene->projectile->velocity, mapGeomChild->normals[0]);
+			//scene->projectile->velocity = glm::reflect(scene->projectile->velocity, mapGeomChild->planes[0].normal);
 			mapGeomChild->collided += (mapGeomChild->collided % 2) + 1;
 
 			if (scene->projectile->collided > 5)
 			{
-				scene->projectile->active = false; // reset projectile
+				//scene->projectile->active = false; // reset projectile
 				scene->projectile->collided = 0;
 			}
 			else scene->projectile->collided++;

@@ -13,7 +13,7 @@
 struct CollisionPlane
 {
 	glm::vec3 normal;
-	glm::vec3 faces;
+	glm::vec3 point;
 };
 
 class GameObject
