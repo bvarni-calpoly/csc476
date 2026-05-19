@@ -15,6 +15,13 @@
 
 using namespace std;
 
+struct PointLight
+{
+  glm::vec3 position;
+  glm::vec3 color;
+  glm::vec3 intensity;
+};
+
 SceneRender::SceneRender(/* args */) {}
 
 SceneRender::~SceneRender() {}
@@ -111,7 +118,7 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, std::shared_ptr<
 
     for(const auto &part : obj->children)
     {
-        if(part->portalID == 0)
+        if(part->portal->portalID == 0)
         {
             Model->pushMatrix();
                 if(part->objName.find("blue") != string::npos)
@@ -255,7 +262,7 @@ void SceneRender::drawHierMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack>
 
     for(const auto &part : obj->children)
     {
-        if(part->portalID > 0)
+        if(part->portal->portalID > 0)
         {
             break;
         }
@@ -300,24 +307,10 @@ void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::
         // draw portals from the map obj
         for (const auto &child : scene->mapGeom->children)
         {
-            if (child->portalID != 0)
+            // Draw portal frame
+            if (child->portal->portalID > 0)
             {
-                // Draw portal ENTRANCE frame
-                if(child->objName.find("entrance1") != string::npos)
-                    sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portalID);
-
-                // Draw portal EXIT frame
-                else if(child->objName.find("exit1") != string::npos)
-                    sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portalID);
-
-                // Draw portal ENTRANCE frame
-                else if(child->objName.find("entrance2") != string::npos)
-                    sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portalID);
-
-                // Draw portal EXIT frame
-                else if(child->objName.find("exit2") != string::npos)
-                    sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portalID);
-                
+                sceneRender->drawPortalMesh(scene->prog, scene->Model, child, 0);
                 //break; // FIXME investigate why the other quad draws without this
             }
         }
@@ -335,15 +328,15 @@ void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::
         glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
         glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
-        sceneRender->drawPortalMesh(scene->prog, scene->Model, portal, portal->portalID);
+        sceneRender->drawPortalMesh(scene->prog, scene->Model, portal, portal->portal->portalID);
         // // draw portals from the map obj
         // for (const auto &child : scene->mapGeom->children)
         // {
-        //     if (child->portalID != 0)
+        //     if (child->portal->portalID != 0)
         //     {
         //         // Draw portal ENTRANCE frame
-        //         if(child->portalID == portal->portalID)
-        //             sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portalID);
+        //         if(child->portal->portalID == portal->portal->portalID)
+        //             sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portal->portalID);
 
         //         //break; // FIXME investigate why the other quad draws without this
         //     }
@@ -360,7 +353,16 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         // set up all the matrices
         glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
         glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
-        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+
+        // std::vector<PointLight> sceneLights = {
+        //     { callbacks->lightTrans, glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) },
+        //     { scene->mainCamera->eye, glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) }
+        // };
+        // glUniformli1(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+
+        // glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+        glUniform1i(scene->texProg->getUniform("numActiveLights"), 2);
+        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(scene->mainCamera->eye)); // FIXME DO NOT USE CAMERA POS
         glUniform1i(scene->texProg->getUniform("flip"), 1);
 
         sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
@@ -705,10 +707,10 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
         // 2. Rotation		   - (optional) flip orientation 180 degrees
         // 3. Portal A		   - Move from rotated destination local space -> source world space
         // 4. mainView		   - Move from source world space -> camera space
-
+        
         glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // R, rotate 180 degrees
-        glm::mat4 portalA =  glm::translate(glm::mat4(1.0f), portal->position) * portal->rotationMat;                 // TA
-        glm::mat4 portalB =  glm::translate(glm::mat4(1.0f), portal->destination->position) * portal->destination->rotationMat;    // TB
+        glm::mat4 portalA =  glm::translate(glm::mat4(1.0f), portal.second->position) * portal.second->rotationMat;                 // TA
+        glm::mat4 portalB =  glm::translate(glm::mat4(1.0f), portal.second->portal->destination->position) * portal.second->portal->destination->rotationMat;    // TB
         glm::mat4 destView = viewMat * portalB * rotation * glm::inverse(portalA);
         //glm::mat4 destView = viewMat * portalB * glm::inverse(portalA);
         

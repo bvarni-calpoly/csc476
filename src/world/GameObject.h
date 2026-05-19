@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <glm/gtc/type_ptr.hpp>
-
 #include "../renderer/Shape.h"
 
 // https://docs.godotengine.org/en/stable/classes/class_scenetree.html#class-scenetree
@@ -10,10 +9,19 @@
 // https://github.com/godotengine/godot/blob/1aabcb9e9bc7a222a972731523831ec86b77ee20/scene/main/node.h
 // https://learnopengl.com/code_viewer_gh.php?code=src/7.in_practice/3.2d_game/0.full_source/game_object.h
 
+class GameObject;
+
 struct CollisionPlane
 {
 	glm::vec3 normal;
 	glm::vec3 point;
+};
+
+struct Portal
+{
+	GameObject* source; 	 // entrance portal
+	GameObject* destination; // exit portal
+	int portalID;
 };
 
 class GameObject
@@ -47,17 +55,16 @@ public:
 	// map collision logic
 	std::vector<CollisionPlane> planes;
 	std::vector<glm::vec3> normals;
-
-	// portal logic
-	GameObject* source; 	 // entrance portal
-	GameObject* destination; // exit portal
+	
+	// portals
+	std::unique_ptr<Portal> portal;
 
 	// projectile / entity
 	bool active;
 
 	std::shared_ptr<Shape> shape;
 	std::string objName;
-	int portalID;
+
 	int color; // 0 - default, 1 - blue, 2 - purple
 
 	glm::vec3 position = glm::vec3(0);
@@ -78,7 +85,7 @@ public:
 
 	// physics
 	glm::vec3 velocity = glm::vec3(0);
-	int cameraCollided = 0;
 	int collisionsEnabled = 1;
+	int cameraCollided = 0;
 	int collided = 0;
 };

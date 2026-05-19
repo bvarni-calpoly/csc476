@@ -51,6 +51,8 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     texProg->addUniform("TextureBlue");
     texProg->addUniform("TexturePurple");
     texProg->addUniform("MatShine");
+    texProg->addUniform("lights");
+    texProg->addUniform("numActiveLights");
     texProg->addUniform("lightPos");
     texProg->addUniform("portalNormal");
     texProg->addUniform("portalPos");
@@ -298,45 +300,41 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
             if(part->objName.find("purple") != string::npos) part->color = 2;
             
             // Portal object
+            cout << part->objName << endl;
+            part->portal = std::make_unique<Portal>();
             if(part->objName.find("portal") != string::npos)
             {
                 // Object is a quad / plane
-                //part->portalID = part->objName[6]; // get last character / number of the portal
-                if(part->objName.find("entrance1") != string::npos)
-                    part->portalID = 1; // get last character / number of the portal
-                else if(part->objName.find("exit1") != string::npos)
-                    part->portalID = 2; // get last character / number of the portal
-                //part->portalID = part->objName[6]; // get last character / number of the portal
-                else if(part->objName.find("entrance2") != string::npos)
-                    part->portalID = 3; // get last character / number of the portal
-                else if(part->objName.find("exit2") != string::npos)
-                    part->portalID = 4; // get last character / number of the portal
+
+                // Portal_A_1
+                // Portal_B_1
+
+                // last char is the portal group number
+                int portalGroup = part->objName.back() - '0'; // convert char to number
+                cout << "portalGroup: " << portalGroup << endl;
                 
-                part->source = part.get();
-                portals.push_back(part.get());
+                if(part->objName.find("entrance") != string::npos)
+                    part->portal->portalID = (portalGroup * 2) - 1; // allocate space for two slots
+                else if(part->objName.find("exit") != string::npos)
+                    part->portal->portalID = (portalGroup * 2); // allocate space for two slots
 
-                // FIXME currently breaks if entrance is after exit in obj file order
-                if(part->portalID == 2)
+                part->portal->source = part.get();
+                portals[part->portal->portalID] = part.get();
+
+                // Link portal pairs - FIXME, if exit is before entrance nullptr gets dereferenced
+                if (part->portal->portalID % 2 == 0)
                 {
-                    GameObject *first = portals[0];
-                    GameObject *second = portals[1];
-
-                    first->destination = second;
-                    second->destination = first;
-                }
-
-                if(part->portalID == 4)
-                {
-                    GameObject *first = portals[2];
-                    GameObject *second = portals[3];
-
-                    first->destination = second;
-                    second->destination = first;
+                    int currPortal = part->portal->portalID;
+                    GameObject *A = portals[currPortal - 1];
+                    GameObject *B = portals[currPortal];
+    
+                    A->portal->destination = B;
+                    B->portal->destination = A;
                 }
 
                 //portals.insert({part->portalID, part});
                 
-                cout << "portalID: " << part->portalID << endl;
+                cout << "portalID: " << part->portal->portalID << endl;
 
                 // Calculate scale
                 glm::vec3 scale = glm::vec3(std::max(0.01f, part->shape->max.x - part->shape->min.x),
@@ -363,7 +361,7 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
                 );
 
             } else {
-                part->portalID = 0;
+                part->portal->portalID = 0;
             }
             
             obj->addChild(move(part)); // FIXME

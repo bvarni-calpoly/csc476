@@ -20,8 +20,6 @@ ADD LIGHT AROUND PLAYER
 
 attributes versus uniforms
 
-- organize gameobject variables into structs
-
 known issues
 - if there is no skybox all the rendered portals scene show
 

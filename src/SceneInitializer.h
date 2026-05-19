@@ -42,8 +42,7 @@ public:
     std::shared_ptr<Texture> texturePurple;
 
     // Portal map
-    //std::unordered_map<std::string, GameObject*> portals; // raw pointer because scene graph owns the unique_ptr
-    std::vector<GameObject*> portals; // raw pointer because scene graph owns the unique_ptr
+    std::unordered_map<int, GameObject*> portals; // id, obj - raw pointer because scene graph owns the unique_ptr
 
     // Camera
     std::shared_ptr<Camera> mainCamera = std::make_shared<Camera>();
