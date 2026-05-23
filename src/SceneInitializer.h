@@ -28,6 +28,9 @@ public:
     int g_GiboLen;
     // ground VAO
     GLuint GroundVertexArrayID;
+
+    // Uniform Buffer Object for scene lights
+    unsigned int uboLightBlock;
     
     // Our shader program - use this one for Blinn-Phong has diffuse
     std::shared_ptr<Program> prog;

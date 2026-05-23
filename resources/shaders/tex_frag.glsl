@@ -2,11 +2,18 @@
 
 #define MAX_LIGHTS 10
 
+// Use vec4 for padding
 struct PointLight
 {
-  vec3 position;
-  vec3 color;
-  vec3 intensity;
+  vec4 position;
+  vec4 color;
+  vec4 intensity;
+};
+
+layout (std140) uniform LightBlock
+{
+    PointLight lights[MAX_LIGHTS];
+    ivec4 numActiveLights;
 };
 
 uniform sampler2D Texture0;
@@ -17,17 +24,13 @@ uniform int flip;
 uniform vec3 portalNormal;
 uniform vec3 portalPos;
 uniform int useSlicing;
-uniform vec3 lightPos;
-
-uniform PointLight lights[MAX_LIGHTS];
-uniform int numActiveLights;
 
 in vec3 worldPos;
 in vec2 vTexCoord;
 
 out vec4 Outcolor;
 
-//interpolated normal and light vector in camera space
+//interpolated normal and light vector in world space
 in vec3 fragNor;
 in vec3 lightDir;
 
@@ -44,27 +47,38 @@ void main() {
   vec3 ambient = vec3(0.05f);
   vec3 accumulatedLight = vec3(0.0f);
 
-  for (int i = 0; i < numActiveLights; i++)
+  for (int i = 0; i < numActiveLights.x; i++)
   {
     //vec3 light = normalize(lightDir);
+    float distance = 0.0f;
     vec3 light = vec3(0.0f);
     vec3 lightColor = vec3(1.0f);
+    vec3 lightIntensity = vec3(1.0f);
+
+    // Light Attenuation default
+    float constant = 1.0f;
+    float linear = 0.001f;
+    float quadratic = 0.000005f;
+
+    if (i == 1)
+      quadratic = 0.00005f;
     
-    if (i == 0)
-    {
-      light = normalize(lightDir);
-      lightColor = vec3(0.0, 0.5, 1.0);
-    } else {
-      light = normalize(lightPos - worldPos); // Light source at player
-      lightColor = vec3(1.0, 1.0, 1.0);
-    }
+    // Load light from list
+    light = normalize(lights[i].position.xyz - worldPos); // Light source at player
+    lightColor = lights[i].color.xyz;
+    lightIntensity = lights[i].intensity.xyz;
+    distance = length(lights[i].position.xyz - worldPos);
 
     float dC = max(0.0f, dot(normal, light));
-
-    accumulatedLight += dC * lightColor;
+    
+    // Calculate Light Attenuation
+    float attenuation = 1.0f / (constant + linear * distance + quadratic * (distance * distance));
+    
+    // Light from all sources
+    accumulatedLight += dC * lightColor * lightIntensity * attenuation;
   }
   
-  Outcolor = vec4(accumulatedLight * texColor0.xyz, 1.0);
+  Outcolor = vec4((accumulatedLight + ambient) * texColor0.xyz, 1.0);
   // Outcolor = vec4(dC * texColor0.xyz + ambient, 1.0);
   
   //to confirm texture coordinates

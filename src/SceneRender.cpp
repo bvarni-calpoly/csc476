@@ -12,14 +12,19 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_access.hpp>
 
-
 using namespace std;
 
-struct PointLight
+struct PointLightUBO
 {
-  glm::vec3 position;
-  glm::vec3 color;
-  glm::vec3 intensity;
+  glm::vec4 position;
+  glm::vec4 color;
+  glm::vec4 intensity;
+};
+
+struct LightBlockUBO
+{
+    PointLightUBO lights[10];
+    glm::ivec4 numActiveLights;
 };
 
 SceneRender::SceneRender(/* args */) {}
@@ -354,15 +359,71 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
         glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
         glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
 
-        // std::vector<PointLight> sceneLights = {
-        //     { callbacks->lightTrans, glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) },
-        //     { scene->mainCamera->eye, glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) }
-        // };
-        // glUniformli1(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+        // --- Send light data ---
+        LightBlockUBO lightData;
 
-        // glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-        glUniform1i(scene->texProg->getUniform("numActiveLights"), 2);
-        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(scene->mainCamera->eye)); // FIXME DO NOT USE CAMERA POS
+        PointLightUBO playerLight;
+        playerLight.position = glm::vec4(scene->mainCamera->eye, 0.0f);
+        playerLight.color = glm::vec4(1.0f);
+        playerLight.intensity = glm::vec4(0.1f);
+
+        PointLightUBO projectileLight;
+        projectileLight.position = glm::vec4(scene->projectile->position, 0.0f);
+        projectileLight.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+        projectileLight.intensity = glm::vec4(1.0f);
+
+        PointLightUBO redLight;
+        redLight.position = glm::vec4(1000.0f, 100.0f, 1000.0f, 0.0f);
+        redLight.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+        redLight.intensity = glm::vec4(1.0f);
+
+        PointLightUBO greenLight;
+        greenLight.position = glm::vec4(-1000.0f, 100.0f, 1000.0f, 0.0f);
+        greenLight.color = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+        greenLight.intensity = glm::vec4(1.0f);
+
+        PointLightUBO blueLight;
+        blueLight.position = glm::vec4(-1000.0f, 100.0f, -1000.0f, 0.0f);
+        blueLight.color = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+        blueLight.intensity = glm::vec4(1.0f);
+
+        PointLightUBO pinkLight;
+        pinkLight.position = glm::vec4(1000.0f, 100.0f, -1000.0f, 0.0f);
+        pinkLight.color = glm::vec4(1.0f, 0.0f, 1.0f, 0.0f);
+        pinkLight.intensity = glm::vec4(1.0f);
+
+        // Follows a circular path
+        PointLightUBO rainbowLight;
+        float time = glfwGetTime();
+        float speed = 1.0f;
+        float radius = 1000.0f;
+
+        glm::vec3 rainbowColor = glm::vec3( // 2pi/3 = 6.28/3 = 2.093
+            glm::sin((time + 0.0f) + 1.0f),
+            glm::sin((time + 2.093f) + 1.0f),
+            glm::sin((time + 4.18f) + 1.0f)
+        );
+        rainbowLight.position = glm::vec4(glm::sin(time * speed) * radius, 10.0f, glm::cos(time * speed) * radius, 1.0f);
+        rainbowLight.color = glm::vec4(rainbowColor, 0.0f);
+        rainbowLight.intensity = glm::vec4(1.0f);
+
+        lightData.lights[0] = playerLight;
+        lightData.lights[1] = projectileLight;
+        lightData.lights[2] = redLight;
+        lightData.lights[3] = greenLight;
+        lightData.lights[4] = blueLight;
+        lightData.lights[5] = pinkLight;
+        lightData.lights[6] = rainbowLight;
+        lightData.numActiveLights = glm::ivec4(7);
+
+        // fixme
+        glBindBuffer(GL_UNIFORM_BUFFER, scene->uboLightBlock);
+        
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(LightBlockUBO), &lightData);
+        
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        // end of fixme
+
         glUniform1i(scene->texProg->getUniform("flip"), 1);
 
         sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
@@ -758,7 +819,7 @@ void SceneRender::drawTool(std::shared_ptr<SceneInitializer> scene, std::shared_
         glm::mat4 identity = glm::mat4(1.0f);
         glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(identity));
         glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
-        glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+        // glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
         scene->texture1->bind(scene->texProg->getUniform("Texture0"));
 
         scene->tool->position = glm::vec3(0.45f, -0.45f, -0.75f) + sin(scene->mainCamera->eye / 20.0f) / 10.0f;

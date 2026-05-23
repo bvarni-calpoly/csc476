@@ -7,6 +7,19 @@
 using namespace std;
 using namespace glm;
 
+struct PointLightUBO
+{
+  glm::vec4 position;
+  glm::vec4 color;
+  glm::vec4 intensity;
+};
+
+struct LightBlockUBO
+{
+    PointLightUBO lights[10];
+    glm::ivec4 numActiveLights;
+};
+
 SceneInitializer::SceneInitializer(/* args */) {}
 
 SceneInitializer::~SceneInitializer() {}
@@ -51,9 +64,9 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     texProg->addUniform("TextureBlue");
     texProg->addUniform("TexturePurple");
     texProg->addUniform("MatShine");
-    texProg->addUniform("lights");
-    texProg->addUniform("numActiveLights");
-    texProg->addUniform("lightPos");
+    // texProg->addUniform("lights");
+    // texProg->addUniform("numActiveLights");
+    // texProg->addUniform("lightPos");
     texProg->addUniform("portalNormal");
     texProg->addUniform("portalPos");
     texProg->addUniform("useSlicing");
@@ -120,6 +133,16 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     splinepath[1] = Spline(glm::vec3(0, 4, -2), glm::vec3(8, 6, 0), glm::vec3(0, 4, 2), 2);
     splinepath[2] = Spline(glm::vec3(0, 4, 2), glm::vec3(-8, 6, 0), glm::vec3(0, 4, -2), 2);
     splinepath[3] = Spline(glm::vec3(0, 4, -2), glm::vec3(1, 2, 0), glm::vec3(-1, 2, 0), glm::vec3(0, 2, 0), 2);
+
+    // Setup Uniform Buffer Objects
+    glGenBuffers(1, &uboLightBlock);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboLightBlock);
+
+    // glBufferData(GL_UNIFORM_BUFFER, 256, NULL, GL_STATIC_DRAW); // allocate 208 bytes of memory
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(LightBlockUBO), NULL, GL_DYNAMIC_DRAW); // allocate 208 bytes of memory
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboLightBlock); // FIXME
 }
 
 void SceneInitializer::loadGeom(const std::string &resourceDirectory, const std::string &fileName, std::shared_ptr<GameObject> &obj)
@@ -387,8 +410,9 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/cube.obj", pawn);
     loadGeom(resourceDirectory, "/objects/wedge.obj", arrow);
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
-    //loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
-    loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
+    // loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
+    // loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
+    loadMapGeom(resourceDirectory, "/scene/test-chamber.obj", mapGeom);
 
     // light
 

@@ -5,7 +5,7 @@ layout(location = 2) in vec2 vertTex;
 uniform mat4 P;
 uniform mat4 V;
 uniform mat4 M;
-uniform vec3 lightPos;
+// uniform vec3 lightPos;
 
 out vec3 worldPos;
 out vec3 fragNor;
@@ -14,16 +14,20 @@ out vec3 EPos;
 out vec2 vTexCoord;
 
 void main() {
+  // Calculate world positions
+  vec4 wPos = M * vec4(vertPos, 1.0);
+  worldPos = wPos.xyz;
 
-  /* First model transforms */
-  vec3 wPos = vec3(M * vec4(vertPos.xyz, 1.0));
-  gl_Position = P * V *M * vec4(vertPos.xyz, 1.0);
+  // Clip space
+  gl_Position = P * V * wPos;
 
-  fragNor = (V*M * vec4(vertNor, 0.0)).xyz;
-  lightDir = (V*(vec4(lightPos - wPos, 0.0))).xyz;
+  // Transform normal into world space
+  fragNor = (M * vec4(vertNor, 0.0)).xyz;
+  
+  // World space lighting
+  // lightDir = lightPos - worldPos;
+
   EPos = vec3(1); //PULLED for release
-
-  worldPos = wPos;
   
   /* pass through the texture coordinates to be interpolated */
   vTexCoord = vertTex;
