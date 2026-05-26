@@ -19,8 +19,8 @@ struct CollisionPlane
 
 struct Portal
 {
-	GameObject* source; 	 // entrance portal
-	GameObject* destination; // exit portal
+	GameObject *source;		 // entrance portal
+	GameObject *destination; // exit portal
 	int portalID;
 };
 
@@ -49,13 +49,13 @@ public:
 	// std::shared_ptr<GameObject> parent; // fixme shared or raw pointer?
 	int id = 0;
 	bool isMarked = false;
-	GameObject* parent = nullptr;					   // fixme shared or raw pointer?
+	GameObject *parent = nullptr;					   // fixme shared or raw pointer?
 	std::vector<std::unique_ptr<GameObject>> children; // fixme make hashmap? check godot docs
 
 	// map collision logic
 	std::vector<CollisionPlane> planes;
 	std::vector<glm::vec3> normals;
-	
+
 	// portals
 	std::unique_ptr<Portal> portal;
 
@@ -78,7 +78,7 @@ public:
 	// already calculate in shape
 	glm::vec3 min = glm::vec3(std::numeric_limits<float>::max()); // World space
 	glm::vec3 max = glm::vec3(std::numeric_limits<float>::lowest());
-	
+
 	// orientation
 	glm::vec3 up = glm::vec3(0, 1, 0);
 	glm::vec3 forward = glm::vec3(1, 0, 0);

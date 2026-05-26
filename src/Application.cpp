@@ -49,8 +49,8 @@ void Application::init(const string &resourceDirectory)
     scene = make_shared<SceneInitializer>();
     sceneRender = make_shared<SceneRender>();
     callbacks = make_shared<Callbacks>(scene->mainCamera.get());
-	scene->init(resourceDirectory);
-	scene->initGeom(resourceDirectory);
+    scene->init(resourceDirectory);
+    scene->initGeom(resourceDirectory);
 }
 
 void Application::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
@@ -89,12 +89,73 @@ void Application::resizeCallback(GLFWwindow *window, int width, int height)
         callbacks->resizeCallback(window, width, height);
 }
 
+void RenderQuad(unsigned int &quadVAO, unsigned int &quadVBO) // FIXME REMOVE THIS
+{
+    // https://learnopengl.com/getting-started/hello-triangle
+    // https://learnopengl.com/code_viewer_gh.php?code=src/4.advanced_opengl/5.1.framebuffers/framebuffers.cpp
+
+    // static unsigned int quadVAO = 0;
+    // static unsigned int quadVBO = 0;
+
+    // If the quad hasn't been generated yet, set it up on the GPU
+    if (quadVAO == 0)
+    {
+        // 4 vertices, each with 3 position floats (X, Y, Z) and 2 texture coordinate floats (U, V)
+        // This matches layout(location = 0) for positions and layout(location = 2) for texCoords
+        float quadVertices[] = {
+            // positions        // texture Coords
+            -1.0f,
+            1.0f,
+            0.0f,
+            0.0f,
+            1.0f,
+            -1.0f,
+            -1.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            1.0f,
+            1.0f,
+            0.0f,
+            1.0f,
+            1.0f,
+            1.0f,
+            -1.0f,
+            0.0f,
+            1.0f,
+            0.0f,
+        };
+
+        // Setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+
+        // Location 0: Vertex Positions (X, Y, Z)
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+
+        // Location 2: Texture Coordinates (U, V) - Matches your layout(location = 2)
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+    }
+
+    // Bind and Draw the quad
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
 void Application::render(float frametime)
 {
-    //FIXME, DO NOT SET EVERY FRAME
-	// Does not work on WSL
-    if(callbacks->mouseEnabled) glfwSetInputMode(windowManager->getHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    else glfwSetInputMode(windowManager->getHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    // FIXME, DO NOT SET EVERY FRAME
+    //  Does not work on WSL
+    if (callbacks->mouseEnabled)
+        glfwSetInputMode(windowManager->getHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    else
+        glfwSetInputMode(windowManager->getHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     // Get current frame buffer size.
     int width, height;
@@ -105,12 +166,6 @@ void Application::render(float frametime)
     float aspect = width / (float)height;
 
     // Create the matrix stacks
-    //auto Projection = make_shared<MatrixStack>();
-    //auto ProjectionPortal = make_shared<MatrixStack>();
-    //auto Model = make_shared<MatrixStack>();
-    //auto ModelPortalSource = make_shared<MatrixStack>();
-    //auto ModelPortalDestination = make_shared<MatrixStack>();
-
     scene->Projection = make_shared<MatrixStack>();
     scene->ProjectionPortal = make_shared<MatrixStack>();
     scene->Model = make_shared<MatrixStack>();
@@ -131,18 +186,98 @@ void Application::render(float frametime)
     scene->ModelPortalSource->loadIdentity();
     scene->ModelPortalDestination->loadIdentity();
 
-    // FIXME move camerea functions here <<<
-    // update the camera position
-    // mainCamera->updateUsingCameraPath(frametime, splinepath);
-    
+    // --- CAMERA AND COLLISION LOGIC --- FIXME
+    // animation updates
+    sTheta = sin(glfwGetTime());
+    eTheta = std::max(0.0f, (float)sin(glfwGetTime()));
+    hTheta = std::max(0.0f, (float)cos(glfwGetTime()));
+
+    // save previous camera position for collision
+    scene->mainCamera->eye_prev = scene->mainCamera->eye;
+
+    // camera movements
+    if (callbacks->cinematicCamera)
+        scene->mainCamera->updateUsingCameraPath(deltaTime, scene->splinepath);
+    if (callbacks->freeCamera)                                                                        // FIXME MOVE TO BEGINNING
+        scene->mainCamera->cameraMovement(windowManager->getHandle(), scene->cameraSpeed, deltaTime); // smooth camera movements
+    else
+        scene->mainCamera->playerMovement(windowManager->getHandle(), scene, 320.0, deltaTime); // control the player
+
+    scene->mainCamera->lookAtTarget = scene->mainCamera->eye + scene->mainCamera->forward; // FIXME, put this before?
+
+    // https://learnopengl.com/Advanced-OpenGL/Framebuffers
+    // first pass
+    // glBindFramebuffer(GL_FRAMEBUFFER, scene->framebuffer); // bind framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, scene->hdrFBO); // bind framebuffer
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+    glEnable(GL_DEPTH_TEST);
+
     // Recursive portals
     // https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // Clear framebuffer and stencilbuffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);                               // Clear framebuffer and stencilbuffer
     glm::mat4 mainView = lookAt(scene->mainCamera->eye, scene->mainCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
-    //sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 1, 0);
+    // sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 1, 0);
     sceneRender->drawPortals(scene, sceneRender, callbacks, mainView, scene->Projection->topMatrix());
     sceneRender->drawTool(scene, sceneRender, callbacks, mainView, scene->Projection->topMatrix());
-    
+
+    // https://learnopengl.com/Advanced-OpenGL/Framebuffers
+    // gaussian blur pass
+    bool horizontal = true, first_iteration = true;
+    int amount = 10;
+    scene->blurShader->bind();
+    for (unsigned int i = 0; i < amount; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, scene->pingpongFBO[horizontal]);
+        glUniform1i(scene->blurShader->getUniform("horizontal"), horizontal);
+        glActiveTexture(GL_TEXTURE0); // activate texture 0 to read from it
+        glBindTexture(
+            GL_TEXTURE_2D, first_iteration ? scene->colorBuffers[1] : scene->pingpongBuffers[!horizontal]);
+
+        glUniform1i(scene->blurShader->getUniform("image"), 0); // send texture to blur shader
+
+        RenderQuad(scene->quadVAO, scene->quadVBO);
+
+        horizontal = !horizontal;
+        if (first_iteration)
+            first_iteration = false;
+    }
+    scene->blurShader->unbind();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // second pass
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    scene->screenShader->bind();
+    // FIX ME
+    glDisable(GL_DEPTH_TEST);
+
+    // Bind scene texture 0
+    glActiveTexture(GL_TEXTURE0);
+    // glBindTexture(GL_TEXTURE_2D, scene->textureColorbuffer); // post processing framebuffer
+    glBindTexture(GL_TEXTURE_2D, scene->colorBuffers[0]);
+    glUniform1i(scene->screenShader->getUniform("sceneTexture"), 0);
+
+    // Bind bright object texture 1
+    glActiveTexture(GL_TEXTURE1);
+    // glBindTexture(GL_TEXTURE_2D, scene->colorBuffers[1]); // bright object framebuffer
+    glBindTexture(GL_TEXTURE_2D, scene->pingpongBuffers[!horizontal]); // blur bright object framebuffer
+    glUniform1i(scene->screenShader->getUniform("bloomBlurTexture"), 1);
+
+    glUniform1f(scene->screenShader->getUniform("exposure"), 1.0f);
+
+    // Send texture to shader
+    // scene->texture0->bind(scene->screenShader->getUniform("Texture0"));
+
+    // glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    RenderQuad(scene->quadVAO, scene->quadVBO);
+
+    scene->screenShader->unbind();
+
     /*
     // DRAW BORDER OBJECTS HERE
 
@@ -161,80 +296,5 @@ void Application::render(float frametime)
     glStencilMask(0xFF);
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
     glEnable(GL_DEPTH_TEST);
-    */
-    
-    // --- CAMERA AND COLLISION LOGIC --- FIXME
-    // animation updates
-    sTheta = sin(glfwGetTime());
-    eTheta = std::max(0.0f, (float)sin(glfwGetTime()));
-    hTheta = std::max(0.0f, (float)cos(glfwGetTime()));
-
-    // save previous camera position for collision
-    scene->mainCamera->eye_prev = scene->mainCamera->eye;
-    
-    // camera movements
-    if (callbacks->cinematicCamera)
-        scene->mainCamera->updateUsingCameraPath(deltaTime, scene->splinepath);
-    if (callbacks->freeCamera)                                                          // FIXME MOVE TO BEGINNING
-        scene->mainCamera->cameraMovement(windowManager->getHandle(), scene->cameraSpeed, deltaTime); // smooth camera movements
-    else
-        scene->mainCamera->playerMovement(windowManager->getHandle(), scene, 175.0, deltaTime); // control the player
-
-    scene->mainCamera->lookAtTarget = scene->mainCamera->eye + scene->mainCamera->forward; // FIXME, put this before?
-
-    /*
-    scene->debugShader->bind();
-    // Set global matrices FIXME-COMMENT
-    glUniformMatrix4fv(scene->debugShader->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-    scene->mainCamera->SetView(scene->debugShader);
-
-    glUniform3fv(scene->debugShader->getUniform("camPos"), 1, value_ptr(scene->mainCamera->eye));
-    glUniform4f(scene->debugShader->getUniform("debugColor"), 0.0f, 0.0f, 1.0f, 0.5f);
-
-    // Set model (M) matrix
-    Model->pushMatrix();
-    Model->loadIdentity();
-
-    glUniform3fv(scene->debugShader->getUniform("boxMin"), 1, value_ptr(scene->skybox->min));
-    glUniform3fv(scene->debugShader->getUniform("boxMax"), 1, value_ptr(scene->skybox->max));
-    glUniform1i(scene->debugShader->getUniform("collided"), scene->skybox->collided);
-
-    Model->translate(scene->skybox->position);
-    // Model->rotate(1.0f, skybox->rotation); // FIXME
-    Model->scale(1.0f / scene->skybox->shape->largeExtent());
-    Model->scale(1.1f);
-
-    // draw wireframe hitbox
-    GLSLUtils::setModel(scene->debugShader, Model);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    scene->skybox->shape->draw(scene->debugShader);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    Model->popMatrix();
-
-    // glUniform4f(debugShader->getUniform("debugColor"), 0.0f, 0.0f, 1.0f, 0.5f);
-
-    for (auto &cubeChild : scene->cube->children)
-    {
-        Model->pushMatrix();
-        Model->loadIdentity();
-
-        cubeChild->updateBounds();
-
-        Model->translate(cubeChild->position);
-        // Model->rotate(1, cubeChild->rotation);
-        Model->scale(cubeChild->scale + vec3(0.1f));
-        Model->scale(1.0f / cubeChild->shape->largeExtent());
-
-        glUniform3fv(scene->debugShader->getUniform("boxMin"), 1, value_ptr(cubeChild->min));
-        glUniform3fv(scene->debugShader->getUniform("boxMax"), 1, value_ptr(cubeChild->max));
-        glUniform1i(scene->debugShader->getUniform("collided"), cubeChild->collided);
-
-        GLSLUtils::setModel(scene->debugShader, Model);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        cubeChild->shape->draw(scene->debugShader);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        Model->popMatrix();
-    }
-    scene->debugShader->unbind();
     */
 }

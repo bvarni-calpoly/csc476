@@ -1,6 +1,8 @@
 #version 330 core
 
-#define MAX_LIGHTS 10
+// For finding bright objects
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightColor;
 
 // Use vec4 for padding
 struct PointLight
@@ -10,6 +12,7 @@ struct PointLight
   vec4 intensity;
 };
 
+#define MAX_LIGHTS 10
 layout (std140) uniform LightBlock
 {
     PointLight lights[MAX_LIGHTS];
@@ -25,10 +28,12 @@ uniform vec3 portalNormal;
 uniform vec3 portalPos;
 uniform int useSlicing;
 
+uniform float glowIntensity;
+
 in vec3 worldPos;
 in vec2 vTexCoord;
 
-out vec4 Outcolor;
+// out vec4 Outcolor;
 
 //interpolated normal and light vector in world space
 in vec3 fragNor;
@@ -61,7 +66,7 @@ void main() {
     float quadratic = 0.000005f;
 
     if (i == 1)
-      quadratic = 0.00005f;
+      quadratic = 0.000005f;
     
     // Load light from list
     light = normalize(lights[i].position.xyz - worldPos); // Light source at player
@@ -78,14 +83,24 @@ void main() {
     accumulatedLight += dC * lightColor * lightIntensity * attenuation;
   }
   
-  Outcolor = vec4((accumulatedLight + ambient) * texColor0.xyz, 1.0);
+  vec3 lightColor = (accumulatedLight + ambient) * texColor0.xyz; 
+  vec3 glowColor = glowIntensity * texColor0.xyz; 
+  FragColor = vec4(lightColor + glowColor, 1.0);
   // Outcolor = vec4(dC * texColor0.xyz + ambient, 1.0);
-  
+
   //to confirm texture coordinates
   // Outcolor = vec4(vTexCoord.x, vTexCoord.y, 0, 0);
   
   // fullbright
   // Outcolor = vec4(texColor0.xyz, 1.0);
+
+  // https://learnopengl.com/Advanced-Lighting/Bloom
+  float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722)); // grayscale image to find bright points
+  // if(brightness > 1.0)
+  if(brightness > 0.5)
+      BrightColor = vec4(FragColor.rgb, 1.0);
+  else
+      BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
 
   if (useSlicing > 0)
   {

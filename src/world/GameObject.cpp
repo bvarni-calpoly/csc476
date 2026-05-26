@@ -25,15 +25,15 @@ void GameObject::updateBoundsMapGeom()
 
 void GameObject::addChild(std::unique_ptr<GameObject> child)
 {
-    child->parent = this; // fixme
+    child->parent = this;                 // fixme
     children.push_back(std::move(child)); // fixme
 }
 
 void GameObject::removeChild(int id) // FIXME
 {
-    for(int i = 0; i < children.size(); i++)
+    for (int i = 0; i < children.size(); i++)
     {
-        if(children[i]->id == id)
+        if (children[i]->id == id)
         {
             isMarked = true;
         }

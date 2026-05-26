@@ -31,11 +31,30 @@ public:
 
     // Uniform Buffer Object for scene lights
     unsigned int uboLightBlock;
-    
+
+    // Framebuffer
+    unsigned int framebuffer;
+    unsigned int textureColorbuffer;
+    unsigned int quadVAO, quadVBO;
+    unsigned int fbo;
+
+    // Bloom framebuffers
+    unsigned int hdrFBO;
+    unsigned int colorBuffers[2];
+
+    // Gaussian blur
+    unsigned int pingpongFBO[2];
+    unsigned int pingpongBuffers[2];
+
+    int windowWidth = 1600, windowHeight = 1000;
+
     // Our shader program - use this one for Blinn-Phong has diffuse
     std::shared_ptr<Program> prog;
-    std::shared_ptr<Program> texProg; // Our shader program for textures
-    std::shared_ptr<Program> debugShader; // shader program for debug information and collision visualization
+    std::shared_ptr<Program> texProg;         // Our shader program for textures
+    std::shared_ptr<Program> screenShader;    // Our shader for post processing effects with fbo
+    std::shared_ptr<Program> blurShader;      // Our shader program for gaussian blur
+    std::shared_ptr<Program> blendShader;     // Our shader program for bloom
+    std::shared_ptr<Program> debugShader;     // shader program for debug information and collision visualization
     std::shared_ptr<Program> debugNormShader; // shader program for normal vector visualization
 
     // the image to use as a texture
@@ -45,7 +64,7 @@ public:
     std::shared_ptr<Texture> texturePurple;
 
     // Portal map
-    std::unordered_map<int, GameObject*> portals; // id, obj - raw pointer because scene graph owns the unique_ptr
+    std::unordered_map<int, GameObject *> portals; // id, obj - raw pointer because scene graph owns the unique_ptr
 
     // Camera
     std::shared_ptr<Camera> mainCamera = std::make_shared<Camera>();

@@ -1,5 +1,5 @@
 /*
-    Project! - A Portal Game, with Quake styled movement or something like that
+	Project! - A Portal Game, with Quake styled movement or something like that
 
 	Useful links!
 	General
@@ -12,10 +12,10 @@
 
 	Portals
 	https://www.cs.rpi.edu/~cutler/classes/advancedgraphics/S21/final_projects/metzlr.pdf
-    https://ajknowles11.github.io/projects/portals/
-    https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
-    https://www.youtube.com/watch?v=cWpFZbjtSQg
-    https://medium.com/@alikomurcu/portals-with-opengl-d74da6241dd4
+	https://ajknowles11.github.io/projects/portals/
+	https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
+	https://www.youtube.com/watch?v=cWpFZbjtSQg
+	https://medium.com/@alikomurcu/portals-with-opengl-d74da6241dd4
 	Stencil Test - https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 	Basic Portal - https://en.wikibooks.org/wiki/OpenGL_Programming/Mini-Portal
 	Recursive Portal - https://en.wikibooks.org/wiki/OpenGL_Programming/Mini-Portal_Recursive
@@ -27,7 +27,7 @@
 
 	Lighting
 	Ray Tracing - https://raytracing.github.io/
-	
+
 	Post Processing
 	Implementation - https://learnopengl.com/In-Practice/2D-Game/Postprocessing
 	Wave Effect - https://en.wikibooks.org/wiki/OpenGL_Programming/Post-Processing
@@ -40,7 +40,6 @@
 	Optimization
 	https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling
 */
-
 
 #include <iostream>
 #include <glad/glad.h>
@@ -61,8 +60,8 @@
 #include "world/Player.h"
 #include "world/GameObject.h"
 
-//#define TINYOBJLOADER_IMPLEMENTATION
-//#include <tiny_obj_loader/tiny_obj_loader.h>
+// #define TINYOBJLOADER_IMPLEMENTATION
+// #include <tiny_obj_loader/tiny_obj_loader.h>
 #define PI 3.1415927
 
 // value_ptr for glm
@@ -75,7 +74,7 @@
 // #include "imgui_impl_opengl3.h"
 
 // imgui FIXME
-//https://github.com/ocornut/imgui/wiki/Getting-Started#example-if-you-are-using-glfw--openglwebgl
+// https://github.com/ocornut/imgui/wiki/Getting-Started#example-if-you-are-using-glfw--openglwebgl
 #include "../ext/imgui/imgui.h"
 #include "../ext/imgui/backends/imgui_impl_glfw.h"
 #include "../ext/imgui/backends/imgui_impl_opengl3.h"
@@ -100,7 +99,7 @@ int main(int argc, char *argv[])
 	}
 
 	Application *application = new Application(0);
-	//SceneInitializer *sceneInitializer = new SceneInitializer();
+	// SceneInitializer *sceneInitializer = new SceneInitializer();
 
 	// Your main will always include a similar set up to establish your window
 	// and GL context, etc.
@@ -110,31 +109,30 @@ int main(int argc, char *argv[])
 	windowManager->setEventCallbacks(application);
 	application->windowManager = windowManager;
 
-
-	//sceneInitializer->initGeom(resourceDir);
-	//sceneInitializer->init(resourceDir);
 	application->init(resourceDir);
+	// sceneInitializer->initGeom(resourceDir);
+	// sceneInitializer->init(resourceDir);
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;			// Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;			// Enable Gamepad Controls
-	//io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;				// IF using Docking Branch
+	ImGuiIO &io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+	// io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;				// IF using Docking Branch
 
 	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(windowManager->getHandle(), true);	// Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplGlfw_InitForOpenGL(windowManager->getHandle(), true); // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
 	ImGui_ImplOpenGL3_Init();
 
 	auto lastTime = chrono::high_resolution_clock::now();
 	// Loop until the user closes the window.
-	while (! glfwWindowShouldClose(windowManager->getHandle()))
+	while (!glfwWindowShouldClose(windowManager->getHandle()))
 	{
 		// (Your code calls glfwPollEvents())
 		// Poll for and process events.
 		glfwPollEvents();
-		
+
 		// ...
 		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
@@ -155,7 +153,8 @@ int main(int argc, char *argv[])
 		ImGui::SliderFloat("g_Spin", &application->g_Spin, 0.0f, 20.0f);
 		ImGui::SliderFloat3("light pos", &application->callbacks->lightTrans.x, -1000.0f, 1000.0f);
 
-		if (showDemoWindow) ImGui::ShowDemoWindow(); // Show demo window! :)
+		if (showDemoWindow)
+			ImGui::ShowDemoWindow(); // Show demo window! :)
 
 		// save current time for next frame
 		auto nextLastTime = chrono::high_resolution_clock::now();
@@ -175,7 +174,7 @@ int main(int argc, char *argv[])
 		// Render scene.
 		application->render(deltaTime);
 		application->deltaTime = deltaTime;
-		
+
 		// imgui Rendering
 		// (Your code clears your framebuffer, renders your other stuff etc.)
 		ImGui::Render();
@@ -185,7 +184,7 @@ int main(int argc, char *argv[])
 		// Swap front and back buffers.
 		glfwSwapBuffers(windowManager->getHandle());
 		// Poll for and process events.
-		//glfwPollEvents();
+		// glfwPollEvents();
 	}
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();

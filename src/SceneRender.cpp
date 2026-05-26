@@ -16,9 +16,9 @@ using namespace std;
 
 struct PointLightUBO
 {
-  glm::vec4 position;
-  glm::vec4 color;
-  glm::vec4 intensity;
+    glm::vec4 position;
+    glm::vec4 color;
+    glm::vec4 intensity;
 };
 
 struct LightBlockUBO
@@ -86,13 +86,13 @@ void SceneRender::drawHierMap(shared_ptr<Program> curS, shared_ptr<MatrixStack> 
 void SceneRender::drawTextureMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj)
 {
     Model->pushMatrix();
-    //Model->loadIdentity();
+    // Model->loadIdentity();
 
     // update matrices
     obj->updateBounds();
 
     Model->translate(obj->position);
-    //Model->translate(obj->position); // move to ground (half of height)
+    // Model->translate(obj->position); // move to ground (half of height)
     Model->rotate(obj->angle, obj->rotation);
     Model->scale(obj->scale);
     Model->scale(1.0 / obj->shape->largeExtent()); // normalize
@@ -105,14 +105,14 @@ void SceneRender::drawTextureMesh(shared_ptr<Program> curS, shared_ptr<MatrixSta
 void SceneRender::drawTextureMeshNoScale(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj)
 {
     Model->pushMatrix();
-        // update matrices
-        obj->updateBounds();
+    // update matrices
+    obj->updateBounds();
 
-        // Model->translate(obj->position);
-        // Model->rotate(obj->angle, obj->rotation);
+    // Model->translate(obj->position);
+    // Model->rotate(obj->angle, obj->rotation);
 
-        GLSLUtils::setModel(curS, Model);
-        obj->shape->draw(curS);
+    GLSLUtils::setModel(curS, Model);
+    obj->shape->draw(curS);
     Model->popMatrix();
 }
 
@@ -121,29 +121,29 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, std::shared_ptr<
     Model->pushMatrix();
     scene->texture1->bind(scene->texProg->getUniform("Texture0"));
 
-    for(const auto &part : obj->children)
+    for (const auto &part : obj->children)
     {
-        if(part->portal->portalID == 0)
+        if (part->portal->portalID == 0)
         {
             Model->pushMatrix();
-                if(part->objName.find("blue") != string::npos)
-                    scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
-                else if(part->objName.find("purple") != string::npos)
-                    scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
-                else
-                    scene->texture1->bind(scene->texProg->getUniform("Texture0"));
-                
-                //if(part->objName.find("stair") != string::npos)
-                if(true)
-                {
-                    if (part->collided % 2 == 1)
-                        scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
-                    else
-                        scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
-                }
+            if (part->objName.find("blue") != string::npos)
+                scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
+            else if (part->objName.find("purple") != string::npos)
+                scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
+            else
+                scene->texture1->bind(scene->texProg->getUniform("Texture0"));
 
-                GLSLUtils::setModel(curS, Model);
-                part->shape->draw(curS);
+            // if(part->objName.find("stair") != string::npos)
+            if (true)
+            {
+                if (part->collided % 2 == 1)
+                    scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
+                else
+                    scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
+            }
+
+            GLSLUtils::setModel(curS, Model);
+            part->shape->draw(curS);
             Model->popMatrix();
         }
     }
@@ -153,33 +153,33 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, std::shared_ptr<
 void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
 {
     Model->pushMatrix();
-    //Model->loadIdentity();
+    // Model->loadIdentity();
 
     // update matrices
-    //obj->updateBounds();
+    // obj->updateBounds();
 
     Model->translate(obj->position);
     Model->rotate(obj->angle, obj->rotation); // FIXME
-    Model->translate(-obj->shape->center); // FIXME
-    
+    Model->translate(-obj->shape->center);    // FIXME
+
     GLSLUtils::SetMaterial(curS, material);
     GLSLUtils::setModel(curS, Model);
     obj->shape->draw(curS);
     Model->popMatrix();
 }
 
-void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, GameObject* obj, int material)
+void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, GameObject *obj, int material)
 {
     Model->pushMatrix();
-    //Model->loadIdentity();
+    // Model->loadIdentity();
 
     // update matrices
-    //obj->updateBounds();
+    // obj->updateBounds();
 
     Model->translate(obj->position);
     Model->rotate(obj->angle, obj->rotation); // FIXME
-    Model->translate(-obj->shape->center); // FIXME
-    
+    Model->translate(-obj->shape->center);    // FIXME
+
     GLSLUtils::SetMaterial(curS, material);
     GLSLUtils::setModel(curS, Model);
     obj->shape->draw(curS);
@@ -189,34 +189,34 @@ void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStac
 void SceneRender::drawPortalMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> &Model, const unique_ptr<GameObject> &obj, int material)
 {
     Model->pushMatrix();
-        Model->loadIdentity();
+    Model->loadIdentity();
 
-        // update matrices
-        //obj->updateBounds();
+    // update matrices
+    // obj->updateBounds();
 
-        // move to position
-        //Model->translate(obj->position);
+    // move to position
+    // Model->translate(obj->position);
 
-        // rotate according to surface normal
-        //Model->multMatrix(obj->rotationMat);
+    // rotate according to surface normal
+    // Model->multMatrix(obj->rotationMat);
 
-        //Model->scale(1 / 20.0f);
+    // Model->scale(1 / 20.0f);
 
-        // // normalize
-        //Model->scale(1.0 / obj->shape->largeExtent());
-        
-        //Model->translate(-obj->shape->center); // center in world
+    // // normalize
+    // Model->scale(1.0 / obj->shape->largeExtent());
 
-        GLSLUtils::SetMaterial(curS, material);
-        GLSLUtils::setModel(curS, Model);
-        obj->shape->draw(curS);
+    // Model->translate(-obj->shape->center); // center in world
+
+    GLSLUtils::SetMaterial(curS, material);
+    GLSLUtils::setModel(curS, Model);
+    obj->shape->draw(curS);
     Model->popMatrix();
 }
 
 void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
 {
     Model->pushMatrix();
-    //Model->loadIdentity();
+    // Model->loadIdentity();
 
     // update matrices
     obj->updateBounds();
@@ -225,8 +225,8 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
     Model->rotate(obj->angle, obj->rotation); // FIXME
     Model->scale(obj->scale);
     Model->scale(1.0 / obj->shape->largeExtent()); // normalize
-    Model->translate(-obj->shape->center); // FIXME
-    
+    Model->translate(-obj->shape->center);         // FIXME
+
     GLSLUtils::SetMaterial(curS, material);
     GLSLUtils::setModel(curS, Model);
     obj->shape->draw(curS);
@@ -236,7 +236,7 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
 void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material, glm::vec3 translate, float angle, glm::vec3 rotate, glm::vec3 scale)
 {
     Model->pushMatrix();
-    //Model->loadIdentity();
+    // Model->loadIdentity();
 
     // update matrices
 
@@ -255,19 +255,19 @@ void SceneRender::drawMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Mod
 void SceneRender::drawHierMesh(shared_ptr<Program> curS, shared_ptr<MatrixStack> Model, shared_ptr<GameObject> obj, int material)
 {
     Model->pushMatrix();
-    //Model->loadIdentity();
+    // Model->loadIdentity();
 
     // update matrices
-    //obj->updateBounds();
+    // obj->updateBounds();
 
-    //Model->translate(obj->position);
-    //Model->rotate(obj->angle, obj->rotation);
-    //Model->scale(obj->scale);
-    //Model->scale(1.0 / obj->shape->largeExtent()); // normalize
+    // Model->translate(obj->position);
+    // Model->rotate(obj->angle, obj->rotation);
+    // Model->scale(obj->scale);
+    // Model->scale(1.0 / obj->shape->largeExtent()); // normalize
 
-    for(const auto &part : obj->children)
+    for (const auto &part : obj->children)
     {
-        if(part->portal->portalID > 0)
+        if (part->portal->portalID > 0)
         {
             break;
         }
@@ -284,16 +284,16 @@ void SceneRender::drawSceneGraph(shared_ptr<Program> curS, shared_ptr<MatrixStac
     for (auto &child : obj->children)
     {
         Model->pushMatrix();
-            Model->loadIdentity();
+        Model->loadIdentity();
 
-            child->updateBounds();
-            Model->translate(child->position);
-            Model->scale(child->scale);
-            Model->scale(1.0 / child->shape->largeExtent());
+        child->updateBounds();
+        Model->translate(child->position);
+        Model->scale(child->scale);
+        Model->scale(1.0 / child->shape->largeExtent());
 
-            GLSLUtils::SetMaterial(curS, material);
-            GLSLUtils::setModel(curS, Model);
-            child->shape->draw(curS);
+        GLSLUtils::SetMaterial(curS, material);
+        GLSLUtils::setModel(curS, Model);
+        child->shape->draw(curS);
         Model->popMatrix();
     }
 }
@@ -301,51 +301,51 @@ void SceneRender::drawSceneGraph(shared_ptr<Program> curS, shared_ptr<MatrixStac
 void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, glm::mat4 projMat)
 {
     scene->prog->bind();
-        scene->mainCamera->SetView(scene->prog);
-        scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);    
-        
-        // set up all the matrices
-        glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(viewMat));
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
-        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+    scene->mainCamera->SetView(scene->prog);
+    scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
 
-        // draw portals from the map obj
-        for (const auto &child : scene->mapGeom->children)
+    // set up all the matrices
+    glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(viewMat));
+    glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
+    glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+
+    // draw portals from the map obj
+    for (const auto &child : scene->mapGeom->children)
+    {
+        // Draw portal frame
+        if (child->portal->portalID > 0)
         {
-            // Draw portal frame
-            if (child->portal->portalID > 0)
-            {
-                sceneRender->drawPortalMesh(scene->prog, scene->Model, child, 0);
-                //break; // FIXME investigate why the other quad draws without this
-            }
+            sceneRender->drawPortalMesh(scene->prog, scene->Model, child, 0);
+            // break; // FIXME investigate why the other quad draws without this
         }
+    }
     scene->prog->unbind();
 }
 
-void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, GameObject* portal, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, glm::mat4 projMat)
+void SceneRender::drawPortalFrame(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, GameObject *portal, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, glm::mat4 projMat)
 {
     scene->prog->bind();
-        scene->mainCamera->SetView(scene->prog);
-        scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);    
-        
-        // set up all the matrices
-        glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(viewMat));
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
-        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+    scene->mainCamera->SetView(scene->prog);
+    scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
 
-        sceneRender->drawPortalMesh(scene->prog, scene->Model, portal, portal->portal->portalID);
-        // // draw portals from the map obj
-        // for (const auto &child : scene->mapGeom->children)
-        // {
-        //     if (child->portal->portalID != 0)
-        //     {
-        //         // Draw portal ENTRANCE frame
-        //         if(child->portal->portalID == portal->portal->portalID)
-        //             sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portal->portalID);
+    // set up all the matrices
+    glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(viewMat));
+    glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
+    glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
-        //         //break; // FIXME investigate why the other quad draws without this
-        //     }
-        // }
+    sceneRender->drawPortalMesh(scene->prog, scene->Model, portal, portal->portal->portalID);
+    // // draw portals from the map obj
+    // for (const auto &child : scene->mapGeom->children)
+    // {
+    //     if (child->portal->portalID != 0)
+    //     {
+    //         // Draw portal ENTRANCE frame
+    //         if(child->portal->portalID == portal->portal->portalID)
+    //             sceneRender->drawPortalMesh(scene->prog, scene->Model, child, child->portal->portalID);
+
+    //         //break; // FIXME investigate why the other quad draws without this
+    //     }
+    // }
     scene->prog->unbind();
 }
 
@@ -353,123 +353,125 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
 {
     // Draw map
     scene->texProg->bind();
-        scene->texture1->bind(scene->texProg->getUniform("Texture1"));
-    
-        // set up all the matrices
-        glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
-        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
+    scene->texture1->bind(scene->texProg->getUniform("Texture1"));
 
-        // --- Send light data ---
-        LightBlockUBO lightData;
+    // set up all the matrices
+    glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
+    glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
 
-        PointLightUBO playerLight;
-        playerLight.position = glm::vec4(scene->mainCamera->eye, 0.0f);
-        playerLight.color = glm::vec4(1.0f);
-        playerLight.intensity = glm::vec4(0.1f);
+    // --- Send light data ---
+    LightBlockUBO lightData;
 
-        PointLightUBO projectileLight;
-        projectileLight.position = glm::vec4(scene->projectile->position, 0.0f);
-        projectileLight.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-        projectileLight.intensity = glm::vec4(1.0f);
+    PointLightUBO playerLight;
+    playerLight.position = glm::vec4(scene->mainCamera->eye, 0.0f);
+    playerLight.color = glm::vec4(1.0f);
+    playerLight.intensity = glm::vec4(0.1f);
 
-        PointLightUBO redLight;
-        redLight.position = glm::vec4(1000.0f, 100.0f, 1000.0f, 0.0f);
-        redLight.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-        redLight.intensity = glm::vec4(1.0f);
+    PointLightUBO projectileLight;
+    projectileLight.position = glm::vec4(scene->projectile->position, 0.0f);
+    projectileLight.color = glm::vec4(1.0f, 1.0f, 0.5f, 0.0f);
+    projectileLight.intensity = glm::vec4(1.0f);
 
-        PointLightUBO greenLight;
-        greenLight.position = glm::vec4(-1000.0f, 100.0f, 1000.0f, 0.0f);
-        greenLight.color = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-        greenLight.intensity = glm::vec4(1.0f);
+    PointLightUBO redLight;
+    redLight.position = glm::vec4(1000.0f, 100.0f, 1000.0f, 0.0f);
+    redLight.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    redLight.intensity = glm::vec4(1.0f);
 
-        PointLightUBO blueLight;
-        blueLight.position = glm::vec4(-1000.0f, 100.0f, -1000.0f, 0.0f);
-        blueLight.color = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
-        blueLight.intensity = glm::vec4(1.0f);
+    PointLightUBO greenLight;
+    greenLight.position = glm::vec4(-1000.0f, 100.0f, 1000.0f, 0.0f);
+    greenLight.color = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+    greenLight.intensity = glm::vec4(1.0f);
 
-        PointLightUBO pinkLight;
-        pinkLight.position = glm::vec4(1000.0f, 100.0f, -1000.0f, 0.0f);
-        pinkLight.color = glm::vec4(1.0f, 0.0f, 1.0f, 0.0f);
-        pinkLight.intensity = glm::vec4(1.0f);
+    PointLightUBO blueLight;
+    blueLight.position = glm::vec4(-1000.0f, 100.0f, -1000.0f, 0.0f);
+    blueLight.color = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+    blueLight.intensity = glm::vec4(1.0f);
 
-        // Follows a circular path
-        PointLightUBO rainbowLight;
-        float time = glfwGetTime();
-        float speed = 1.0f;
-        float radius = 1000.0f;
+    PointLightUBO pinkLight;
+    pinkLight.position = glm::vec4(1000.0f, 100.0f, -1000.0f, 0.0f);
+    pinkLight.color = glm::vec4(1.0f, 0.0f, 1.0f, 0.0f);
+    pinkLight.intensity = glm::vec4(1.0f);
 
-        glm::vec3 rainbowColor = glm::vec3( // 2pi/3 = 6.28/3 = 2.093
-            glm::sin((time + 0.0f) + 1.0f),
-            glm::sin((time + 2.093f) + 1.0f),
-            glm::sin((time + 4.18f) + 1.0f)
-        );
-        rainbowLight.position = glm::vec4(glm::sin(time * speed) * radius, 10.0f, glm::cos(time * speed) * radius, 1.0f);
-        rainbowLight.color = glm::vec4(rainbowColor, 0.0f);
-        rainbowLight.intensity = glm::vec4(1.0f);
+    // Follows a circular path
+    PointLightUBO rainbowLight;
+    float time = glfwGetTime();
+    float speed = 1.0f;
+    float radius = 1000.0f;
 
-        lightData.lights[0] = playerLight;
-        lightData.lights[1] = projectileLight;
-        lightData.lights[2] = redLight;
-        lightData.lights[3] = greenLight;
-        lightData.lights[4] = blueLight;
-        lightData.lights[5] = pinkLight;
-        lightData.lights[6] = rainbowLight;
-        lightData.numActiveLights = glm::ivec4(7);
+    glm::vec3 rainbowColor = glm::vec3( // 2pi/3 = 6.28/3 = 2.093
+        glm::sin((time + 0.0f) + 1.0f) / 2.0f,
+        glm::sin((time + 2.093f) + 1.0f) / 2.0f,
+        glm::sin((time + 4.18f) + 1.0f) / 2.0f);
+    rainbowLight.position = glm::vec4(glm::sin(time * speed) * radius, 10.0f, glm::cos(time * speed) * radius, 1.0f);
+    rainbowLight.color = glm::vec4(rainbowColor, 0.0f);
+    rainbowLight.intensity = glm::vec4(5.0f);
 
-        // fixme
-        glBindBuffer(GL_UNIFORM_BUFFER, scene->uboLightBlock);
-        
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(LightBlockUBO), &lightData);
-        
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        // end of fixme
+    lightData.lights[0] = playerLight;
+    lightData.lights[1] = projectileLight;
+    lightData.lights[2] = redLight;
+    lightData.lights[3] = greenLight;
+    lightData.lights[4] = blueLight;
+    lightData.lights[5] = pinkLight;
+    lightData.lights[6] = rainbowLight;
+    lightData.numActiveLights = glm::ivec4(7);
 
-        glUniform1i(scene->texProg->getUniform("flip"), 1);
+    // fixme
+    glBindBuffer(GL_UNIFORM_BUFFER, scene->uboLightBlock);
 
-        sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
-        scene->texture1->bind(scene->texProg->getUniform("Texture0"));
-        
-        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->projectile);
-        
-        if (scene->pawn->collided % 2 == 1)
-            scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
-        else
-            scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
-        
-        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->pawn);
-        scene->texture0->bind(scene->texProg->getUniform("Texture0"));
-        
-        glUniform1i(scene->texProg->getUniform("flip"), 0);
-        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
-        glUniform1i(scene->texProg->getUniform("flip"), 1);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(LightBlockUBO), &lightData);
 
-        scene->texture1->bind(scene->texProg->getUniform("Texture0"));
-        // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->plane); // FIXME - DELETE THIS
-        // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->angledplane); // FIXME - DELETE THIS
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    // end of fixme
 
-        // Send portal normal and cube position to frag shader
-        glUniform3fv(scene->texProg->getUniform("portalNormal"), 1, glm::value_ptr(glm::vec3(0, 0, 1))); // FIXME hardcoded
-        glUniform3fv(scene->texProg->getUniform("portalPos"), 1, glm::value_ptr(glm::vec3(0.0f))); // FIXME hardcoded
-        glUniform1i(scene->texProg->getUniform("useSlicing"), 1);
-        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->portalcube);
-        glUniform1i(scene->texProg->getUniform("useSlicing"), 0);
+    glUniform1f(scene->texProg->getUniform("glowIntensity"), 0.0f); // default glow of none
+    glUniform1i(scene->texProg->getUniform("flip"), 1);
 
-        sceneRender->drawTextureMeshNoScale(scene->texProg, scene->Model, scene->testcube);
+    sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
+    scene->texture1->bind(scene->texProg->getUniform("Texture0"));
+
+    glUniform1f(scene->texProg->getUniform("glowIntensity"), 2.0f); // add glow
+    sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->projectile);
+
+    if (scene->pawn->collided % 2 == 1)
+        scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
+    else
+        scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
+    sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->pawn);
+
+    glUniform1f(scene->texProg->getUniform("glowIntensity"), 0.0f); // default glow of none
+    scene->texture0->bind(scene->texProg->getUniform("Texture0"));
+
+    glUniform1i(scene->texProg->getUniform("flip"), 0);
+    // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
+    glUniform1i(scene->texProg->getUniform("flip"), 1);
+
+    scene->texture1->bind(scene->texProg->getUniform("Texture0"));
+    // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->plane); // FIXME - DELETE THIS
+    // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->angledplane); // FIXME - DELETE THIS
+
+    // Send portal normal and cube position to frag shader
+    glUniform3fv(scene->texProg->getUniform("portalNormal"), 1, glm::value_ptr(glm::vec3(0, 0, 1))); // FIXME hardcoded
+    glUniform3fv(scene->texProg->getUniform("portalPos"), 1, glm::value_ptr(glm::vec3(0.0f)));       // FIXME hardcoded
+    glUniform1i(scene->texProg->getUniform("useSlicing"), 1);
+    sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->portalcube);
+    glUniform1i(scene->texProg->getUniform("useSlicing"), 0);
+
+    sceneRender->drawTextureMeshNoScale(scene->texProg, scene->Model, scene->testcube);
     scene->texProg->unbind();
 
     scene->prog->bind();
-        // set up all the matrices
-        //scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
-        glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
-        glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
-        glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+    // set up all the matrices
+    // scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
+    glUniformMatrix4fv(scene->prog->getUniform("V"), 1, GL_FALSE, glm::value_ptr(destView));
+    glUniformMatrix4fv(scene->prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
+    glUniform3fv(scene->prog->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
 
-        // update player position - FIXME, USE NEAR CLIPPING PLANE
-        scene->player->position = scene->mainCamera->eye + (scene->mainCamera->forward * -15.0f);
+    // update player position - FIXME, USE NEAR CLIPPING PLANE
+    scene->player->position = scene->mainCamera->eye + (scene->mainCamera->forward * -15.0f);
 
-        scene->cube->position = glm::vec3(1.0f);
-        sceneRender->drawSceneGraph(scene->prog, scene->Model, scene->cube, 1);
-        sceneRender->drawMesh(scene->prog, scene->Model, scene->player, 1);
+    scene->cube->position = glm::vec3(1.0f);
+    sceneRender->drawSceneGraph(scene->prog, scene->Model, scene->cube, 1);
+    sceneRender->drawMesh(scene->prog, scene->Model, scene->player, 1);
     scene->prog->unbind();
 }
 
@@ -485,11 +487,10 @@ glm::mat4 const SceneRender::clippedProjMat(GameObject &portal, glm::mat4 const 
         return projMat;
 
     glm::vec4 q = glm::inverse(projMat) * glm::vec4(
-        glm::sign(clipPlane.x),
-        glm::sign(clipPlane.y),
-        1.0f,
-        1.0f
-    );
+                                              glm::sign(clipPlane.x),
+                                              glm::sign(clipPlane.y),
+                                              1.0f,
+                                              1.0f);
 
     glm::vec4 c = clipPlane * (2.0f / (glm::dot(clipPlane, q)));
 
@@ -513,16 +514,16 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
         glDisable(GL_DEPTH_TEST);
 
         glEnable(GL_STENCIL_TEST); // enable writing to the stencil buffer
-        
+
         glStencilFunc(GL_NOTEQUAL, recursionLevel, 0xFF);
 
         glStencilOp(GL_INCR, GL_KEEP, GL_KEEP);
-        
+
         glStencilMask(0xFF); // Enable writing into all stencil bits
 
         // Draw portal frames into setencil buffer
         drawPortalFrame(scene, sceneRender, callbacks, viewMat);
-        
+
         // Generate the virtual camera’s view matrix using the view frustum clipping method, check main file sources for more information
         //TD = TB^-1 * R * TA * TC
         glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // R, rotate 180 degrees
@@ -537,7 +538,7 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
             * portalB
             //* rotation
             * glm::inverse(portalA);
-        
+
         // render inside of portal
         if(recursionLevel == maxRecursionLevel)
         {
@@ -550,9 +551,9 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
             glEnable(GL_DEPTH_TEST);
 
             glEnable(GL_STENCIL_TEST);
-            
+
             glStencilMask(0x00); // Do not write to stencil buffer
-            
+
             glStencilFunc(GL_EQUAL, recursionLevel + 1, 0xFF);
 
             // REDRAW SCENE IN PORTAL - Redraw scene but with portal view (portal camera)
@@ -581,9 +582,9 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
 
     glDisable(GL_STENCIL_TEST);
     glStencilMask(0x00);
-    
+
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    
+
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
@@ -624,36 +625,36 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
         glDepthFunc(GL_LESS);
 
         glEnable(GL_STENCIL_TEST); // enable writing to the stencil buffer
-        
+
         glStencilFunc(GL_EQUAL, recursionLevel, 0xFF);
 
         glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
-        
+
         glStencilMask(0xFF); // Enable writing into all stencil bits
 
         // Draw portal frames into setencil buffer
-        drawPortalFrame(scene, sceneRender, callbacks, viewMat);            
-        
+        drawPortalFrame(scene, sceneRender, callbacks, viewMat);
+
         // Setup stencil buffer to draw other objects over the portal
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // Color buffer
         glDepthMask(GL_TRUE); // Depth buffer
-        
+
         glEnable(GL_STENCIL_TEST);
-        
+
         glStencilMask(0x00); // Do not write to stencil buffer
-        
+
         glStencilFunc(GL_EQUAL, recursionLevel + 1, 0xFF);
-        
+
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_ALWAYS);
-        
+
         //glDepthRange(1, 1);
-        
+
         //glDepthRange(0, 1);
         glDepthFunc(GL_LESS);
-        
+
         //glClear(GL_DEPTH_BUFFER_BIT); // Clear depth buffer
-        
+
 
         // Generate the virtual camera’s view matrix using the view frustum clipping method, check main file sources for more information
         //TD = TB^-1 * R * TA * TC
@@ -669,7 +670,7 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
             * portalB
             //* rotation
             * glm::inverse(portalA);
-        
+
         // render inside of portal
         if(recursionLevel == maxRecursionLevel)
         {
@@ -686,29 +687,29 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
         }
 
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Color buffer
-        
+
         glDepthMask(GL_TRUE); // Depth buffer
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_ALWAYS);
 
         glEnable(GL_STENCIL_TEST);
-        
+
         glStencilFunc(GL_EQUAL, recursionLevel + 1, 0xFF);
-        
+
         glStencilMask(0xFF); // Enalbe write to stencil buffer
 
         glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
 
         drawPortalFrame(scene, sceneRender, portal, callbacks, viewMat);
-        
+
         glDepthFunc(GL_LESS);
     }
 
     // glDisable(GL_STENCIL_TEST);
     // glStencilMask(0x00);
-    
+
     // glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    
+
     // glDepthMask(GL_TRUE);
 
 
@@ -717,9 +718,9 @@ void SceneRender::drawRecursivePortals(std::shared_ptr<SceneInitializer> scene, 
     // Draw portals into depth buffer
     //drawPortalFrame(scene, sceneRender, callbacks, viewMat);
     //glEnable(GL_STENCIL_TEST);
-    
+
     glStencilFunc(GL_LEQUAL, recursionLevel, 0xFF);
-    
+
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthMask(GL_TRUE);
     glStencilMask(0x00);
@@ -737,10 +738,10 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
     {
         // Disable color and depth buffers
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Color buffer
-        glDepthMask(GL_FALSE); // Depth buffer
+        glDepthMask(GL_FALSE);                               // Depth buffer
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_STENCIL_TEST); // Enable writing to the stencil buffer
-        
+
         // Stencil fails on empty pixels, causing GL_INCR to set pixel to 1
         glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
         glStencilOp(GL_INCR, GL_KEEP, GL_KEEP);
@@ -752,46 +753,46 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
         // --- Setup drawing objects inside the portal frame ---
         // Enable color and depth buffers
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // Color buffer
-        glDepthMask(GL_TRUE); // Depth buffer
+        glDepthMask(GL_TRUE);                            // Depth buffer
         glEnable(GL_DEPTH_TEST);
-        
+
         // THIS LINE WILL BREAK SOME PORTALS
         // glClear(GL_DEPTH_BUFFER_BIT); // FIXME, THIS WILL BREAK SOME PORTALS -Clear depth buffer
-        
+
         // Setup depth tests and stencil, only draw pixels where stencil is 1
         glStencilMask(0x00); // Lock stencil buffer
         glStencilFunc(GL_EQUAL, 1, 0xFF);
-        
+
         // Generate the virtual camera’s view matrix using the view frustum clipping method, check main file sources for more information
-        //TD = TB^-1 * R * TA * TC
+        // TD = TB^-1 * R * TA * TC
         // 1. inverse(PortalB) - Move from world space -> destination local space
         // 2. Rotation		   - (optional) flip orientation 180 degrees
         // 3. Portal A		   - Move from rotated destination local space -> source world space
         // 4. mainView		   - Move from source world space -> camera space
-        
-        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // R, rotate 180 degrees
-        glm::mat4 portalA =  glm::translate(glm::mat4(1.0f), portal.second->position) * portal.second->rotationMat;                 // TA
-        glm::mat4 portalB =  glm::translate(glm::mat4(1.0f), portal.second->portal->destination->position) * portal.second->portal->destination->rotationMat;    // TB
+
+        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));                                                // R, rotate 180 degrees
+        glm::mat4 portalA = glm::translate(glm::mat4(1.0f), portal.second->position) * portal.second->rotationMat;                                           // TA
+        glm::mat4 portalB = glm::translate(glm::mat4(1.0f), portal.second->portal->destination->position) * portal.second->portal->destination->rotationMat; // TB
         glm::mat4 destView = viewMat * portalB * rotation * glm::inverse(portalA);
-        //glm::mat4 destView = viewMat * portalB * glm::inverse(portalA);
-        
+        // glm::mat4 destView = viewMat * portalB * glm::inverse(portalA);
+
         // proj mat
-        //glm::mat4 proj = sceneRender->clippedProjMat(*portal, destView  , projMat);
+        // glm::mat4 proj = sceneRender->clippedProjMat(*portal, destView  , projMat);
         glm::mat4 proj = projMat;
 
         // Redraw scene but with portal view (portal camera)
         drawNonPortals(scene, sceneRender, callbacks, destView, proj);
-        //drawNonPortals(scene, sceneRender, callbacks, clippedProjMat(*portal, destView, Projection->topMatrix()));
+        // drawNonPortals(scene, sceneRender, callbacks, clippedProjMat(*portal, destView, Projection->topMatrix()));
     }
 
     // --- Draw remaining scene outside of the portals ---
     // Stop writing to the stencil buffer
     glDisable(GL_STENCIL_TEST);
     glStencilMask(0x00);
-    
+
     // Change write status to buffers
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Disable writing to the color buffer
-    glDepthMask(GL_TRUE); // Enable writing to the depth buffer
+    glDepthMask(GL_TRUE);                                // Enable writing to the depth buffer
     glEnable(GL_DEPTH_TEST);
 
     // Enable depth test and clear depth buffer
@@ -801,7 +802,7 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
 
     // Draw portals into depth buffer
     drawPortalFrame(scene, sceneRender, callbacks, viewMat, projMat);
-    
+
     // Enable color and depth buffer
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthMask(GL_TRUE);
@@ -814,15 +815,15 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
 void SceneRender::drawTool(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, glm::mat4 proj)
 {
     scene->texProg->bind();
-        // set up all the matrices
-        //scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
-        glm::mat4 identity = glm::mat4(1.0f);
-        glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(identity));
-        glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
-        // glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
-        scene->texture1->bind(scene->texProg->getUniform("Texture0"));
+    // set up all the matrices
+    // scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
+    glm::mat4 identity = glm::mat4(1.0f);
+    glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(identity));
+    glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
+    // glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
+    scene->texture1->bind(scene->texProg->getUniform("Texture0"));
 
-        scene->tool->position = glm::vec3(0.45f, -0.45f, -0.75f) + sin(scene->mainCamera->eye / 20.0f) / 10.0f;
-        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->tool);
+    scene->tool->position = glm::vec3(0.45f, -0.45f, -0.75f) + sin(scene->mainCamera->eye / 20.0f) / 10.0f;
+    sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->tool);
     scene->texProg->unbind();
 }

@@ -68,25 +68,31 @@ void Camera::cameraMovement(GLFWwindow *window, float cameraSpeed, float deltaTi
 void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer> &scene, float maxSpeed, float deltaTime)
 {
 	float accel = 10;
-    //glm::vec3 accel = glm::vec3(0, -9.81/32, 0);
+	// glm::vec3 accel = glm::vec3(0, -9.81/32, 0);
 	float addSpeed, accelSpeed, currentSpeed, wishSpeed, speed, newSpeed, drop, control, speedMult;
 	float stopSpeed = 100.0f, friction = 6.0f;
-	
+
 	glm::vec3 wishDir = glm::vec3(0.0f);
 	strafe = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0))); // get side basis vector (points right)
 	up = normalize(glm::cross(forward, strafe));					  // get vertical basis vector (points up)
 
 	// User input
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) wishDir += forward;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) wishDir -= forward;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) wishDir -= strafe;
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) wishDir += strafe;
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) if(!airborne) velocity.y = 150;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		wishDir += forward;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		wishDir -= forward;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		wishDir -= strafe;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		wishDir += strafe;
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		if (!airborne)
+			velocity.y = 150;
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		speedMult = 2;
 	else
 		speedMult = 1;
-	
+
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
 	{
 		velocity -= up * deltaTime * maxSpeed;
@@ -108,11 +114,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 			float rightOffset = -1.0f;
 			glm::vec3 right = glm::cross(this->forward, this->up);
 			scene->projectile->velocity = this->forward * rocketSpeed;
-			scene->projectile->position = (this->eye
-				+ this->forward * (-rocketSpeed + forwardOffset)
-				+ this->up * upOffset
-				+ right * rightOffset
-				+ scene->projectile->velocity);
+			scene->projectile->position = (this->eye + this->forward * (-rocketSpeed + forwardOffset) + this->up * upOffset + right * rightOffset + scene->projectile->velocity);
 		}
 	}
 
@@ -128,7 +130,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 
 	wishSpeed = maxSpeed * speedMult;
 	wishDir.y = 0;
-	if(!airborne)
+	if (!airborne)
 	{
 		speed = glm::length(velocity);
 
@@ -136,21 +138,22 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		drop += control * friction * deltaTime;
 
 		newSpeed = glm::max(speed - drop, 0.0f);
-		if (speed > 0) newSpeed /= speed;
-		
+		if (speed > 0)
+			newSpeed /= speed;
+
 		velocity *= newSpeed;
 	}
 
 	// Accelerate
 	currentSpeed = glm::dot(velocity, wishDir);
 	addSpeed = wishSpeed - currentSpeed;
-	
+
 	accelSpeed = accel * deltaTime * wishSpeed;
 
 	// Limit max acceleration
 	if (accelSpeed > addSpeed)
 		accelSpeed = addSpeed;
-	
+
 	// physics updates
 	velocity += accelSpeed * wishDir;
 	velocity.y -= gravity * deltaTime;
@@ -170,12 +173,12 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 	scene->pawn->position += direction * 1.0f * deltaTime;
 
 	airborne = true;
-    for (auto &mapGeomChild : scene->mapGeom->children)
-    {
+	for (auto &mapGeomChild : scene->mapGeom->children)
+	{
 		// Check player collisions between portal or map
 		if (mapGeomChild->portal->portalID > 0)
 		{
-			//if (AABB::intersectsCameraSinglePlane(*scene->mainCamera, *mapGeomChild))
+			// if (AABB::intersectsCameraSinglePlane(*scene->mainCamera, *mapGeomChild))
 			if (AABB::intersectsCameraPlaneAABB(*scene->mainCamera, *mapGeomChild))
 			{
 				// Teleport to other portal
@@ -186,7 +189,7 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 				// Teleport to the same position on the other portal (relative to the plane)
 				glm::vec3 offset = eye - A->position;
 				eye = B->position + offset;
-				
+
 				// if (mapGeomChild->portal->portalID == 1)
 				// {
 				// 	std::cout << mapGeomChild->objName << " id:" << mapGeomChild->id << std::endl;
@@ -211,32 +214,29 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 		}
 		// Check collision against rest of the map
 		else if (AABB::intersectsConvexShape(*scene->mainCamera, *mapGeomChild))
-		//else if (AABB::intersectsCamera(*scene->mainCamera, *mapGeomChild))
-		// else if (AABB::intersectsCameraPlane(*scene->mainCamera, *mapGeomChild))
-		// {
-		// 	//mapGeomChild->collided += 1;
-		// 	//break;
-		// }
-		
+		{
+		}
+
 		// Check projectile collisions on map
 		if (AABB::intersectsObject(*scene->projectile, *mapGeomChild))
 		{
-			//std::cout << "projectile collision" << std::endl;
-			//scene->projectile->velocity = -scene->projectile->velocity * glm::vec3(1, -1, 1);
-			//scene->projectile->velocity = glm::reflect(scene->projectile->velocity, mapGeomChild->planes[0].normal);
-			mapGeomChild->collided += (mapGeomChild->collided % 2) + 1;
+			// std::cout << "projectile collision" << std::endl;
+			// scene->projectile->velocity = -scene->projectile->velocity * glm::vec3(1, -1, 1);
+			scene->projectile->velocity = glm::reflect(scene->projectile->velocity, mapGeomChild->planes[0].normal);
+			mapGeomChild->collided = (mapGeomChild->collided % 2) + 1;
 
 			if (scene->projectile->collided > 5)
 			{
-				//scene->projectile->active = false; // reset projectile
+				// scene->projectile->active = false; // reset projectile
 				scene->projectile->collided = 0;
 			}
-			else scene->projectile->collided++;
+			else
+				scene->projectile->collided++;
 
 			// rocket jump
 			// velocity.y += 10.0f;
 		}
-		
+
 		// Check pawn collisions on map
 		if (AABB::intersectsObject(*scene->pawn, *mapGeomChild))
 		{
@@ -247,21 +247,21 @@ void Camera::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 	// AABB::intersectsCameraPlane(*scene->mainCamera, *scene->plane);
 	// AABB::intersectsCameraPlane(*scene->mainCamera, *scene->angledplane);
 	if (AABB::intersectsConvexShape(*scene->mainCamera, *scene->testcube))
-		
-	// Check projectile collisions on map
-    // for (auto &pawnChild : scene->pawn->children)
-    // {
-	// 	if (AABB::intersectsObject(*scene->projectile, *pawnChild))
-	// 	{
-	// 		std::cout << "projectile collision" << std::endl;
-	// 		pawnChild->collided = 1;
-	// 	}
-	// }
 
-	if (AABB::intersectsObject(*scene->projectile, *scene->pawn))
-	{
-		scene->pawn->collided = (scene->pawn->collided % 2) + 1;
-	}
+		// Check projectile collisions on map
+		// for (auto &pawnChild : scene->pawn->children)
+		// {
+		// 	if (AABB::intersectsObject(*scene->projectile, *pawnChild))
+		// 	{
+		// 		std::cout << "projectile collision" << std::endl;
+		// 		pawnChild->collided = 1;
+		// 	}
+		// }
+
+		if (AABB::intersectsObject(*scene->projectile, *scene->pawn))
+		{
+			scene->pawn->collided = (scene->pawn->collided % 2) + 1;
+		}
 
 	if (eye.y < -400.0f)
 		eye = glm::vec3(0, 50.0f, 0);
@@ -276,14 +276,14 @@ void Camera::SetView(std::shared_ptr<Program> shader)
 
 void Camera::SetPortalView(std::shared_ptr<Program> shader, std::shared_ptr<Camera> mainCamera, std::shared_ptr<MatrixStack> portalSource, std::shared_ptr<MatrixStack> portalDestination)
 {
-	//https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
-	
+	// https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
+
 	// Generate the virtual camera’s view matrix using the view frustum clipping method, check main file sources for more information
-	//TD = TB^-1 * R * TA * TC
-	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0, 1, 0)); // R, rotate 180 degrees
+	// TD = TB^-1 * R * TA * TC
+	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0, 1, 0));	 // R, rotate 180 degrees
 	glm::mat4 mainView = glm::lookAt(mainCamera->eye, mainCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
-	glm::mat4 portalA = portalSource->topMatrix();		// TA
-	glm::mat4 portalB = portalDestination->topMatrix();	// TB
+	glm::mat4 portalA = portalSource->topMatrix();													 // TA
+	glm::mat4 portalB = portalDestination->topMatrix();												 // TB
 
 	// 1. inverse(PortalB) - Move from world space -> destination local space
 	// 2. Rotation		   - (optional) flip orientation 180 degrees
@@ -296,14 +296,14 @@ void Camera::SetPortalView(std::shared_ptr<Program> shader, std::shared_ptr<Came
 
 void Camera::SetRecursivePortalView(std::shared_ptr<Program> shader, std::shared_ptr<Camera> virtualCamera, std::shared_ptr<MatrixStack> portalSource, std::shared_ptr<MatrixStack> portalDestination)
 {
-	//https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
-	
+	// https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/
+
 	// Generate the virtual camera’s view matrix using the view frustum clipping method, check main file sources for more information
-	//TD = TB^-1 * R * TA * TC
-	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0, 1, 0)); // R, rotate 180 degrees
+	// TD = TB^-1 * R * TA * TC
+	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0, 1, 0));		   // R, rotate 180 degrees
 	glm::mat4 mainView = glm::lookAt(virtualCamera->eye, virtualCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
-	glm::mat4 portalA = portalSource->topMatrix();	// TA
-	glm::mat4 portalB = portalDestination->topMatrix();	// TB
+	glm::mat4 portalA = portalSource->topMatrix();														   // TA
+	glm::mat4 portalB = portalDestination->topMatrix();													   // TB
 
 	// 1. inverse(PortalB) - Move from world space -> destination local space
 	// 2. Rotation		   - (optional) flip orientation 180 degrees

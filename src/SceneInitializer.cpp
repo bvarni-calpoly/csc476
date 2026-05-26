@@ -9,9 +9,9 @@ using namespace glm;
 
 struct PointLightUBO
 {
-  glm::vec4 position;
-  glm::vec4 color;
-  glm::vec4 intensity;
+    glm::vec4 position;
+    glm::vec4 color;
+    glm::vec4 intensity;
 };
 
 struct LightBlockUBO
@@ -70,6 +70,7 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     texProg->addUniform("portalNormal");
     texProg->addUniform("portalPos");
     texProg->addUniform("useSlicing");
+    texProg->addUniform("glowIntensity");
     texProg->addAttribute("vertPos");
     texProg->addAttribute("vertNor");
     texProg->addAttribute("vertTex");
@@ -102,6 +103,39 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     debugNormShader->addAttribute("vertPos");
     debugNormShader->addAttribute("vertNor");
     debugNormShader->addAttribute("vertTex"); // silence error
+
+    // Initialize the GLSL program for screen quad
+    screenShader = make_shared<Program>();
+    screenShader->setVerbose(true);
+    screenShader->setShaderNames(resourceDirectory + "/shaders/screen_quad.vert", resourceDirectory + "/shaders/blend_textures.frag");
+    screenShader->init();
+    screenShader->addUniform("sceneTexture");
+    screenShader->addUniform("bloomBlurTexture");
+    screenShader->addUniform("exposure");
+    screenShader->addAttribute("vertPos");
+    screenShader->addAttribute("texCoords");
+
+    // Initialize the GLSL program for rendering normal bloom
+    blurShader = make_shared<Program>();
+    blurShader->setVerbose(true);
+    blurShader->setShaderNames(resourceDirectory + "/shaders/quad.vert", resourceDirectory + "/shaders/gaussian_blur.frag");
+    blurShader->init();
+    blurShader->addUniform("image");
+    blurShader->addUniform("horizontal");
+    blurShader->addUniform("weight");
+    blurShader->addAttribute("vertPos");
+    blurShader->addAttribute("vertTex");
+
+    // Initialize the GLSL program for blending bloom texture
+    blendShader = make_shared<Program>();
+    blendShader->setVerbose(true);
+    blendShader->setShaderNames(resourceDirectory + "/shaders/quad.vert", resourceDirectory + "/shaders/blend_textures.frag");
+    blendShader->init();
+    blendShader->addUniform("scene");
+    blendShader->addUniform("bloomBlur");
+    blendShader->addUniform("exposure");
+    blendShader->addAttribute("vertPos");
+    blendShader->addAttribute("vertTex");
 
     // read in a load the texture
     texture0 = make_shared<Texture>();
@@ -143,6 +177,87 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboLightBlock); // FIXME
+
+    // --- Frame Buffer setup ---
+    // https://learnopengl.com/Advanced-OpenGL/Framebuffers
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    // generate texture
+    glGenTextures(1, &textureColorbuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth * 2, windowHeight * 2, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL); // multiply by 2 on some displays
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // attach it to currently bound framebuffer object
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+    // add depth and stencil testing to framebuffer
+    unsigned int rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, windowWidth * 2, windowHeight * 2); // multiply by 2 on some displays
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    // check if framebuffer is complete
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // --- Create framebuffer for bloom ---
+    // https://learnopengl.com/Advanced-Lighting/Bloom
+
+    // set up floating point framebuffer to render scene to
+    glGenFramebuffers(1, &hdrFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+    glGenTextures(2, colorBuffers);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+        glTexImage2D(
+            GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth * 2, windowHeight * 2, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        // attach texture to framebuffer
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
+    }
+
+    // add depth and stencil testing to framebuffer
+    unsigned int hdrRBO;
+    glGenRenderbuffers(1, &hdrRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, hdrRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, windowWidth * 2, windowHeight * 2); // multiply by 2 on some displays
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, hdrRBO);
+
+    // Render to multiple colorbuffers using an enum
+    unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, attachments);
+
+    // --- Gaussian blur --
+    glGenFramebuffers(2, pingpongFBO);
+    glGenTextures(2, pingpongBuffers);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
+        glBindTexture(GL_TEXTURE_2D, pingpongBuffers[i]);
+        glTexImage2D(
+            GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth * 2, windowHeight * 2, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongBuffers[i], 0);
+    }
 }
 
 void SceneInitializer::loadGeom(const std::string &resourceDirectory, const std::string &fileName, std::shared_ptr<GameObject> &obj)
@@ -168,22 +283,22 @@ void SceneInitializer::loadGeom(const std::string &resourceDirectory, const std:
         obj->localMax = obj->shape->max;
 
         obj->updateBounds();
-        
+
         // Read normals from obj file
-        const auto& meshNormals = TOshapes[0].mesh.normals;
-        const auto& meshFaces = TOshapes[0].mesh.indices;
+        const auto &meshNormals = TOshapes[0].mesh.normals;
+        const auto &meshFaces = TOshapes[0].mesh.indices;
 
         if (TOshapes[0].name.find("Cube1") != string::npos)
             std::cout << "Faces " << TOshapes[0].mesh.indices[3] << std::endl;
 
         if (!meshNormals.empty())
         {
-            for (int i = 0; i < meshNormals.size(); i+=3)
+            for (int i = 0; i < meshNormals.size(); i += 3)
             {
                 glm::vec3 objNormal = glm::vec3(meshNormals[i + 0],
                                                 meshNormals[i + 1],
                                                 meshNormals[i + 2]);
-                
+
                 glm::vec3 pointOnPlane = glm::vec3(TOshapes[0].mesh.positions[i + 0],
                                                    TOshapes[0].mesh.positions[i + 1],
                                                    TOshapes[0].mesh.positions[i + 2]);
@@ -216,7 +331,7 @@ void SceneInitializer::loadHierGeom(const std::string &resourceDirectory, const 
     {
         obj = make_shared<GameObject>();
 
-        for(int i = 0; i < TOshapes.size(); i++)
+        for (int i = 0; i < TOshapes.size(); i++)
         {
             auto part = make_unique<GameObject>();
 
@@ -251,14 +366,14 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
     {
         obj = make_shared<GameObject>();
 
-        for(int currObj = 0; currObj < TOshapes.size(); currObj++)
+        for (int currObj = 0; currObj < TOshapes.size(); currObj++)
         {
             auto part = make_unique<GameObject>();
 
             part->shape = make_shared<Shape>();
             part->shape->createShape(TOshapes[currObj]);
             part->shape->measure();
-            //part->shape->init();
+            // part->shape->init();
 
             part->position = (part->shape->max + part->shape->min) / 2.0f;
 
@@ -274,13 +389,13 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
             part->objName = TOshapes[currObj].name;
 
             // FIXME!!!
-            
+
             // Read normals from obj file
-            const auto& meshNormals = TOshapes[currObj].mesh.normals;
-            
+            const auto &meshNormals = TOshapes[currObj].mesh.normals;
+
             if (!meshNormals.empty())
             {
-                for (int i = 0; i < meshNormals.size(); i+=3)
+                for (int i = 0; i < meshNormals.size(); i += 3)
                 {
                     // int normalIdx = TOshapes[0].mesh.indices;
                     glm::vec3 objNormal = glm::vec3(meshNormals[i + 0], meshNormals[i + 1], meshNormals[i + 2]);
@@ -295,19 +410,19 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
 
             // Read normals from obj file
             // const auto& meshNormals = TOshapes[0].mesh.normals;
-            const auto& meshFaces = TOshapes[currObj].mesh.indices;
-            
+            const auto &meshFaces = TOshapes[currObj].mesh.indices;
+
             if (!meshNormals.empty())
             {
-                for (int i = 0; i < meshNormals.size(); i+=3)
+                for (int i = 0; i < meshNormals.size(); i += 3)
                 {
                     glm::vec3 objNormal = glm::vec3(meshNormals[i + 0],
                                                     meshNormals[i + 1],
                                                     meshNormals[i + 2]);
-                    
+
                     glm::vec3 pointOnPlane = glm::vec3(TOshapes[currObj].mesh.positions[i + 0],
-                                                    TOshapes[currObj].mesh.positions[i + 1],
-                                                    TOshapes[currObj].mesh.positions[i + 2]);
+                                                       TOshapes[currObj].mesh.positions[i + 1],
+                                                       TOshapes[currObj].mesh.positions[i + 2]);
 
                     part->planes.push_back({glm::normalize(objNormal), pointOnPlane});
                 }
@@ -319,13 +434,15 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
             }
 
             // Material properties
-            if(part->objName.find("blue") != string::npos) part->color = 1;
-            if(part->objName.find("purple") != string::npos) part->color = 2;
-            
+            if (part->objName.find("blue") != string::npos)
+                part->color = 1;
+            if (part->objName.find("purple") != string::npos)
+                part->color = 2;
+
             // Portal object
             cout << part->objName << endl;
             part->portal = std::make_unique<Portal>();
-            if(part->objName.find("portal") != string::npos)
+            if (part->objName.find("portal") != string::npos)
             {
                 // Object is a quad / plane
 
@@ -335,10 +452,10 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
                 // last char is the portal group number
                 int portalGroup = part->objName.back() - '0'; // convert char to number
                 cout << "portalGroup: " << portalGroup << endl;
-                
-                if(part->objName.find("entrance") != string::npos)
+
+                if (part->objName.find("entrance") != string::npos)
                     part->portal->portalID = (portalGroup * 2) - 1; // allocate space for two slots
-                else if(part->objName.find("exit") != string::npos)
+                else if (part->objName.find("exit") != string::npos)
                     part->portal->portalID = (portalGroup * 2); // allocate space for two slots
 
                 part->portal->source = part.get();
@@ -350,13 +467,13 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
                     int currPortal = part->portal->portalID;
                     GameObject *A = portals[currPortal - 1];
                     GameObject *B = portals[currPortal];
-    
+
                     A->portal->destination = B;
                     B->portal->destination = A;
                 }
 
-                //portals.insert({part->portalID, part});
-                
+                // portals.insert({part->portalID, part});
+
                 cout << "portalID: " << part->portal->portalID << endl;
 
                 // Calculate scale
@@ -364,29 +481,29 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
                                             std::max(0.01f, part->shape->max.y - part->shape->min.y),
                                             std::max(0.01f, part->shape->max.z - part->shape->min.z));
                 part->scale = scale;
-                
+
                 // Read normals from obj file
                 glm::vec3 normal = part->normals[0];
-                
+
                 glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
                 if (glm::abs(glm::dot(normal, worldUp)) > 0.99f) // FIXME CHECK THIS
                     worldUp = glm::vec3(0.0f, 0.0f, 1.0f);
-                
+
                 glm::vec3 right = glm::normalize(glm::cross(worldUp, normal));
-                
+
                 glm::vec3 localUp = glm::normalize(glm::cross(normal, right)); // or forward depending on orientation
-                
+
                 part->rotationMat = glm::mat4(
                     glm::vec4(right, 0.0f),
                     glm::vec4(localUp, 0.0f),
                     glm::vec4(normal, 0.0f),
-                    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-                );
-
-            } else {
+                    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+            }
+            else
+            {
                 part->portal->portalID = 0;
             }
-            
+
             obj->addChild(move(part)); // FIXME
         }
     }
@@ -425,16 +542,16 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     pawn->scale = vec3(5.0f);
 
     player->scale = vec3(10.0f, 75.0f, 10.0f);
-    
+
     plane->position = vec3(-100.0f, -10.0f, 10.0f);
     plane->scale = vec3(100.0f);
 
     angledplane->position = vec3(-100.0f, -10.0f, 10.0f);
     angledplane->scale = vec3(100.0f);
-    
-    //testcube->position = vec3(0.0f, 10.0f, -50.0f);
+
+    // testcube->position = vec3(0.0f, 10.0f, -50.0f);
     testcube->position = vec3(0.0f);
-    
+
     portalcube->scale = vec3(200.0f);
 
     // code to load in the ground plane (CPU defined data passed to GPU)

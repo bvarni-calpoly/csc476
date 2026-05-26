@@ -6,9 +6,7 @@ TODO TODAY
 - fix proj matrix for portals
 - fix which portaldrawframe function to use (automate portal rendering placement)
 - add animation through multiple obj files
-    - using a vertex shader to lerp
-- add lighting
-- add a framebuffer kernel for objecet outlining
+    - using a vertex shader to lerp / mix
 - add a rocket jumper
 - add raycasts?
 - add enemy
@@ -16,46 +14,24 @@ TODO TODAY
 - fix obj loader to also read mtl values
     - clean up the normal loading for loadMapGeom()
 
-ADD LIGHT AROUND PLAYER
-
 attributes versus uniforms
 
 known issues
 - if there is no skybox all the rendered portals scene show
+- currently framebuffers are having the window dimensions multiplied by 2 to fit 2k displays
 
 collision
-- add broadphase and narrowphase collsiion type (aabb to plane)
+- add broadphase and narrowphase collision type (aabb to plane)
 - currently convex hull is checking every vector four times...
 
 for portal collision check if the plane is vertical for the threshold
 
-
--- FOR TODAY / SOON --
-    change functions to iterate by reference and not value
-    
-    glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans)); FIX THIS LINE
-
-    move camera player movements into player class
-    make a function to load obj files
-    put render shaders/programs in their own functions
-    cleanup render
-    test out a basic map with moving objects
-    frustrum culling
-
 -- FOR ANOTHER DAY --
+change functions to iterate by reference and not value
+
+move camera player movements into player class
+frustrum culling
 lookat function/matrix
--make a function for drawing collision shapes (like drawSkybox)
--move init functions to another class
--add rotations to aabb
--add basic map loading (add mtl later)
-
-make callback for toggle mouse movement so imgui can be clicked
-
-Shaders
-    Write shaders from scratch again
-    Blinn-Phong lighting
-    Add shadows
-    Frustum Culling
 
 Optimizations
     Forward declarations versus Full include

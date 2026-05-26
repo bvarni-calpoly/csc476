@@ -31,15 +31,15 @@ public:
 
     void init(const std::string &resourceDirectory);
     void render(float frametime);
-    
+
     // void drawHierModel(std::shared_ptr<Program> curS, std::shared_ptr<MatrixStack> Model, std::vector<std::shared_ptr<Shape>> Shape, glm::vec3 min, glm::vec3 max, int material = 0, glm::vec3 trans = glm::vec3(0.0), float rotateDeg = 0, glm::vec3 rotate = glm::vec3(0.0), glm::vec3 scale = glm::vec3(1.0));
 
     std::shared_ptr<SceneInitializer> scene;
     std::shared_ptr<SceneRender> sceneRender;
     std::shared_ptr<Callbacks> callbacks;
-        
+
     float deltaTime;
-    int windowWidth = 1600, windowHeight = 1000;
+    int windowWidth = 1600, windowHeight = 1000; // MOVE THIS TO SCENE INIT
 
     WindowManager *windowManager = nullptr;
 
