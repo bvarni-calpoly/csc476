@@ -7,6 +7,7 @@
 #include "renderer/Texture.h"
 #include "world/GameObject.h"
 #include "world/Camera.h"
+#include "world/Player.h"
 
 class SceneInitializer
 {
@@ -66,7 +67,8 @@ public:
     // Portal map
     std::unordered_map<int, GameObject *> portals; // id, obj - raw pointer because scene graph owns the unique_ptr
 
-    // Camera
+    // Cameras
+    std::shared_ptr<Player> playerCamera = std::make_shared<Player>();
     std::shared_ptr<Camera> mainCamera = std::make_shared<Camera>();
     std::shared_ptr<Camera> portalCamera = std::make_shared<Camera>();
     std::shared_ptr<Camera> tempCamera = std::make_shared<Camera>();

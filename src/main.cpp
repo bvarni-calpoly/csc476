@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 		// ImGui::Checkbox("Show Demo Window", &showDemoWindow);
 		ImGui::SliderFloat("Main Camera speed", &application->scene->cameraSpeed, -5.0f, 1000.0f);
 		ImGui::SliderFloat3("Main Camera position", &application->scene->mainCamera->eye.x, -25.0f, 25.0f);
-		ImGui::SliderFloat3("Player velocity", &application->scene->mainCamera->velocity.x, -1000.0f, 1000.0f);
+		ImGui::SliderFloat3("Player velocity", &application->scene->playerCamera->velocity.x, -1000.0f, 1000.0f);
 		ImGui::SliderFloat3("Portal Camera position", &application->scene->portalCamera->eye.x, -10.0f, 10.0f);
 		ImGui::SliderFloat3("Tool position", &application->scene->tool->position.x, -1.0f, 1.0f);
 		ImGui::SliderFloat3("Projectile position", &application->scene->projectile->position.x, -1.0f, 1.0f);

@@ -812,11 +812,10 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
     drawNonPortals(scene, sceneRender, callbacks, viewMat, projMat);
 }
 
-void SceneRender::drawTool(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, glm::mat4 proj)
+void SceneRender::drawTool(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, float deltaTime)
 {
     scene->texProg->bind();
     // set up all the matrices
-    // scene->portalCamera->SetPortalView(scene->prog, scene->mainCamera, scene->ModelPortalSource, scene->ModelPortalDestination);
     glm::mat4 identity = glm::mat4(1.0f);
     glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(identity));
     glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
@@ -824,6 +823,16 @@ void SceneRender::drawTool(std::shared_ptr<SceneInitializer> scene, std::shared_
     scene->texture1->bind(scene->texProg->getUniform("Texture0"));
 
     scene->tool->position = glm::vec3(0.45f, -0.45f, -0.75f) + sin(scene->mainCamera->eye / 20.0f) / 10.0f;
+    scene->tool->rotation = glm::vec3(1, 0, 0);
+    scene->tool->angle = scene->playerCamera->weaponAngle;
+
+    if (scene->playerCamera->reloading)
+    {
+        scene->playerCamera->reloadAnimation(scene, deltaTime);
+    }
+
     sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->tool);
+
+    glUniform1f(scene->texProg->getUniform("glowIntensity"), 0.0f); // reset glow
     scene->texProg->unbind();
 }

@@ -175,7 +175,11 @@ void Application::render(float frametime)
     // Apply perspective projection.
     scene->Projection->pushMatrix();
     // scene->Projection->perspective(45.0f, aspect, 0.01f, 2000.0f);
-    scene->Projection->perspective(45.0f, aspect, 0.1f, 5000.0f); // FIXME, was 100
+    // FIXME
+    float FOV = 45.0f;
+    FOV += glm::length(scene->playerCamera->velocity) / 1000.0f;
+
+    scene->Projection->perspective(FOV, aspect, 0.1f, 5000.0f); // FIXME, was 100
     scene->ProjectionPortal->pushMatrix();
     scene->ProjectionPortal->perspective(45.0f, aspect, 0.01f, 1000.0f); // FIXME, was 100
 
@@ -201,7 +205,7 @@ void Application::render(float frametime)
     if (callbacks->freeCamera)                                                                        // FIXME MOVE TO BEGINNING
         scene->mainCamera->cameraMovement(windowManager->getHandle(), scene->cameraSpeed, deltaTime); // smooth camera movements
     else
-        scene->mainCamera->playerMovement(windowManager->getHandle(), scene, 320.0, deltaTime); // control the player
+        scene->playerCamera->playerMovement(windowManager->getHandle(), scene, 320.0, deltaTime); // control the player
 
     scene->mainCamera->lookAtTarget = scene->mainCamera->eye + scene->mainCamera->forward; // FIXME, put this before?
 
@@ -219,7 +223,7 @@ void Application::render(float frametime)
     glm::mat4 mainView = lookAt(scene->mainCamera->eye, scene->mainCamera->lookAtTarget, glm::vec3(0, 1, 0)); // TC, lookAt returns view matrix
     // sceneRender->drawRecursivePortals(scene, sceneRender, callbacks, mainView, scene->Projection, 1, 0);
     sceneRender->drawPortals(scene, sceneRender, callbacks, mainView, scene->Projection->topMatrix());
-    sceneRender->drawTool(scene, sceneRender, callbacks, mainView, scene->Projection->topMatrix());
+    sceneRender->drawTool(scene, sceneRender, callbacks, mainView, deltaTime);
 
     // https://learnopengl.com/Advanced-OpenGL/Framebuffers
     // gaussian blur pass

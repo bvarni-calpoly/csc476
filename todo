@@ -17,6 +17,8 @@ TODO TODAY
 attributes versus uniforms
 
 known issues
+- fov calculations
+- reload animations
 - if there is no skybox all the rendered portals scene show
 - currently framebuffers are having the window dimensions multiplied by 2 to fit 2k displays
 
