@@ -88,7 +88,12 @@ int AABB::intersectsCameraSinglePlane(std::shared_ptr<SceneInitializer> &scene, 
     float distance = glm::dot(normal, camHeight) + d;
 
     // check if on other side of plane
-    float threshold = 50.0f; // threshold to check inbetween distances
+    // float threshold = 10.0f; // threshold to check inbetween distances
+    // if (obj.horizontal)
+    //     threshold = 100.0f;
+    float threshold = 1.0f; // threshold to check inbetween distances
+    if (obj.portal->portalID <= 4)
+        threshold = 1000.0f;
     if (distance <= 0.0f && distance >= -threshold)
     {
         // std::cout << "infinite plane collision detected" << std::endl;

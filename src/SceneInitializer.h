@@ -68,6 +68,7 @@ public:
     std::shared_ptr<Texture> textureBlackTile;
     std::shared_ptr<Texture> textureBlackStripeTile;
     std::shared_ptr<Texture> textureBlackBrick;
+    std::shared_ptr<Texture> textureBlackWhiteTile;
 
     // Portal map
     std::unordered_map<int, GameObject *> portals; // id, obj - raw pointer because scene graph owns the unique_ptr
@@ -83,6 +84,7 @@ public:
 
     // Testing
     bool showPortalCube = false;
+    bool groundCollision = false;
 
     // scene / level
     std::shared_ptr<GameObject> player;

@@ -58,6 +58,7 @@ public:
 
 	// portals
 	std::unique_ptr<Portal> portal;
+	bool horizontal = false;
 
 	// projectile / entity
 	bool active;

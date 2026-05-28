@@ -61,9 +61,6 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     texProg->addUniform("flip");
     texProg->addUniform("Texture0");
     texProg->addUniform("Texture1");
-    texProg->addUniform("TextureTile");
-    texProg->addUniform("TextureBlue");
-    texProg->addUniform("TexturePurple");
     texProg->addUniform("MatShine");
     // texProg->addUniform("lights");
     // texProg->addUniform("numActiveLights");
@@ -192,6 +189,12 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     textureBlackBrick->init();
     textureBlackBrick->setUnit(8);
     textureBlackBrick->setWrapModes(GL_REPEAT, GL_REPEAT);
+
+    textureBlackWhiteTile = make_shared<Texture>();
+    textureBlackWhiteTile->setFilename(resourceDirectory + "/scene/textures/Tiles058_1K-JPG_Color.jpg");
+    textureBlackWhiteTile->init();
+    textureBlackWhiteTile->setUnit(9);
+    textureBlackWhiteTile->setWrapModes(GL_REPEAT, GL_REPEAT);
 
     // init splines up and down
     splinepath[0] = Spline(glm::vec3(0, 2, 0), glm::vec3(-5, 2, 0), glm::vec3(5, 2, 0), glm::vec3(0, 4, -2), 2);
@@ -471,7 +474,7 @@ void SceneInitializer::loadMapGeom(const std::string &resourceDirectory, const s
                 part->color = 2;
 
             // Portal object
-            cout << part->objName << endl;
+            // cout << part->objName << endl;
             part->portal = std::make_unique<Portal>();
             if (part->objName.find("portal") != string::npos)
             {
@@ -570,7 +573,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
 
     // skybox
     skybox->scale = vec3(5000.0f);
-    skybox->position = vec3(0.0f, -200.0f, 0.0f);
+    skybox->position = vec3(0.0f, -100.0f, 0.0f);
 
     projectile->scale = vec3(2.0f);
 
@@ -590,7 +593,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     portalcube->scale = vec3(200.0f);
 
     texture_cube->scale = vec3(10000.0f, 1.0f, 10000.0f);
-    texture_cube->position = vec3(0, 100.0f, 0);
+    texture_cube->position = vec3(0, -100.0f, 0);
 
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();

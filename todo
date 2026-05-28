@@ -17,6 +17,7 @@ TODO TODAY
 attributes versus uniforms
 
 known issues
+- portal vertical is hardcoded to <=4 id
 - fov calculations
 - reload animations
 - if there is no skybox all the rendered portals scene show

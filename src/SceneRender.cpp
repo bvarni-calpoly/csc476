@@ -127,14 +127,16 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, std::shared_ptr<
         {
             // FIXME DO NOT PUT THIS IN RENDER!
             Model->pushMatrix();
-            if (part->objName.find("white") != string::npos)
-                scene->textureBlackStripeTile->bind(scene->texProg->getUniform("Texture0"));
-            else if (part->objName.find("black") != string::npos)
-                scene->textureBlackTile->bind(scene->texProg->getUniform("Texture0"));
+            if (part->objName.find("brick") != string::npos)
+                scene->textureBlackBrick->bind(scene->texProg->getUniform("Texture0"));
             else if (part->objName.find("blackstripe") != string::npos)
                 scene->textureBlackStripeTile->bind(scene->texProg->getUniform("Texture0"));
-            else if (part->objName.find("brick") != string::npos)
-                scene->textureBlackBrick->bind(scene->texProg->getUniform("Texture0"));
+            else if (part->objName.find("blackwhite") != string::npos)
+                scene->textureBlackWhiteTile->bind(scene->texProg->getUniform("Texture0"));
+            if (part->objName.find("white") != string::npos)
+                scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
+            else if (part->objName.find("black") != string::npos)
+                scene->textureBlackTile->bind(scene->texProg->getUniform("Texture0"));
             else
                 scene->textureBlackStripeTile->bind(scene->texProg->getUniform("Texture0"));
 
@@ -374,25 +376,25 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     PointLightUBO projectileLight;
     projectileLight.position = glm::vec4(scene->projectile->position, 0.0f);
     projectileLight.color = glm::vec4(1.0f, 1.0f, 0.5f, 0.0f);
-    projectileLight.intensity = glm::vec4(1.0f);
+    projectileLight.intensity = glm::vec4(0.5f);
 
     PointLightUBO redLight;
-    redLight.position = glm::vec4(1000.0f, 100.0f, 1000.0f, 0.0f);
+    redLight.position = glm::vec4(300.0f, 100.0f, 300.0f, 0.0f);
     redLight.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
     redLight.intensity = glm::vec4(1.0f);
 
     PointLightUBO greenLight;
-    greenLight.position = glm::vec4(-1000.0f, 100.0f, 1000.0f, 0.0f);
+    greenLight.position = glm::vec4(-300.0f, 100.0f, 300.0f, 0.0f);
     greenLight.color = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
     greenLight.intensity = glm::vec4(1.0f);
 
     PointLightUBO blueLight;
-    blueLight.position = glm::vec4(-1000.0f, 100.0f, -1000.0f, 0.0f);
+    blueLight.position = glm::vec4(-300.0f, 100.0f, -300.0f, 0.0f);
     blueLight.color = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
     blueLight.intensity = glm::vec4(1.0f);
 
     PointLightUBO pinkLight;
-    pinkLight.position = glm::vec4(1000.0f, 100.0f, -1000.0f, 0.0f);
+    pinkLight.position = glm::vec4(300.0f, 100.0f, -300.0f, 0.0f);
     pinkLight.color = glm::vec4(1.0f, 0.0f, 1.0f, 0.0f);
     pinkLight.intensity = glm::vec4(1.0f);
 
@@ -400,7 +402,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     PointLightUBO rainbowLight;
     float time = glfwGetTime();
     float speed = 1.0f;
-    float radius = 1000.0f;
+    float radius = 750.0f;
 
     glm::vec3 rainbowColor = glm::vec3( // 2pi/3 = 6.28/3 = 2.093
         glm::sin((time + 0.0f) + 1.0f) / 2.0f,
@@ -431,8 +433,9 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     glUniform1i(scene->texProg->getUniform("flip"), 1);
 
     // Draw Texture Cube
-    scene->textureTile->bind(scene->texProg->getUniform("Texture0"));
-    // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->texture_cube);
+    scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
+    if (scene->groundCollision)
+        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->texture_cube);
 
     // Draw map
     sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
@@ -455,7 +458,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
 
     // Draw skybox
     glUniform1i(scene->texProg->getUniform("flip"), 0);
-    sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
+    // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
     glUniform1i(scene->texProg->getUniform("flip"), 1);
 
     // Send portal normal and cube position to frag shader
@@ -821,6 +824,24 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
 
     // Draw whole scene with main camera
     drawNonPortals(scene, sceneRender, callbacks, viewMat, projMat);
+
+    // DRAW SKYBOX OUTSIDE OF PORTALS
+    scene->texProg->bind();
+    scene->texture1->bind(scene->texProg->getUniform("Texture1"));
+
+    // set up all the matrices
+    glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(viewMat));
+    glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(projMat));
+
+    // --- Send light data ---
+    glUniform1f(scene->texProg->getUniform("glowIntensity"), 0.0f); // default glow of none
+    scene->texture0->bind(scene->texProg->getUniform("Texture0"));
+
+    // Draw skybox
+    glUniform1i(scene->texProg->getUniform("flip"), 0);
+    sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
+    glUniform1i(scene->texProg->getUniform("flip"), 1);
+    scene->texProg->unbind();
 }
 
 void SceneRender::drawTool(std::shared_ptr<SceneInitializer> scene, std::shared_ptr<SceneRender> sceneRender, std::shared_ptr<Callbacks> callbacks, glm::mat4 viewMat, float deltaTime)
@@ -837,7 +858,7 @@ void SceneRender::drawTool(std::shared_ptr<SceneInitializer> scene, std::shared_
     scene->tool->rotation = glm::vec3(1, 0, 0);
     scene->tool->angle = scene->playerCamera->weaponAngle;
 
-    scene->playerCamera->playerLightIntensity = glm::vec4(1.0f);
+    scene->playerCamera->playerLightIntensity = glm::vec4(0.25f);
 
     if (scene->playerCamera->reloading)
     {

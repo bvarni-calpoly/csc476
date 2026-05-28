@@ -168,6 +168,7 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
             if (AABB::intersectsCameraSinglePlane(scene, *mapGeomChild))
             {
                 std::cout << "portal collision" << std::endl;
+
                 // Teleport to other portal
                 int currPortal = mapGeomChild->portal->portalID;
                 GameObject *A = scene->portals[currPortal]->portal->source;
@@ -202,12 +203,11 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         // Check collision against rest of the map
         else if (AABB::intersectsConvexShape(scene, *mapGeomChild))
         {
-            std::cout << mapGeomChild->objName << std::endl;
+            // std::cout << mapGeomChild->objName << std::endl;
         }
 
-        else if (AABB::intersectsCamera(scene, *scene->texture_cube))
-        {
-        }
+        if (scene->groundCollision)
+            AABB::intersectsCamera(scene, *scene->texture_cube);
 
         // Check projectile collisions on map
         if (AABB::intersectsObject(*scene->projectile, *mapGeomChild))
@@ -255,7 +255,7 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
             scene->pawn->collided = (scene->pawn->collided % 2) + 1;
         }
 
-    if (eye.y < -400.0f)
+    if (eye.y < -500.0f)
         eye = glm::vec3(0, 50.0f, 0);
 }
 
