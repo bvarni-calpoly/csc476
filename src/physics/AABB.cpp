@@ -141,6 +141,7 @@ int AABB::intersectsConvexShape(std::shared_ptr<SceneInitializer> &scene, const 
     // check collision against every plane
     for (const auto &currPlane : obj.planes)
     {
+        // flip normal
         glm::vec3 normal = glm::normalize(currPlane.normal);
 
         // --- distance = (N * P) + d ---
@@ -170,11 +171,11 @@ int AABB::intersectsConvexShape(std::shared_ptr<SceneInitializer> &scene, const 
     cam.eye += correction;
 
     // push player out in direction of normal
-    // float velocityAlongNormal = glm::dot(player.velocity, pushDir);
-    // if (velocityAlongNormal < 0.0f)
-    // {
-    //     player.velocity -= pushDir * velocityAlongNormal;
-    // }
+    float velocityAlongNormal = glm::dot(player.velocity, pushDir);
+    if (velocityAlongNormal < 0.0f)
+    {
+        player.velocity -= pushDir * velocityAlongNormal;
+    }
 
     // remove sliding
     player.velocity.y = 0;

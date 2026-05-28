@@ -126,20 +126,21 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, std::shared_ptr<
         if (part->portal->portalID == 0)
         {
             Model->pushMatrix();
-            if (part->objName.find("blue") != string::npos)
-                scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
-            else if (part->objName.find("purple") != string::npos)
-                scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
+            if (part->objName.find("white") != string::npos)
+                scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
+            else if (part->objName.find("black") != string::npos)
+                scene->textureBlackTile->bind(scene->texProg->getUniform("Texture0"));
+            else if (part->objName.find("blackstripe") != string::npos)
+                scene->textureBlackStripeTile->bind(scene->texProg->getUniform("Texture0"));
             else
-                scene->texture1->bind(scene->texProg->getUniform("Texture0"));
+                scene->textureBlackStripeTile->bind(scene->texProg->getUniform("Texture0"));
 
-            // if(part->objName.find("stair") != string::npos)
-            if (true)
+            if (part->objName.find("collide") != string::npos)
             {
                 if (part->collided % 2 == 1)
-                    scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
+                    scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
                 else
-                    scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
+                    scene->textureBlackTile->bind(scene->texProg->getUniform("Texture0"));
             }
 
             GLSLUtils::setModel(curS, Model);
@@ -365,7 +366,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     PointLightUBO playerLight;
     playerLight.position = glm::vec4(scene->mainCamera->eye, 0.0f);
     playerLight.color = glm::vec4(1.0f);
-    playerLight.intensity = glm::vec4(0.1f);
+    playerLight.intensity = glm::vec4(10.1f);
 
     PointLightUBO projectileLight;
     projectileLight.position = glm::vec4(scene->projectile->position, 0.0f);
@@ -426,30 +427,36 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     glUniform1f(scene->texProg->getUniform("glowIntensity"), 0.0f); // default glow of none
     glUniform1i(scene->texProg->getUniform("flip"), 1);
 
-    sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
-    scene->texture1->bind(scene->texProg->getUniform("Texture0"));
+    // Draw Texture Cube
+    scene->textureTile->bind(scene->texProg->getUniform("Texture0"));
+    sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->texture_cube);
 
+    // Draw map
+    sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
+    scene->texture1->bind(scene->texProg->getUniform("Texture0")); // reset texture
+
+    // Draw projectile
     glUniform1f(scene->texProg->getUniform("glowIntensity"), 2.0f); // add glow
     sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->projectile);
 
-    if (scene->pawn->collided % 2 == 1)
-        scene->textureBlue->bind(scene->texProg->getUniform("Texture0"));
-    else
-        scene->texturePurple->bind(scene->texProg->getUniform("Texture0"));
+    // Draw pawn
+    scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
+    // if (scene->pawn->collided % 2 == 1)
+    //     scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
+    // else
+    //     scene->textureBlackTile->bind(scene->texProg->getUniform("Texture0"));
     sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->pawn);
 
     glUniform1f(scene->texProg->getUniform("glowIntensity"), 0.0f); // default glow of none
     scene->texture0->bind(scene->texProg->getUniform("Texture0"));
 
+    // Draw skybox
     glUniform1i(scene->texProg->getUniform("flip"), 0);
-    // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
+    sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->skybox);
     glUniform1i(scene->texProg->getUniform("flip"), 1);
 
-    scene->texture1->bind(scene->texProg->getUniform("Texture0"));
-    // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->plane); // FIXME - DELETE THIS
-    // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->angledplane); // FIXME - DELETE THIS
-
     // Send portal normal and cube position to frag shader
+    scene->texture1->bind(scene->texProg->getUniform("Texture0"));
     glUniform3fv(scene->texProg->getUniform("portalNormal"), 1, glm::value_ptr(glm::vec3(0, 0, 1))); // FIXME hardcoded
     glUniform3fv(scene->texProg->getUniform("portalPos"), 1, glm::value_ptr(glm::vec3(0.0f)));       // FIXME hardcoded
     glUniform1i(scene->texProg->getUniform("useSlicing"), 1);

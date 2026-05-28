@@ -9,7 +9,7 @@ using namespace std;
 using namespace glm;
 
 // copy the data from the shape to this object
-void Shape::createShape(tinyobj::shape_t & shape)
+void Shape::createShape(tinyobj::shape_t &shape)
 {
 	posBuf = shape.mesh.positions;
 	norBuf = shape.mesh.normals;
@@ -25,17 +25,23 @@ void Shape::measure()
 	minX = minY = minZ = std::numeric_limits<float>::max();
 	maxX = maxY = maxZ = -std::numeric_limits<float>::max();
 
-	//Go through all vertices to determine min and max of each dimension
+	// Go through all vertices to determine min and max of each dimension
 	for (size_t v = 0; v < posBuf.size() / 3; v++)
 	{
-		if (posBuf[3*v+0] < minX) minX = posBuf[3 * v + 0];
-		if (posBuf[3*v+0] > maxX) maxX = posBuf[3 * v + 0];
+		if (posBuf[3 * v + 0] < minX)
+			minX = posBuf[3 * v + 0];
+		if (posBuf[3 * v + 0] > maxX)
+			maxX = posBuf[3 * v + 0];
 
-		if (posBuf[3*v+1] < minY) minY = posBuf[3 * v + 1];
-		if (posBuf[3*v+1] > maxY) maxY = posBuf[3 * v + 1];
+		if (posBuf[3 * v + 1] < minY)
+			minY = posBuf[3 * v + 1];
+		if (posBuf[3 * v + 1] > maxY)
+			maxY = posBuf[3 * v + 1];
 
-		if (posBuf[3*v+2] < minZ) minZ = posBuf[3 * v + 2];
-		if (posBuf[3*v+2] > maxZ) maxZ = posBuf[3 * v + 2];
+		if (posBuf[3 * v + 2] < minZ)
+			minZ = posBuf[3 * v + 2];
+		if (posBuf[3 * v + 2] > maxZ)
+			maxZ = posBuf[3 * v + 2];
 	}
 
 	min.x = minX;
@@ -44,31 +50,36 @@ void Shape::measure()
 	max.x = maxX;
 	max.y = maxY;
 	max.z = maxZ;
-	center.x = minX + (maxX-minX)/2.0;
-	center.y = minY + (maxY-minY)/2.0;
-	center.z = minZ + (maxZ-minZ)/2.0;
+	center.x = minX + (maxX - minX) / 2.0;
+	center.y = minY + (maxY - minY) / 2.0;
+	center.z = minZ + (maxZ - minZ) / 2.0;
 }
 
-float Shape::largeExtent() {
-	float xExt = max.x-min.x;
-	float yExt = max.y-min.y;
-	float zExt = max.z-min.z;
+float Shape::largeExtent()
+{
+	float xExt = max.x - min.x;
+	float yExt = max.y - min.y;
+	float zExt = max.z - min.z;
 	float maxE = xExt;
-	if (maxE < yExt && yExt > zExt) {
+	if (maxE < yExt && yExt > zExt)
+	{
 		maxE = yExt;
-	} else if (maxE < zExt && zExt > yExt) {
+	}
+	else if (maxE < zExt && zExt > yExt)
+	{
 		maxE = zExt;
 	}
 	return maxE;
 }
 
-void Shape::debugOut() {
+void Shape::debugOut()
+{
 	cout << "center: " << center.x << " " << center.y << " " << center.y << endl;
 	cout << "min: " << min.x << " " << min.y << " " << min.z << endl;
 	cout << "max: " << max.x << " " << max.x << " " << max.z << endl;
 	cout << "largest extent: " << this->largeExtent() << endl;
-	cout << "sizeEl: " << eleBuf.size() << " thus expect faces: " << eleBuf.size()/3.0 << endl;
-	cout << "sizePosB: " << posBuf.size() << " thus expect verts: " << posBuf.size()/3.0 << endl;
+	cout << "sizeEl: " << eleBuf.size() << " thus expect faces: " << eleBuf.size() / 3.0 << endl;
+	cout << "sizePosB: " << posBuf.size() << " thus expect verts: " << posBuf.size() / 3.0 << endl;
 }
 
 void Shape::init()
@@ -80,17 +91,17 @@ void Shape::init()
 	// Send the position array to the GPU
 	CHECKED_GL_CALL(glGenBuffers(1, &posBufID));
 	CHECKED_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, posBufID));
-	CHECKED_GL_CALL(glBufferData(GL_ARRAY_BUFFER, posBuf.size()*sizeof(float), &posBuf[0], GL_STATIC_DRAW));
+	CHECKED_GL_CALL(glBufferData(GL_ARRAY_BUFFER, posBuf.size() * sizeof(float), &posBuf[0], GL_STATIC_DRAW));
 
 	// Send the normal array to the GPU
 	if (norBuf.empty())
 	{
-		//norBufID = 0;
+		// norBufID = 0;
 		cout << "NO NORMALS FOUND, CALCULATING NORMALS" << endl;
 
 		// initialize norBuf to the length of posBuf (number of vertices, every vertex has a normal)
 		norBuf.assign(posBuf.size(), 0.0f);
-		
+
 		// iterate over all faces, retriving the vertices, and calculating the normal vector for each one
 		for (size_t i = 0; i < eleBuf.size() / 3; i++)
 		{
@@ -98,12 +109,12 @@ void Shape::init()
 			int v1idx = eleBuf[3 * i + 0];
 			int v2idx = eleBuf[3 * i + 1];
 			int v3idx = eleBuf[3 * i + 2];
-			
+
 			// vertex data
 			vec3 v1 = vec3(posBuf[3 * v1idx + 0], posBuf[3 * v1idx + 1], posBuf[3 * v1idx + 2]);
 			vec3 v2 = vec3(posBuf[3 * v2idx + 0], posBuf[3 * v2idx + 1], posBuf[3 * v2idx + 2]);
 			vec3 v3 = vec3(posBuf[3 * v3idx + 0], posBuf[3 * v3idx + 1], posBuf[3 * v3idx + 2]);
-			
+
 			// compute edge vectors for one vertice
 			// (vector between two points, cross product is the same for all three vertices)
 			vec3 vec12 = v2 - v1;
@@ -121,7 +132,7 @@ void Shape::init()
 	// Send the normal array to the GPU
 	CHECKED_GL_CALL(glGenBuffers(1, &norBufID));
 	CHECKED_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, norBufID));
-	CHECKED_GL_CALL(glBufferData(GL_ARRAY_BUFFER, norBuf.size()*sizeof(float), &norBuf[0], GL_STATIC_DRAW));
+	CHECKED_GL_CALL(glBufferData(GL_ARRAY_BUFFER, norBuf.size() * sizeof(float), &norBuf[0], GL_STATIC_DRAW));
 
 	// Send the texture array to the GPU
 	if (texBuf.empty())
@@ -133,13 +144,13 @@ void Shape::init()
 	{
 		CHECKED_GL_CALL(glGenBuffers(1, &texBufID));
 		CHECKED_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, texBufID));
-		CHECKED_GL_CALL(glBufferData(GL_ARRAY_BUFFER, texBuf.size()*sizeof(float), &texBuf[0], GL_STATIC_DRAW));
+		CHECKED_GL_CALL(glBufferData(GL_ARRAY_BUFFER, texBuf.size() * sizeof(float), &texBuf[0], GL_STATIC_DRAW));
 	}
 
 	// Send the element array to the GPU
 	CHECKED_GL_CALL(glGenBuffers(1, &eleBufID));
 	CHECKED_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eleBufID));
-	CHECKED_GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, eleBuf.size()*sizeof(unsigned int), &eleBuf[0], GL_STATIC_DRAW));
+	CHECKED_GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, eleBuf.size() * sizeof(unsigned int), &eleBuf[0], GL_STATIC_DRAW));
 
 	// Unbind the arrays
 	CHECKED_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));

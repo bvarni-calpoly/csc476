@@ -61,8 +61,13 @@ public:
     // the image to use as a texture
     std::shared_ptr<Texture> texture0;
     std::shared_ptr<Texture> texture1;
+    std::shared_ptr<Texture> textureTile;
     std::shared_ptr<Texture> textureBlue;
     std::shared_ptr<Texture> texturePurple;
+    std::shared_ptr<Texture> textureWhiteTile;
+    std::shared_ptr<Texture> textureBlackTile;
+    std::shared_ptr<Texture> textureBlackStripeTile;
+    std::shared_ptr<Texture> textureBlackBrick;
 
     // Portal map
     std::unordered_map<int, GameObject *> portals; // id, obj - raw pointer because scene graph owns the unique_ptr
@@ -82,6 +87,7 @@ public:
     std::shared_ptr<GameObject> mapGeomNoHier;
     std::shared_ptr<GameObject> skybox;
     std::shared_ptr<GameObject> cube;
+    std::shared_ptr<GameObject> texture_cube;
     std::shared_ptr<GameObject> plane;
     std::shared_ptr<GameObject> angledplane;
     std::shared_ptr<GameObject> portalcube;

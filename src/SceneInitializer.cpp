@@ -61,6 +61,7 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     texProg->addUniform("flip");
     texProg->addUniform("Texture0");
     texProg->addUniform("Texture1");
+    texProg->addUniform("TextureTile");
     texProg->addUniform("TextureBlue");
     texProg->addUniform("TexturePurple");
     texProg->addUniform("MatShine");
@@ -139,13 +140,13 @@ void SceneInitializer::init(const std::string &resourceDirectory)
 
     // read in a load the texture
     texture0 = make_shared<Texture>();
-    texture0->setFilename(resourceDirectory + "/image.jpg");
+    texture0->setFilename(resourceDirectory + "/scene/textures/EveningSkyHDRI045B_1K_TONEMAPPED.jpg");
     texture0->init();
     texture0->setUnit(0);
     texture0->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
     texture1 = make_shared<Texture>();
-    texture1->setFilename(resourceDirectory + "/scene/textures/test_texture.jpg");
+    texture1->setFilename(resourceDirectory + "/scene/textures/Tiles114_1K-JPG_Color.jpg");
     texture1->init();
     texture1->setUnit(1);
     texture1->setWrapModes(GL_REPEAT, GL_REPEAT);
@@ -161,6 +162,36 @@ void SceneInitializer::init(const std::string &resourceDirectory)
     texturePurple->init();
     texturePurple->setUnit(3);
     texturePurple->setWrapModes(GL_REPEAT, GL_REPEAT);
+
+    textureTile = make_shared<Texture>();
+    textureTile->setFilename(resourceDirectory + "/scene/textures/Tiles107.jpg");
+    textureTile->init();
+    textureTile->setUnit(4);
+    textureTile->setWrapModes(GL_REPEAT, GL_REPEAT);
+
+    textureWhiteTile = make_shared<Texture>();
+    textureWhiteTile->setFilename(resourceDirectory + "/scene/textures/Tiles107_1K-JPG_Color_Gray.jpg");
+    textureWhiteTile->init();
+    textureWhiteTile->setUnit(5);
+    textureWhiteTile->setWrapModes(GL_REPEAT, GL_REPEAT);
+
+    textureBlackTile = make_shared<Texture>();
+    textureBlackTile->setFilename(resourceDirectory + "/scene/textures/Tiles108_1K-JPG_Color.jpg");
+    textureBlackTile->init();
+    textureBlackTile->setUnit(6);
+    textureBlackTile->setWrapModes(GL_REPEAT, GL_REPEAT);
+
+    textureBlackStripeTile = make_shared<Texture>();
+    textureBlackStripeTile->setFilename(resourceDirectory + "/scene/textures/Tiles114_1K-JPG_Color.jpg");
+    textureBlackStripeTile->init();
+    textureBlackStripeTile->setUnit(7);
+    textureBlackStripeTile->setWrapModes(GL_REPEAT, GL_REPEAT);
+
+    textureBlackBrick = make_shared<Texture>();
+    textureBlackBrick->setFilename(resourceDirectory + "/scene/textures/Tiles075_1K-JPG_Color.jpg");
+    textureBlackBrick->init();
+    textureBlackBrick->setUnit(8);
+    textureBlackBrick->setWrapModes(GL_REPEAT, GL_REPEAT);
 
     // init splines up and down
     splinepath[0] = Spline(glm::vec3(0, 2, 0), glm::vec3(-5, 2, 0), glm::vec3(5, 2, 0), glm::vec3(0, 4, -2), 2);
@@ -522,6 +553,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/angled_plane.obj", angledplane);
     loadGeom(resourceDirectory, "/objects/testcube.obj", portalcube);
     loadGeom(resourceDirectory, "/objects/testcube.obj", testcube);
+    loadGeom(resourceDirectory, "/objects/texture_cube.obj", texture_cube);
     loadGeom(resourceDirectory, "/objects/rocket-jumper.obj", tool);
     loadGeom(resourceDirectory, "/objects/cube.obj", projectile);
     loadGeom(resourceDirectory, "/objects/cube.obj", pawn);
@@ -529,7 +561,9 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
     // loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
     // loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
-    loadMapGeom(resourceDirectory, "/scene/test-chamber.obj", mapGeom);
+    // loadMapGeom(resourceDirectory, "/scene/test-room.obj", mapGeom);
+    loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
+    // loadMapGeom(resourceDirectory, "/scene/sandbox_chamber.obj", mapGeom);
 
     // light
 
@@ -553,6 +587,9 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     testcube->position = vec3(0.0f);
 
     portalcube->scale = vec3(200.0f);
+
+    texture_cube->scale = vec3(10000.0f, 1.0f, 10000.0f);
+    texture_cube->position = vec3(0, 100.0f, 0);
 
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();

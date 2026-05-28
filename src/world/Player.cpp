@@ -181,6 +181,10 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         {
         }
 
+        else if (AABB::intersectsCamera(scene, *scene->texture_cube))
+        {
+        }
+
         // Check projectile collisions on map
         if (AABB::intersectsObject(*scene->projectile, *mapGeomChild))
         {
