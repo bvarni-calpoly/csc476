@@ -62,7 +62,7 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         velocity += up * deltaTime * maxSpeed;
     }
 
-    // Rocket jumper
+    // Projectile
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
     {
         if (!scene->projectile->active)
@@ -75,17 +75,39 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
             // glm::vec3 right = glm::cross(this->forward, this->up);
             // scene->projectile->velocity = this->forward * rocketSpeed;
             // scene->projectile->position = (this->eye + this->forward * (-rocketSpeed + forwardOffset) + this->up * upOffset + right * rightOffset + scene->projectile->velocity);
+
+            // Check if charging
+            if (overheating)
+            {
+                overheating = false;
+                rocketSpeed = 1000.0f;
+                chargeProgress = 0.0f;
+            }
+
+            // Projectile physics
             glm::vec3 right = glm::cross(forward, up);
             scene->projectile->velocity = forward * rocketSpeed;
             scene->projectile->position = (eye + forward * (-rocketSpeed + forwardOffset) + up * upOffset + right * rightOffset + scene->projectile->velocity);
         }
     }
 
-    // reset projectile
+    // Reload
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
     {
         reloading = true;
         scene->projectile->active = false;
+
+        // normalize iterator between [0, 1]
+        chargeProgress += deltaTime / maxChargeDuration;
+
+        if (chargeProgress >= reloadDuration / 2.0f)
+        {
+            overheating = true;
+        }
+        else
+        {
+            overheating = false;
+        }
     }
 
     // Normalize input
@@ -143,8 +165,9 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         if (mapGeomChild->portal->portalID > 0)
         {
             // if (AABB::intersectsCameraSinglePlane(*scene->mainCamera, *mapGeomChild))
-            if (AABB::intersectsCameraPlaneAABB(scene, *mapGeomChild))
+            if (AABB::intersectsCameraSinglePlane(scene, *mapGeomChild))
             {
+                std::cout << "portal collision" << std::endl;
                 // Teleport to other portal
                 int currPortal = mapGeomChild->portal->portalID;
                 GameObject *A = scene->portals[currPortal]->portal->source;
@@ -179,6 +202,7 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         // Check collision against rest of the map
         else if (AABB::intersectsConvexShape(scene, *mapGeomChild))
         {
+            std::cout << mapGeomChild->objName << std::endl;
         }
 
         else if (AABB::intersectsCamera(scene, *scene->texture_cube))
@@ -246,8 +270,14 @@ void Player::reloadAnimation(std::shared_ptr<SceneInitializer> &scene, float del
         reloading = false;
     }
 
-    // Charge / Overheat
-    glUniform1f(scene->texProg->getUniform("glowIntensity"), reloadProgress); // add glow
+    // Weapon glow
+    if (!overheating)
+        glUniform1f(scene->texProg->getUniform("glowIntensity"), reloadProgress); // add glow
+    else
+    {
+        playerLightIntensity = glm::vec4(chargeProgress);
+        glUniform1f(scene->texProg->getUniform("glowIntensity"), chargeProgress * reloadProgress); // add glow
+    }
 
     // Cubic ease out f(x) = 1 - (1 - x)^3
     float easeOut = 1.0f - pow((1.0f - reloadProgress), 3.0f);

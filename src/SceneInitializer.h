@@ -81,6 +81,9 @@ public:
     float cameraSpeed = 500.0;
     Spline splinepath[4];
 
+    // Testing
+    bool showPortalCube = false;
+
     // scene / level
     std::shared_ptr<GameObject> player;
     std::shared_ptr<GameObject> mapGeom;

@@ -205,7 +205,7 @@ void Application::render(float frametime)
     if (callbacks->freeCamera)                                                                        // FIXME MOVE TO BEGINNING
         scene->mainCamera->cameraMovement(windowManager->getHandle(), scene->cameraSpeed, deltaTime); // smooth camera movements
     else
-        scene->playerCamera->playerMovement(windowManager->getHandle(), scene, 320.0, deltaTime); // control the player
+        scene->playerCamera->playerMovement(windowManager->getHandle(), scene, 200.0, deltaTime); // control the player
 
     scene->mainCamera->lookAtTarget = scene->mainCamera->eye + scene->mainCamera->forward; // FIXME, put this before?
 

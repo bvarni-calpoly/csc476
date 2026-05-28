@@ -125,13 +125,16 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, std::shared_ptr<
     {
         if (part->portal->portalID == 0)
         {
+            // FIXME DO NOT PUT THIS IN RENDER!
             Model->pushMatrix();
             if (part->objName.find("white") != string::npos)
-                scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
+                scene->textureBlackStripeTile->bind(scene->texProg->getUniform("Texture0"));
             else if (part->objName.find("black") != string::npos)
                 scene->textureBlackTile->bind(scene->texProg->getUniform("Texture0"));
             else if (part->objName.find("blackstripe") != string::npos)
                 scene->textureBlackStripeTile->bind(scene->texProg->getUniform("Texture0"));
+            else if (part->objName.find("brick") != string::npos)
+                scene->textureBlackBrick->bind(scene->texProg->getUniform("Texture0"));
             else
                 scene->textureBlackStripeTile->bind(scene->texProg->getUniform("Texture0"));
 
@@ -366,7 +369,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     PointLightUBO playerLight;
     playerLight.position = glm::vec4(scene->mainCamera->eye, 0.0f);
     playerLight.color = glm::vec4(1.0f);
-    playerLight.intensity = glm::vec4(10.1f);
+    playerLight.intensity = scene->playerCamera->playerLightIntensity;
 
     PointLightUBO projectileLight;
     projectileLight.position = glm::vec4(scene->projectile->position, 0.0f);
@@ -429,7 +432,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
 
     // Draw Texture Cube
     scene->textureTile->bind(scene->texProg->getUniform("Texture0"));
-    sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->texture_cube);
+    // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->texture_cube);
 
     // Draw map
     sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
@@ -460,7 +463,8 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     glUniform3fv(scene->texProg->getUniform("portalNormal"), 1, glm::value_ptr(glm::vec3(0, 0, 1))); // FIXME hardcoded
     glUniform3fv(scene->texProg->getUniform("portalPos"), 1, glm::value_ptr(glm::vec3(0.0f)));       // FIXME hardcoded
     glUniform1i(scene->texProg->getUniform("useSlicing"), 1);
-    sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->portalcube);
+    if (scene->showPortalCube)
+        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->portalcube);
     glUniform1i(scene->texProg->getUniform("useSlicing"), 0);
 
     sceneRender->drawTextureMeshNoScale(scene->texProg, scene->Model, scene->testcube);
@@ -832,6 +836,8 @@ void SceneRender::drawTool(std::shared_ptr<SceneInitializer> scene, std::shared_
     scene->tool->position = glm::vec3(0.45f, -0.45f, -0.75f) + sin(scene->mainCamera->eye / 20.0f) / 10.0f;
     scene->tool->rotation = glm::vec3(1, 0, 0);
     scene->tool->angle = scene->playerCamera->weaponAngle;
+
+    scene->playerCamera->playerLightIntensity = glm::vec4(1.0f);
 
     if (scene->playerCamera->reloading)
     {

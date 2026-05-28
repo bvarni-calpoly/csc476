@@ -40,22 +40,15 @@ int AABB::intersectsCameraPlaneAABB(std::shared_ptr<SceneInitializer> &scene, co
     float camHeight = cam.eye.y - player.playerHeight;
 
     // check each axis for collisionS
-    bool xCollision = (cam.eye.x >= (obj.min.x - 0.5f)) && (cam.eye.x <= (obj.max.x + 0.5f));
-    bool yCollision = (cam.eye.y >= (obj.min.y - 0.5f)) && (player.playerHeight <= (obj.max.y + 0.5f));
-    bool zCollision = (cam.eye.z >= (obj.min.z - 0.5f)) && (cam.eye.z <= (obj.max.z + 0.5f));
+    bool xCollision = (cam.eye.x >= (obj.min.x - 5.0f)) && (cam.eye.x <= (obj.max.x + 5.0f));
+    bool yCollision = (cam.eye.y >= (obj.min.y - 5.0f)) && (camHeight <= (obj.max.y + 5.0f));
+    bool zCollision = (cam.eye.z >= (obj.min.z - 5.0f)) && (cam.eye.z <= (obj.max.z + 5.0f));
 
     // std::cout << xCollision << yCollision << zCollision << std::endl;
 
     if (xCollision && yCollision && zCollision)
     {
         std::cout << "inside bounding plane" << std::endl;
-        // cam.eye = cam.eye_prev;
-        // cam.eye = glm::vec3(0, 10, 0);
-        // cam.velocity.y = 0;
-        // cam.airborne = false;
-
-        // check if jailed inside object
-
         return 1; // collision detected
     }
 
@@ -95,25 +88,13 @@ int AABB::intersectsCameraSinglePlane(std::shared_ptr<SceneInitializer> &scene, 
     float distance = glm::dot(normal, camHeight) + d;
 
     // check if on other side of plane
-    float threshold = 10.0f;
+    float threshold = 50.0f; // threshold to check inbetween distances
     if (distance <= 0.0f && distance >= -threshold)
     {
-        // offset position to be on correct side of plane
-        // glm::vec3 correction = normal * glm::abs(distance);
-        // cam.eye += correction;
-        // glm::vec3 correction = normal * distance;
-        // cam.eye -= correction;
+        // std::cout << "infinite plane collision detected" << std::endl;
 
-        // // push player out in direction of normal
-        // float velocityAlongNormal = glm::dot(cam.velocity, normal);
-        // if (velocityAlongNormal < 0.0f)
-        // {
-        //     cam.velocity -= normal * velocityAlongNormal;
-        // }
-
-        // cam.airborne = false;
-
-        return 1; // collision detected
+        if (intersectsCameraPlaneAABB(scene, obj))
+            return 1; // collision detected
     }
 
     return 0; // no collision

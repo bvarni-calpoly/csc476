@@ -562,8 +562,9 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     // loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
     // loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
     // loadMapGeom(resourceDirectory, "/scene/test-room.obj", mapGeom);
-    loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
-    // loadMapGeom(resourceDirectory, "/scene/sandbox_chamber.obj", mapGeom);
+    // loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
+    // loadMapGeom(resourceDirectory, "/scene/vertical_chamber_review.obj", mapGeom);
+    loadMapGeom(resourceDirectory, "/scene/vertical_and_stair_chamber.obj", mapGeom);
 
     // light
 

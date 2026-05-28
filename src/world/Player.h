@@ -15,11 +15,12 @@ public:
     float playerHeight = 40.0f;
     glm::vec3 velocity = glm::vec3(0);
 
+    glm::vec4 playerLightIntensity;
+
     // tool data
-    bool isCharging = false;
-    float chargeProgress = 0.0f;
-    float maxChargeTime = 2.0f;
     bool overheating = false;
+    float chargeProgress = 0.0f;
+    float maxChargeDuration = 2.0f;
 
     // animation data
     bool reloading = false;
