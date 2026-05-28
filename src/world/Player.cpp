@@ -177,27 +177,6 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
                 // Teleport to the same position on the other portal (relative to the plane)
                 glm::vec3 offset = eye - A->position;
                 eye = B->position + offset;
-
-                // if (mapGeomChild->portal->portalID == 1)
-                // {
-                // 	std::cout << mapGeomChild->objName << " id:" << mapGeomChild->id << std::endl;
-                // 	glm::vec3 offset = eye - (scene->portals[0]->position + glm::vec3(0, 0.0,0)); // FIXME, z offset
-                // 	eye = scene->portals[1]->position + offset;
-                // 	//eye = scene->portals[1]->position + glm::vec3(0.0f, scene->portals[1]->position.y / 2.0f, -1.5f);
-                // } else if (mapGeomChild->portal->portalID == 2) {
-                // 	std::cout << mapGeomChild->objName << " id:" << mapGeomChild->id << std::endl;
-                // 	glm::vec3 offset = eye - (scene->portals[1]->position + glm::vec3(0, 0, 0)); // FIXME, z offset
-                // 	eye = scene->portals[0]->position + offset;
-                // } else if (mapGeomChild->portal->portalID == 3) {
-                // 	std::cout << mapGeomChild->objName << " id:" << mapGeomChild->id << std::endl;
-                // 	glm::vec3 offset = eye - (scene->portals[2]->position + glm::vec3(0, playerHeight, 0)); // FIXME, z offset
-                // 	eye = scene->portals[3]->position + offset;
-                // } else if (mapGeomChild->portal->portalID == 4) {
-                // 	std::cout << mapGeomChild->objName << " id:" << mapGeomChild->id << std::endl;
-                // 	// glm::vec3 offset = eye - (scene->portals[2]->position + glm::vec3(0, -10.0f, 0)); // FIXME, z offset
-                // 	// offset = glm::vec3(0);
-                // 	// eye = scene->portals[2]->position + offset;
-                // }
             }
         }
         // Check collision against rest of the map

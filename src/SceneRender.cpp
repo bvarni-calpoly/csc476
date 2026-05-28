@@ -412,6 +412,20 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     rainbowLight.color = glm::vec4(rainbowColor, 0.0f);
     rainbowLight.intensity = glm::vec4(5.0f);
 
+    // Follows a circular path
+    PointLightUBO rainbowLight1;
+    float time1 = glfwGetTime();
+    float speed1 = 1.0f;
+    float radius1 = 750.0f;
+
+    glm::vec3 rainbowColor1 = glm::vec3( // 2pi/3 = 6.28/3 = 2.093
+        glm::sin((time + 0.0f) + 1.0f) / 2.0f,
+        glm::sin((time + 2.093f) + 1.0f) / 2.0f,
+        glm::sin((time + 4.18f) + 1.0f) / 2.0f);
+    rainbowLight1.position = glm::vec4(glm::sin(time1 * speed1) * radius1, 10.0f, glm::cos(time1 * speed1) * radius1, 1.0f) + glm::vec4(1800.0f, 6250.0f, -800.0f, 0.0f);
+    rainbowLight1.color = glm::vec4(rainbowColor1, 0.0f);
+    rainbowLight1.intensity = glm::vec4(10.0f);
+
     lightData.lights[0] = playerLight;
     lightData.lights[1] = projectileLight;
     lightData.lights[2] = redLight;
@@ -419,7 +433,8 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     lightData.lights[4] = blueLight;
     lightData.lights[5] = pinkLight;
     lightData.lights[6] = rainbowLight;
-    lightData.numActiveLights = glm::ivec4(7);
+    lightData.lights[7] = rainbowLight1;
+    lightData.numActiveLights = glm::ivec4(8);
 
     // fixme
     glBindBuffer(GL_UNIFORM_BUFFER, scene->uboLightBlock);
@@ -489,6 +504,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     scene->prog->unbind();
 }
 
+/*
 glm::mat4 const SceneRender::clippedProjMat(GameObject &portal, glm::mat4 const &viewMat, glm::mat4 const &projMat)
 {
     // float dist = glm::length(d_position);
@@ -511,6 +527,51 @@ glm::mat4 const SceneRender::clippedProjMat(GameObject &portal, glm::mat4 const 
     glm::mat4 newProj = projMat;
     // third row = clip plane - fourth row
     newProj = glm::row(newProj, 2, c - glm::row(newProj, 3));
+
+    return newProj;
+}
+*/
+
+// >>> FIXME TEMPORARY FIX <<<
+glm::mat4 const SceneRender::clippedProjMat(GameObject &portal, glm::mat4 const &viewMat, glm::mat4 const &projMat)
+{
+    // 1. Get the normal in world space
+    glm::vec3 worldNormal = glm::normalize(portal.normals[0]);
+
+    // 2. Transform the normal into View Space (Normal Matrix = transpose of inverse view)
+    glm::vec3 viewNormal = glm::vec3(glm::inverse(glm::transpose(viewMat)) * glm::vec4(worldNormal, 0.0f));
+    viewNormal = glm::normalize(viewNormal);
+
+    // 3. Transform the portal position into View Space to get a valid point on the plane
+    glm::vec3 viewPos = glm::vec3(viewMat * glm::vec4(portal.position, 1.0f));
+
+    // 4. Calculate plane distance component relative to the view matrix origin
+    // Plane equation: Ax + By + Cz + D = 0 -> D = -dot(N, P)
+    float viewDist = -glm::dot(viewNormal, viewPos);
+
+    // Construct the clip plane vector (A, B, C, D)
+    glm::vec4 clipPlane(viewNormal, viewDist);
+
+    // If the camera is behind the plane, do not clip
+    if (clipPlane.w > 0.0f)
+        return projMat;
+
+    // 5. Calculate the clip-space corner point opposite the plane
+    glm::vec4 q = glm::inverse(projMat) * glm::vec4(
+                                              glm::sign(clipPlane.x),
+                                              glm::sign(clipPlane.y),
+                                              1.0f,
+                                              1.0f);
+
+    // 6. Scale the clipping plane
+    glm::vec4 c = clipPlane * (2.0f / (glm::dot(clipPlane, q)));
+
+    // 7. Replace the third row of the projection matrix safely
+    glm::mat4 newProj = projMat;
+    newProj[0][2] = c.x;
+    newProj[1][2] = c.y;
+    newProj[2][2] = c.z + 1.0f;
+    newProj[3][2] = c.w;
 
     return newProj;
 }
@@ -791,8 +852,8 @@ void SceneRender::drawPortals(std::shared_ptr<SceneInitializer> scene, std::shar
         // glm::mat4 destView = viewMat * portalB * glm::inverse(portalA);
 
         // proj mat
-        // glm::mat4 proj = sceneRender->clippedProjMat(*portal, destView  , projMat);
-        glm::mat4 proj = projMat;
+        glm::mat4 proj = sceneRender->clippedProjMat(*portal.second, destView, projMat);
+        // glm::mat4 proj = projMat;
 
         // Redraw scene but with portal view (portal camera)
         drawNonPortals(scene, sceneRender, callbacks, destView, proj);
