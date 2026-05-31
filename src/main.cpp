@@ -79,6 +79,9 @@
 #include "../ext/imgui/backends/imgui_impl_glfw.h"
 #include "../ext/imgui/backends/imgui_impl_opengl3.h"
 
+// imguizmo
+#include "../ext/imguizmo/ImGuizmo.h"
+
 // USEFUL RESOURCES
 // https://github.com/godotengine/godot/tree/master/core/math
 // https://learnopengl.com/Advanced-OpenGL/Stencil-testing
@@ -140,10 +143,50 @@ int main(int argc, char *argv[])
 
 		ImGui::NewFrame();
 
+		// Start ImGuizmo
+		ImGuizmo::BeginFrame();
+		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+
+		// matrices for moving the obj
+		int width, height;
+		glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
+		float aspect = width / (float)height;
+
+		glm::vec3 &cubePos = application->scene->portalcube->position;
+
+		glm::mat4 view = lookAt(application->scene->mainCamera->eye, application->scene->mainCamera->lookAtTarget, glm::vec3(0, 1, 0));
+		glm::mat4 proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 1000.0f);
+		glm::mat4 objMat = glm::translate(glm::mat4(1.0f), cubePos);
+
+		ImGuizmo::Manipulate(glm::value_ptr(view),
+							 glm::value_ptr(proj),
+							 ImGuizmo::TRANSLATE,
+							 ImGuizmo::WORLD,
+							 glm::value_ptr(objMat));
+
+		// Update objects with ImGuizmo
+		if (ImGuizmo::IsUsing())
+		{
+			ImGui::Text("Using gizmo");
+
+			// update cube pos
+			cubePos.x = objMat[3][0];
+			cubePos.y = objMat[3][1];
+			cubePos.z = objMat[3][2];
+		}
+
 		static bool showDemoWindow = false;
-		// ImGui::Checkbox("Show Demo Window", &showDemoWindow);
-		ImGui::Checkbox("Portal Cube", &application->scene->showPortalCube);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+
+		ImGui::Separator();
 		ImGui::Checkbox("Ground Collision", &application->scene->groundCollision);
+		ImGui::SameLine();
+		ImGui::Checkbox("Portal Cube", &application->scene->showPortalCube);
+		ImGui::SameLine();
+		ImGui::Checkbox("Demo Window", &showDemoWindow);
+
+		ImGui::Separator();
 		ImGui::SliderFloat("Main Camera speed", &application->scene->cameraSpeed, -5.0f, 1000.0f);
 		ImGui::SliderFloat3("Main Camera position", &application->scene->mainCamera->eye.x, -25.0f, 25.0f);
 		ImGui::SliderFloat3("Player velocity", &application->scene->playerCamera->velocity.x, -1000.0f, 1000.0f);
@@ -152,6 +195,7 @@ int main(int argc, char *argv[])
 		ImGui::SliderFloat3("Projectile position", &application->scene->projectile->position.x, -1.0f, 1.0f);
 		ImGui::SliderFloat3("Portalcube position", &application->scene->portalcube->position.x, -100.0f, 100.0f);
 
+		ImGui::Separator();
 		ImGui::SliderFloat("g_Spin", &application->g_Spin, 0.0f, 20.0f);
 		ImGui::SliderFloat3("light pos", &application->callbacks->lightTrans.x, -1000.0f, 1000.0f);
 

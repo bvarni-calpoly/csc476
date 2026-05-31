@@ -26,6 +26,8 @@ include_directories("ext/glad/include")
 include_directories("ext/imgui")
 include_directories("ext/imgui/backends")
 
+include_directories("ext/imguizmo")
+
 # Only compile files in ext/imgui/ and the two in backend
 set(IMGUI_FILES
   ext/imgui/imgui_demo.cpp
@@ -37,8 +39,13 @@ set(IMGUI_FILES
   ext/imgui/backends/imgui_impl_opengl3.cpp
 )
 
+set(IMGUIZMO_FILES
+  ext/imguizmo/ImGuizmo.cpp
+)
+
 # Set the executable.
-add_executable(${CMAKE_PROJECT_NAME} ${SOURCES} ${HEADERS} ${GLSL} ${IMGUI_FILES})
+# add_executable(${CMAKE_PROJECT_NAME} ${SOURCES} ${HEADERS} ${GLSL} ${IMGUI_FILES})
+add_executable(${CMAKE_PROJECT_NAME} ${SOURCES} ${HEADERS} ${GLSL} ${IMGUI_FILES} ${IMGUIZMO_FILES})
 
 # Helper function included from FindGfxLibs.cmake
 findGLFW3(${CMAKE_PROJECT_NAME})

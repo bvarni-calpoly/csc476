@@ -162,7 +162,6 @@ void Application::render(float frametime)
     glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
     glViewport(0, 0, width, height);
 
-    // Use the matrix stack for Lab 6
     float aspect = width / (float)height;
 
     // Create the matrix stacks
