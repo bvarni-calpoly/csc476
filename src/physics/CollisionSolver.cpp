@@ -1,61 +1,27 @@
 #include <iostream>
-#include "AABB.h"
+#include "CollisionSolver.h"
 #include "../SceneInitializer.h"
 
-int AABB::intersectsCamera(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj) // FIXME optimize this, check godot docs
+int CollisionSolver::testPlayerVsAABB(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj) // FIXME optimize this, check godot docs
 {
     Camera &cam = *(scene->mainCamera);
     Player &player = *(scene->playerCamera);
 
     // adjust for player height
     float camHeight = cam.eye.y - player.playerHeight;
+
     // check each axis for collision
     bool xCollision = (cam.eye.x > obj.min.x) && (cam.eye.x < obj.max.x);
     bool yCollision = (cam.eye.y > obj.min.y) && (camHeight < obj.max.y);
     bool zCollision = (cam.eye.z > obj.min.z) && (cam.eye.z < obj.max.z);
 
     if (xCollision && yCollision && zCollision)
-    {
-        // std::cout << "inside bounding box" << std::endl;
-        // cam.eye = cam.eye_prev;
-        cam.eye.y = obj.max.y + player.playerHeight;
-        player.velocity.y = 0;
-        player.airborne = false;
-
-        // check if jailed inside object
-
         return 1; // collision detected
-    }
 
     return 0; // no collision
 }
 
-// FIXME THIS MOVE TO ANOTHER CLASS
-int AABB::intersectsCameraPlaneAABB(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj) // FIXME optimize this, check godot docs
-{
-    Camera &cam = *(scene->mainCamera);
-    Player &player = *(scene->playerCamera);
-
-    // adjust for player height
-    float camHeight = cam.eye.y - player.playerHeight;
-
-    // check each axis for collisionS
-    bool xCollision = (cam.eye.x >= (obj.min.x - 5.0f)) && (cam.eye.x <= (obj.max.x + 5.0f));
-    bool yCollision = (cam.eye.y >= (obj.min.y - 5.0f)) && (camHeight <= (obj.max.y + 5.0f));
-    bool zCollision = (cam.eye.z >= (obj.min.z - 5.0f)) && (cam.eye.z <= (obj.max.z + 5.0f));
-
-    // std::cout << xCollision << yCollision << zCollision << std::endl;
-
-    if (xCollision && yCollision && zCollision)
-    {
-        std::cout << "inside bounding plane" << std::endl;
-        return 1; // collision detected
-    }
-
-    return 0; // no collision
-}
-
-int AABB::intersectsObject(const GameObject &obj1, const GameObject &obj2)
+int CollisionSolver::testAABBvsAABB(const GameObject &obj1, const GameObject &obj2)
 {
     // check each axis for collision
     bool xCollision = (obj1.max.x >= obj2.min.x) && (obj1.min.x <= obj2.max.x);
@@ -68,8 +34,7 @@ int AABB::intersectsObject(const GameObject &obj1, const GameObject &obj2)
     return 0; // no collision
 }
 
-// FIXME ADD THIS TO ANOTHER CLASS
-int AABB::intersectsCameraSinglePlane(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj) // FIXME optimize this, check godot docs
+int CollisionSolver::testPlayerVsPlane(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj) // FIXME optimize this, check godot docs
 {
     Camera &cam = *(scene->mainCamera);
     Player &player = *(scene->playerCamera);
@@ -98,11 +63,57 @@ int AABB::intersectsCameraSinglePlane(std::shared_ptr<SceneInitializer> &scene, 
     {
         // std::cout << "infinite plane collision detected" << std::endl;
 
-        if (intersectsCameraPlaneAABB(scene, obj))
+        if (testPlayerVsAABB(scene, obj))
             return 1; // collision detected
     }
 
     return 0; // no collision
+}
+
+CollisionPlaneResult CollisionSolver::solvePointVsConvex(const glm::vec3 point, const GameObject &obj) // FIXME optimize this, check godot docs
+{
+    CollisionPlaneResult result;
+    result.collided = 0;
+    result.normal = glm::vec3(0.0f);
+    result.planeDistance = 0.0f;
+
+    // push dir for correcting play position (if collision is detected)
+    glm::vec3 pushDir = glm::vec3(0.0f);
+    float closestPlaneDistance = -std::numeric_limits<float>::max();
+
+    // check collision against every plane
+    for (const auto &currPlane : obj.planes)
+    {
+        // flip normal
+        glm::vec3 normal = glm::normalize(currPlane.normal);
+
+        // --- distance = (N * P) + d ---
+        // Calculate position of plane relative to normal
+        // float d = -glm::dot(normal, obj.position);
+        float d = -glm::dot(normal, currPlane.point);
+
+        // Distance from camera to plane
+        float currDistance = glm::dot(normal, point) + d;
+
+        // Check if outside the plane
+        if (currDistance > 0.0f)
+        {
+            return result; // outside shape
+        }
+
+        // Track the plane the player is closest to (negative values are inside the plane, closer to zero is closer to the plane)
+        if (currDistance > closestPlaneDistance) // largest negative value (closest to zero)
+        {
+            closestPlaneDistance = currDistance;
+            pushDir = normal;
+        }
+    }
+
+    result.collided = 1;
+    result.normal = pushDir;
+    result.planeDistance = closestPlaneDistance;
+
+    return result; // collision detected
 }
 
 /**
@@ -112,7 +123,7 @@ int AABB::intersectsCameraSinglePlane(std::shared_ptr<SceneInitializer> &scene, 
  * If the player is inside the convex shape, distance is negative
  * If the player is outside the convex shape, distance is positive
  */
-CollisionPlaneResult AABB::intersectsConvexShape(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj) // FIXME optimize this, check godot docs
+CollisionPlaneResult CollisionSolver::solvePlayerVsConvex(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj) // FIXME optimize this, check godot docs
 {
     CollisionPlaneResult result;
     result.collided = 0;

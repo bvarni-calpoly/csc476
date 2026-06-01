@@ -540,6 +540,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/cube.obj", skybox); // use a cube map
     loadGeom(resourceDirectory, "/objects/cube.obj", cube);
     loadGeom(resourceDirectory, "/objects/plane.obj", plane);
+    loadGeom(resourceDirectory, "/objects/plane_performance_test.obj", shape_performance_test);
     loadGeom(resourceDirectory, "/objects/angled_plane.obj", angledplane);
     loadGeom(resourceDirectory, "/objects/testcube.obj", portalcube);
     loadGeom(resourceDirectory, "/objects/testcube.obj", testcube);
@@ -549,12 +550,6 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/cube.obj", pawn);
     loadGeom(resourceDirectory, "/objects/wedge.obj", arrow);
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
-    // loadMapGeom(resourceDirectory, "/scene/testscenewithportal.obj", mapGeom);
-    // loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
-    // loadMapGeom(resourceDirectory, "/scene/test-room.obj", mapGeom);
-    // loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
-    // loadMapGeom(resourceDirectory, "/scene/vertical_chamber_review.obj", mapGeom);
-    // loadMapGeom(resourceDirectory, "/scene/vertical_and_stair_chamber_backup.obj", mapGeom);
     loadMapGeom(resourceDirectory, "/scene/vertical_and_stair_chamber_3.obj", mapGeom);
 
     // light
@@ -581,6 +576,9 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
 
     texture_cube->scale = vec3(10000.0f, 1.0f, 10000.0f);
     texture_cube->position = vec3(0, -100.0f, 0);
+
+    shape_performance_test->scale = vec3(100.0f, 100.0f, 100.0f);
+    shape_performance_test->position = vec3(50.0f, 0.0f, 50.0f);
 
     testLight.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
     testLight.position = glm::vec4(10.0f, 10.0f, 10.0f, 0.0f);

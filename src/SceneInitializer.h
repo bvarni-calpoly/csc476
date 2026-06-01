@@ -115,6 +115,7 @@ public:
     std::shared_ptr<GameObject> tool;
     std::shared_ptr<GameObject> projectile;
     std::shared_ptr<GameObject> pawn;
+    std::shared_ptr<GameObject> shape_performance_test;
     glm::vec3 gMin;
 
     int objectCount = 0;

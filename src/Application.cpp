@@ -23,7 +23,6 @@
 #include "world/Camera.h"
 #include "world/Player.h"
 #include "world/GameObject.h"
-#include "physics/AABB.h"
 
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>

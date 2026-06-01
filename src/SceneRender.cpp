@@ -1,7 +1,6 @@
 #include <iostream>
 #include <glad/glad.h>
 #include "SceneRender.h"
-#include "physics/AABB.h"
 #include "core/GLSLUtils.h"
 #include "core/Callbacks.h"
 #include "world/GameObject.h"
@@ -442,6 +441,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
 
     // Draw map
     sceneRender->drawTextureHierMesh(scene->texProg, scene, scene->Model, scene->mapGeom);
+    // sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->shape_performance_test);
     scene->texture1->bind(scene->texProg->getUniform("Texture0")); // reset texture
 
     // Draw projectile

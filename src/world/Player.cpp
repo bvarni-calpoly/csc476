@@ -10,7 +10,7 @@
 #include "../renderer/MatrixStack.h"
 #include "../math/Bezier.h"
 #include "../math/Spline.h"
-#include "../physics/AABB.h"
+#include "../physics/CollisionSolver.h"
 #include "../SceneInitializer.h"
 #include "../SceneRender.h"
 #include "Camera.h"
@@ -164,8 +164,8 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         // Check player collisions between portal or map
         if (mapGeomChild->portal->portalID > 0)
         {
-            // if (AABB::intersectsCameraSinglePlane(*scene->mainCamera, *mapGeomChild))
-            if (AABB::intersectsCameraSinglePlane(scene, *mapGeomChild))
+            // if (CollisionSolver::solvePlayerVsPlane(*scene->mainCamera, *mapGeomChild))
+            if (CollisionSolver::testPlayerVsPlane(scene, *mapGeomChild))
             {
                 std::cout << "portal collision" << std::endl;
 
@@ -182,7 +182,7 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         // Check collision against rest of the map
         else
         {
-            CollisionPlaneResult collisionInfo = AABB::intersectsConvexShape(scene, *mapGeomChild);
+            CollisionPlaneResult collisionInfo = CollisionSolver::solvePlayerVsConvex(scene, *mapGeomChild);
 
             if (collisionInfo.collided)
             {
@@ -190,14 +190,31 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
             }
         }
 
-        if (scene->groundCollision)
-            AABB::intersectsCamera(scene, *scene->texture_cube);
+        // Global test ground
+        if (scene->groundCollision && CollisionSolver::testPlayerVsAABB(scene, *scene->texture_cube))
+        {
+            Camera &cam = *(scene->mainCamera);
+            Player &player = *(scene->playerCamera);
+
+            cam.eye.y = scene->texture_cube->max.y + player.playerHeight;
+            player.velocity.y = 0;
+            player.airborne = false;
+        }
+
+        // Player collision against single shape
+        // if (CollisionSolver::testPlayerVsAABB(scene, *scene->shape_performance_test))
+        // {
+        //     CollisionPlaneResult collisionInfoShapeTest = CollisionSolver::solvePlayerVsConvex(scene, *scene->shape_performance_test);
+
+        //     if (collisionInfoShapeTest.collided)
+        //     {
+        //         scene->playerCamera->resolveCollision(scene, collisionInfoShapeTest);
+        //     }
+        // }
 
         // Check projectile collisions on map
-        if (AABB::intersectsObject(*scene->projectile, *mapGeomChild))
+        if (CollisionSolver::testAABBvsAABB(*scene->projectile, *mapGeomChild))
         {
-            // std::cout << "projectile collision" << std::endl;
-            // scene->projectile->velocity = -scene->projectile->velocity * glm::vec3(1, -1, 1);
             scene->projectile->velocity = glm::reflect(scene->projectile->velocity, mapGeomChild->planes[0].normal);
             mapGeomChild->collided = (mapGeomChild->collided % 2) + 1;
 
@@ -214,30 +231,18 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         }
 
         // Check pawn collisions on map
-        if (AABB::intersectsObject(*scene->pawn, *mapGeomChild))
+        if (CollisionSolver::testAABBvsAABB(*scene->pawn, *mapGeomChild))
         {
             scene->pawn->position.y = mapGeomChild->max.y + scene->pawn->scale.y / 2.0f;
         }
     }
 
-    // if (AABB::intersectsConvexShape(scene, *scene->testcube))
-
-    // Check projectile collisions on map
-    // for (auto &pawnChild : scene->pawn->children)
-    // {
-    // 	if (AABB::intersectsObject(*scene->projectile, *pawnChild))
-    // 	{
-    // 		std::cout << "projectile collision" << std::endl;
-    // 		pawnChild->collided = 1;
-    // 	}
-    // }
-
-    if (AABB::intersectsObject(*scene->projectile, *scene->pawn))
+    if (CollisionSolver::testAABBvsAABB(*scene->projectile, *scene->pawn))
     {
         scene->pawn->collided = (scene->pawn->collided % 2) + 1;
     }
 
-    if (eye.y < -500.0f)
+    if (eye.y < -750.0f)
         eye = glm::vec3(0, 50.0f, 0);
 }
 

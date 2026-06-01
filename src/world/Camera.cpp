@@ -10,7 +10,7 @@
 #include "../renderer/MatrixStack.h"
 #include "../math/Bezier.h"
 #include "../math/Spline.h"
-#include "../physics/AABB.h"
+#include "../physics/CollisionSolver.h"
 #include "../SceneInitializer.h"
 #include "../SceneRender.h"
 #include "Camera.h"
