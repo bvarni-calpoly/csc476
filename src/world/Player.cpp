@@ -47,7 +47,7 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         wishDir += strafe;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         if (!airborne)
-            velocity.y = 150;
+            velocity.y = 200;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         speedMult = 2;
     else
@@ -275,7 +275,8 @@ void Player::resolveCollision(std::shared_ptr<SceneInitializer> &scene, Collisio
     float closestPlaneDistance = collisionInfo.planeDistance;
 
     // offset position to be on correct side of the closest plane that was passed
-    glm::vec3 correction = pushDir * glm::abs(closestPlaneDistance);
+    float epsilon = 0.01;
+    glm::vec3 correction = pushDir * (glm::abs(closestPlaneDistance) + epsilon);
     // glm::vec3 correction = pushDir * (glm::abs(closestPlaneDistance) + playerRadius);
     cam.eye += correction;
 

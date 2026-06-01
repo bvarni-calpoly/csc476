@@ -143,16 +143,18 @@ CollisionPlaneResult AABB::intersectsConvexShape(std::shared_ptr<SceneInitialize
         // Distance from camera to plane
         float currDistance = glm::dot(normal, camHeight) + d;
 
+        float effectiveDistance = currDistance - player.playerRadius;
+
         // Check if outside the plane
-        if (currDistance > 0.0f)
+        if (effectiveDistance > 0.0f)
         {
             return result; // outside shape
         }
 
         // Track the plane the player is closest to (negative values are inside the plane, closer to zero is closer to the plane)
-        if (currDistance > closestPlaneDistance) // largest negative value (closest to zero)
+        if (effectiveDistance > closestPlaneDistance) // largest negative value (closest to zero)
         {
-            closestPlaneDistance = currDistance;
+            closestPlaneDistance = effectiveDistance;
             pushDir = normal;
         }
     }
