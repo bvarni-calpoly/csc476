@@ -32,7 +32,7 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
     float addSpeed, accelSpeed, currentSpeed, wishSpeed, speed, newSpeed, drop = 0.0f, control, speedMult = 1.0f;
     float stopSpeed = 100.0f, friction = 6.0f;
 
-    glm::vec3 wishDir = glm::vec3(0.0f);
+    wishDir = glm::vec3(0.0f);
     strafe = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0))); // get side basis vector (points right)
     up = normalize(glm::cross(forward, strafe));                      // get vertical basis vector (points up)
 
@@ -180,9 +180,14 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
             }
         }
         // Check collision against rest of the map
-        else if (AABB::intersectsConvexShape(scene, *mapGeomChild))
+        else
         {
-            // std::cout << mapGeomChild->objName << std::endl;
+            CollisionPlaneResult collisionInfo = AABB::intersectsConvexShape(scene, *mapGeomChild);
+
+            if (collisionInfo.collided)
+            {
+                scene->playerCamera->resolveCollision(scene, collisionInfo);
+            }
         }
 
         if (scene->groundCollision)
@@ -215,24 +220,22 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         }
     }
 
-    // AABB::intersectsCameraPlane(*scene->mainCamera, *scene->plane);
-    // AABB::intersectsCameraPlane(*scene->mainCamera, *scene->angledplane);
-    if (AABB::intersectsConvexShape(scene, *scene->testcube))
+    // if (AABB::intersectsConvexShape(scene, *scene->testcube))
 
-        // Check projectile collisions on map
-        // for (auto &pawnChild : scene->pawn->children)
-        // {
-        // 	if (AABB::intersectsObject(*scene->projectile, *pawnChild))
-        // 	{
-        // 		std::cout << "projectile collision" << std::endl;
-        // 		pawnChild->collided = 1;
-        // 	}
-        // }
+    // Check projectile collisions on map
+    // for (auto &pawnChild : scene->pawn->children)
+    // {
+    // 	if (AABB::intersectsObject(*scene->projectile, *pawnChild))
+    // 	{
+    // 		std::cout << "projectile collision" << std::endl;
+    // 		pawnChild->collided = 1;
+    // 	}
+    // }
 
-        if (AABB::intersectsObject(*scene->projectile, *scene->pawn))
-        {
-            scene->pawn->collided = (scene->pawn->collided % 2) + 1;
-        }
+    if (AABB::intersectsObject(*scene->projectile, *scene->pawn))
+    {
+        scene->pawn->collided = (scene->pawn->collided % 2) + 1;
+    }
 
     if (eye.y < -500.0f)
         eye = glm::vec3(0, 50.0f, 0);
@@ -262,4 +265,42 @@ void Player::reloadAnimation(std::shared_ptr<SceneInitializer> &scene, float del
     float easeOut = 1.0f - pow((1.0f - reloadProgress), 3.0f);
 
     weaponAngle = easeOut * glm::radians(360.0f);
+}
+
+void Player::resolveCollision(std::shared_ptr<SceneInitializer> &scene, CollisionPlaneResult collisionInfo)
+{
+    Camera &cam = *(scene->mainCamera);
+    Player &player = *(scene->playerCamera);
+    const glm::vec3 &pushDir = collisionInfo.normal;
+    float closestPlaneDistance = collisionInfo.planeDistance;
+
+    // offset position to be on correct side of the closest plane that was passed
+    glm::vec3 correction = pushDir * glm::abs(closestPlaneDistance);
+    // glm::vec3 correction = pushDir * (glm::abs(closestPlaneDistance) + playerRadius);
+    cam.eye += correction;
+
+    // push player out in direction of normal
+    float velocityAlongNormal = glm::dot(player.velocity, pushDir);
+    if (velocityAlongNormal < 0.0f)
+    {
+        player.velocity -= pushDir * velocityAlongNormal;
+    }
+
+    // Check if collision is a floor (y close to 1, angle > 45 degrees)
+    if (pushDir.y > 0.7) // sin(45) = 0.707
+    {
+        // remove sliding
+        player.velocity.y = 0.0f;
+        player.airborne = false;
+    }
+    // Check if collision is a ceiling (y close to -1, angle < -45 degrees)
+    else if (pushDir.y < -0.7)
+    {
+        player.velocity.y = 0.0f;
+    }
+    // Check if collision is a wall (y close to 0, angle between -45 to 45 degrees)
+    else
+    {
+        // wall
+    }
 }

@@ -112,8 +112,13 @@ int AABB::intersectsCameraSinglePlane(std::shared_ptr<SceneInitializer> &scene, 
  * If the player is inside the convex shape, distance is negative
  * If the player is outside the convex shape, distance is positive
  */
-int AABB::intersectsConvexShape(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj) // FIXME optimize this, check godot docs
+CollisionPlaneResult AABB::intersectsConvexShape(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj) // FIXME optimize this, check godot docs
 {
+    CollisionPlaneResult result;
+    result.collided = 0;
+    result.normal = glm::vec3(0.0f);
+    result.planeDistance = 0.0f;
+
     Camera &cam = *(scene->mainCamera);
     Player &player = *(scene->playerCamera);
 
@@ -141,7 +146,7 @@ int AABB::intersectsConvexShape(std::shared_ptr<SceneInitializer> &scene, const 
         // Check if outside the plane
         if (currDistance > 0.0f)
         {
-            return 0; // outside shape
+            return result; // outside shape
         }
 
         // Track the plane the player is closest to (negative values are inside the plane, closer to zero is closer to the plane)
@@ -152,20 +157,9 @@ int AABB::intersectsConvexShape(std::shared_ptr<SceneInitializer> &scene, const 
         }
     }
 
-    // offset position to be on correct side of plane
-    glm::vec3 correction = pushDir * glm::abs(closestPlaneDistance);
-    cam.eye += correction;
+    result.collided = 1;
+    result.normal = pushDir;
+    result.planeDistance = closestPlaneDistance;
 
-    // push player out in direction of normal
-    float velocityAlongNormal = glm::dot(player.velocity, pushDir);
-    if (velocityAlongNormal < 0.0f)
-    {
-        player.velocity -= pushDir * velocityAlongNormal;
-    }
-
-    // remove sliding
-    player.velocity.y = 0;
-    player.airborne = false;
-
-    return 1; // collision detected
+    return result; // collision detected
 }

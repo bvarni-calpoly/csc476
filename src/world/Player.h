@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../physics/CollisionType.h"
+
 class SceneRender;
 class SceneInitializer;
 
@@ -9,10 +11,13 @@ private:
 public:
     void playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer> &scene, float maxSpeed, float deltaTime);
     void reloadAnimation(std::shared_ptr<SceneInitializer> &scene, float deltaTime);
+    void resolveCollision(std::shared_ptr<SceneInitializer> &scene, CollisionPlaneResult collisionInfo);
 
     bool airborne = false;
     float gravity = 400.0f;
     float playerHeight = 40.0f;
+    float playerRadius = 4.0f;
+    glm::vec3 wishDir = glm::vec3(0.0f);
     glm::vec3 velocity = glm::vec3(0);
 
     glm::vec4 playerLightIntensity;

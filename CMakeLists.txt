@@ -28,6 +28,8 @@ include_directories("ext/imgui/backends")
 
 include_directories("ext/imguizmo")
 
+include_directories("ext/implot3d")
+
 # Only compile files in ext/imgui/ and the two in backend
 set(IMGUI_FILES
   ext/imgui/imgui_demo.cpp
@@ -43,9 +45,16 @@ set(IMGUIZMO_FILES
   ext/imguizmo/ImGuizmo.cpp
 )
 
+set(IMPLOT3D_FILES
+  ext/implot3d/implot3d.cpp
+  ext/implot3d/implot3d_items.cpp
+  ext/implot3d/implot3d_meshes.cpp
+  ext/implot3d/implot3d_demo.cpp
+)
+
 # Set the executable.
 # add_executable(${CMAKE_PROJECT_NAME} ${SOURCES} ${HEADERS} ${GLSL} ${IMGUI_FILES})
-add_executable(${CMAKE_PROJECT_NAME} ${SOURCES} ${HEADERS} ${GLSL} ${IMGUI_FILES} ${IMGUIZMO_FILES})
+add_executable(${CMAKE_PROJECT_NAME} ${SOURCES} ${HEADERS} ${GLSL} ${IMGUI_FILES} ${IMGUIZMO_FILES} ${IMPLOT3D_FILES})
 
 # Helper function included from FindGfxLibs.cmake
 findGLFW3(${CMAKE_PROJECT_NAME})

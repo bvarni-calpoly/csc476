@@ -2,6 +2,7 @@
 
 #include "../world/GameObject.h"
 #include "../world/Camera.h"
+#include "CollisionType.h"
 
 class SceneInitializer;
 
@@ -14,7 +15,7 @@ private:
 public:
     static int intersectsCamera(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj);
     static int intersectsObject(const GameObject &obj1, const GameObject &obj2);
-    static int intersectsCameraPlaneAABB(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj);   // FIXME optimize this, check godot docs
-    static int intersectsCameraSinglePlane(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj); // FIXME optimize this, check godot docs
-    static int intersectsConvexShape(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj);       // FIXME optimize this, check godot docs
+    static int intersectsCameraPlaneAABB(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj);              // FIXME optimize this, check godot docs
+    static int intersectsCameraSinglePlane(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj);            // FIXME optimize this, check godot docs
+    static CollisionPlaneResult intersectsConvexShape(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj); // FIXME optimize this, check godot docs
 };

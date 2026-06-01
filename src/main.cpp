@@ -82,6 +82,10 @@
 // imguizmo
 #include "../ext/imguizmo/ImGuizmo.h"
 
+// implot3d
+#include "../ext/implot3d/implot3d.h"
+#include "../ext/implot3d/implot3d_internal.h"
+
 // USEFUL RESOURCES
 // https://github.com/godotengine/godot/tree/master/core/math
 // https://learnopengl.com/Advanced-OpenGL/Stencil-testing
@@ -119,6 +123,7 @@ int main(int argc, char *argv[])
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
+	ImPlot3D::CreateContext();
 	ImGuiIO &io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
@@ -136,14 +141,17 @@ int main(int argc, char *argv[])
 		// Poll for and process events.
 		glfwPollEvents();
 
-		// ...
 		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 
+		// Window variables
+		static bool showDemoWindow = false;
+		static int activeSelection;
+
 		ImGui::NewFrame();
 
-		// Start ImGuizmo
+		// Start the ImGuizmo frame
 		ImGuizmo::BeginFrame();
 		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
@@ -152,32 +160,135 @@ int main(int argc, char *argv[])
 		glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
 		float aspect = width / (float)height;
 
-		glm::vec3 &cubePos = application->scene->portalcube->position;
-
 		glm::mat4 view = lookAt(application->scene->mainCamera->eye, application->scene->mainCamera->lookAtTarget, glm::vec3(0, 1, 0));
 		glm::mat4 proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 1000.0f);
-		glm::mat4 objMat = glm::translate(glm::mat4(1.0f), cubePos);
-
-		ImGuizmo::Manipulate(glm::value_ptr(view),
-							 glm::value_ptr(proj),
-							 ImGuizmo::TRANSLATE,
-							 ImGuizmo::WORLD,
-							 glm::value_ptr(objMat));
 
 		// Update objects with ImGuizmo
-		if (ImGuizmo::IsUsing())
+		if (activeSelection == 0)
 		{
-			ImGui::Text("Using gizmo");
+			glm::vec4 &lightPos = application->scene->testLight.position;
+			glm::mat4 lightMat = glm::translate(glm::mat4(1.0f), glm::vec3(lightPos));
 
-			// update cube pos
-			cubePos.x = objMat[3][0];
-			cubePos.y = objMat[3][1];
-			cubePos.z = objMat[3][2];
+			ImGuizmo::Manipulate(glm::value_ptr(view),
+								 glm::value_ptr(proj),
+								 ImGuizmo::TRANSLATE,
+								 ImGuizmo::WORLD,
+								 glm::value_ptr(lightMat));
+
+			if (ImGuizmo::IsUsing())
+			{
+				ImGui::Text("Using gizmo");
+
+				// update cube pos
+				lightPos.x = lightMat[3][0];
+				lightPos.y = lightMat[3][1];
+				lightPos.z = lightMat[3][2];
+			}
+		}
+		else if (activeSelection == 1)
+		{
+			glm::vec3 &cubePos = application->scene->portalcube->position;
+			glm::mat4 objMat = glm::translate(glm::mat4(1.0f), cubePos);
+
+			ImGuizmo::Manipulate(glm::value_ptr(view),
+								 glm::value_ptr(proj),
+								 ImGuizmo::TRANSLATE,
+								 ImGuizmo::WORLD,
+								 glm::value_ptr(objMat));
+
+			if (ImGuizmo::IsUsing())
+			{
+				ImGui::Text("Using gizmo");
+
+				// update cube pos
+				cubePos.x = objMat[3][0];
+				cubePos.y = objMat[3][1];
+				cubePos.z = objMat[3][2];
+			}
 		}
 
-		static bool showDemoWindow = false;
+		// plot framerate - https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp
+		ImGui::Text("Performance:");
 
+		static bool animate = true;
+
+		// Fill an array of contiguous float values to plot
+		// Tip: If your float aren't contiguous but part of a structure, you can pass a pointer to your first float
+		// and the sizeof() of your structure in the "stride" parameter.
+		// static float values[90] = {};
+		static float values[300] = {}; // 5 seconds
+		static int values_offset = 0;
+		static double refresh_time = 0.0;
+
+		if (!animate || refresh_time == 0.0)
+			refresh_time = ImGui::GetTime();
+
+		while (refresh_time < ImGui::GetTime()) // Create data at fixed 60 Hz rate for the demo
+		{
+			// static float phase = 0.0f;
+			// values[values_offset] = cosf(phase);
+			values[values_offset] = 1000.0f / io.Framerate;
+			values_offset = (values_offset + 1) % IM_COUNTOF(values);
+			// phase += 0.10f * values_offset;
+			refresh_time += 1.0f / 60.0;
+		}
+
+		// Plots can display overlay texts
+		// (in this example, we will display an average value)
+		float average = 0.0f;
+		for (int n = 0; n < IM_COUNTOF(values); n++)
+			average += values[n];
+		average /= (float)IM_COUNTOF(values);
+
+		char overlay[32];
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+		sprintf(overlay, "avg %f ms/frame (%.1f FPS)", average, 1000.0f / average);
+		ImGui::PlotLines("Frame Times", values, IM_COUNTOF(values), values_offset, overlay, 0.0f, 40.0f, ImVec2(0, 80.0f));
+		ImGui::Checkbox("Animate", &animate);
+
+		// ImPlot3D
+		ImGui::Begin("Movement Vectors");
+		if (ImPlot3D::BeginPlot("Movement"))
+		{
+			// static double xLine[2], yLine[2], zLine[2];
+			ImPlot3D::SetupAxes("x", "z", "y");
+
+			ImPlot3D::SetupAxesLimits(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f, ImPlot3DCond_Once);
+			glm::vec3 wishDir = application->scene->playerCamera->wishDir;
+
+			// Graph movement
+			glm::vec3 vel = application->scene->playerCamera->velocity;
+			float velX[2] = {0.0f, vel.x};
+			float velY[2] = {0.0f, vel.z}; // swap y and z
+			float velZ[2] = {0.0f, vel.y}; // swap y and z
+			ImPlot3D::PlotLine("velocity", velX, velY, velZ, 2);
+
+			// Graph wishDir
+			glm::vec3 wish = application->scene->playerCamera->wishDir;
+			float wishX[2] = {0.0f, wish.x};
+			float wishY[2] = {0.0f, wish.z}; // swap y and z
+			float wishZ[2] = {0.0f, wish.y}; // swap y and z
+			ImPlot3D::PlotLine("wishDir", wishX, wishY, wishZ, 2);
+
+			// Graph upVector
+			glm::vec3 up = glm::vec3(0, 1, 0);
+			float upX[2] = {0.0f, up.x};
+			float upY[2] = {0.0f, up.z}; // swap y and z
+			float upZ[2] = {0.0f, up.y}; // swap y and z
+			ImPlot3D::PlotLine("up", upX, upY, upZ, 2);
+
+			ImPlot3D::EndPlot();
+		}
+		ImGui::End();
+
+		// Debug menu
+		ImGui::Separator();
+		ImGui::Text("Active Gizmo Target:");
+		ImGui::RadioButton("Light", &activeSelection, 0);
+		ImGui::SameLine();
+		ImGui::RadioButton("Cube", &activeSelection, 1);
+		ImGui::SameLine();
+		ImGui::RadioButton("None", &activeSelection, 2);
 
 		ImGui::Separator();
 		ImGui::Checkbox("Ground Collision", &application->scene->groundCollision);
@@ -187,17 +298,30 @@ int main(int argc, char *argv[])
 		ImGui::Checkbox("Demo Window", &showDemoWindow);
 
 		ImGui::Separator();
-		ImGui::SliderFloat("Main Camera speed", &application->scene->cameraSpeed, -5.0f, 1000.0f);
-		ImGui::SliderFloat3("Main Camera position", &application->scene->mainCamera->eye.x, -25.0f, 25.0f);
-		ImGui::SliderFloat3("Player velocity", &application->scene->playerCamera->velocity.x, -1000.0f, 1000.0f);
+		ImGui::Text("Camera");
+		ImGui::SliderFloat("Noclip speed", &application->scene->cameraSpeed, -5.0f, 1000.0f);
+		ImGui::SliderFloat3("Main Camera position", &application->scene->mainCamera->eye.x, -100.0f, 100.0f);
 		ImGui::SliderFloat3("Portal Camera position", &application->scene->portalCamera->eye.x, -10.0f, 10.0f);
+
+		ImGui::Separator();
+		ImGui::Text("Player and Objects");
+		ImGui::SliderFloat3("Player velocity", &application->scene->playerCamera->velocity.x, -1000.0f, 1000.0f);
 		ImGui::SliderFloat3("Tool position", &application->scene->tool->position.x, -1.0f, 1.0f);
 		ImGui::SliderFloat3("Projectile position", &application->scene->projectile->position.x, -1.0f, 1.0f);
 		ImGui::SliderFloat3("Portalcube position", &application->scene->portalcube->position.x, -100.0f, 100.0f);
 
 		ImGui::Separator();
-		ImGui::SliderFloat("g_Spin", &application->g_Spin, 0.0f, 20.0f);
-		ImGui::SliderFloat3("light pos", &application->callbacks->lightTrans.x, -1000.0f, 1000.0f);
+		if (ImGui::TreeNode("Debug Objects"))
+		{
+			ImGui::Text("Debug Light");
+			ImGui::SliderFloat3("color", &application->scene->testLight.color.x, -1.0f, 1.0f);
+			ImGui::SliderFloat3("intensity", &application->scene->testLight.intensity.x, 0.0f, 10.0f);
+			ImGui::SliderFloat3("position", &application->scene->testLight.position.x, -100.0f, 100.0f);
+
+			ImGui::Separator();
+			ImGui::SliderFloat("g_Spin", &application->g_Spin, 0.0f, 20.0f);
+			ImGui::TreePop();
+		}
 
 		if (showDemoWindow)
 			ImGui::ShowDemoWindow(); // Show demo window! :)
@@ -234,6 +358,7 @@ int main(int argc, char *argv[])
 	}
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
+	ImPlot3D::DestroyContext();
 	ImGui::DestroyContext();
 
 	// Quit program.

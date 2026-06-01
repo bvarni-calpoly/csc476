@@ -9,6 +9,19 @@
 #include "world/Camera.h"
 #include "world/Player.h"
 
+struct PointLightUBO
+{
+    glm::vec4 position;
+    glm::vec4 color;
+    glm::vec4 intensity;
+};
+
+struct LightBlockUBO
+{
+    PointLightUBO lights[10];
+    glm::ivec4 numActiveLights;
+};
+
 class SceneInitializer
 {
 private:
@@ -85,6 +98,7 @@ public:
     // Testing
     bool showPortalCube = false;
     bool groundCollision = false;
+    PointLightUBO testLight;
 
     // scene / level
     std::shared_ptr<GameObject> player;

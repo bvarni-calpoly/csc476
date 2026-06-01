@@ -14,19 +14,6 @@
 
 using namespace std;
 
-struct PointLightUBO
-{
-    glm::vec4 position;
-    glm::vec4 color;
-    glm::vec4 intensity;
-};
-
-struct LightBlockUBO
-{
-    PointLightUBO lights[10];
-    glm::ivec4 numActiveLights;
-};
-
 SceneRender::SceneRender(/* args */) {}
 
 SceneRender::~SceneRender() {}
@@ -426,15 +413,16 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     rainbowLight1.color = glm::vec4(rainbowColor1, 0.0f);
     rainbowLight1.intensity = glm::vec4(10.0f);
 
-    lightData.lights[0] = playerLight;
-    lightData.lights[1] = projectileLight;
-    lightData.lights[2] = redLight;
-    lightData.lights[3] = greenLight;
-    lightData.lights[4] = blueLight;
-    lightData.lights[5] = pinkLight;
-    lightData.lights[6] = rainbowLight;
-    lightData.lights[7] = rainbowLight1;
-    lightData.numActiveLights = glm::ivec4(8);
+    lightData.lights[0] = scene->testLight;
+    lightData.lights[1] = playerLight;
+    lightData.lights[2] = projectileLight;
+    lightData.lights[3] = redLight;
+    lightData.lights[4] = greenLight;
+    lightData.lights[5] = blueLight;
+    lightData.lights[6] = pinkLight;
+    lightData.lights[7] = rainbowLight;
+    lightData.lights[8] = rainbowLight1;
+    lightData.numActiveLights = glm::ivec4(9);
 
     // fixme
     glBindBuffer(GL_UNIFORM_BUFFER, scene->uboLightBlock);
@@ -912,7 +900,6 @@ void SceneRender::drawTool(std::shared_ptr<SceneInitializer> scene, std::shared_
     glm::mat4 identity = glm::mat4(1.0f);
     glUniformMatrix4fv(scene->texProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(identity));
     glUniformMatrix4fv(scene->texProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(scene->Projection->topMatrix()));
-    // glUniform3fv(scene->texProg->getUniform("lightPos"), 1, glm::value_ptr(callbacks->lightTrans));
     scene->texture1->bind(scene->texProg->getUniform("Texture0"));
 
     scene->tool->position = glm::vec3(0.45f, -0.45f, -0.75f) + sin(scene->mainCamera->eye / 20.0f) / 10.0f;

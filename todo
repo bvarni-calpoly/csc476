@@ -16,6 +16,10 @@ TODO TODAY
 
 attributes versus uniforms
 
+add backface culling <<<
+
+ADD 3D VECTOR VISUALIZER
+
 known issues
 - portal vertical is hardcoded to <=4 id
 - fov calculations

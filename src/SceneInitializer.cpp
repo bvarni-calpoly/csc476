@@ -7,19 +7,6 @@
 using namespace std;
 using namespace glm;
 
-struct PointLightUBO
-{
-    glm::vec4 position;
-    glm::vec4 color;
-    glm::vec4 intensity;
-};
-
-struct LightBlockUBO
-{
-    PointLightUBO lights[10];
-    glm::ivec4 numActiveLights;
-};
-
 SceneInitializer::SceneInitializer(/* args */) {}
 
 SceneInitializer::~SceneInitializer() {}
@@ -588,13 +575,16 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     angledplane->position = vec3(-100.0f, -10.0f, 10.0f);
     angledplane->scale = vec3(100.0f);
 
-    // testcube->position = vec3(0.0f, 10.0f, -50.0f);
+    // Debug objects
     testcube->position = vec3(0.0f);
-
     portalcube->scale = vec3(200.0f);
 
     texture_cube->scale = vec3(10000.0f, 1.0f, 10000.0f);
     texture_cube->position = vec3(0, -100.0f, 0);
+
+    testLight.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+    testLight.position = glm::vec4(10.0f, 10.0f, 10.0f, 0.0f);
+    testLight.intensity = glm::vec4(1.0f);
 
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();

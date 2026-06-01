@@ -1,2 +1,4 @@
-Install Dear Imgui into ext/ folder
-Install ImGuizmo in ext/ folder
+Dependencies in ext/ folder
+- Dear Imgui
+- ImGuizmo
+- ImPlot3D
