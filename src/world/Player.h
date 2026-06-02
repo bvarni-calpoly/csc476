@@ -16,7 +16,7 @@ public:
     // position data
     float playerHeight = 40.0f;
     float playerRadius = 4.0f;
-    glm::vec3 spawnLocation = glm::vec3(0.0f);
+    glm::vec3 spawnLocation = glm::vec3(250.0f, playerHeight + 150.0f, 0.0f);
 
     // physics data
     bool airborne = false;

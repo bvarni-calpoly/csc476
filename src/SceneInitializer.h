@@ -96,8 +96,8 @@ public:
     Spline splinepath[4];
 
     // Testing
-    bool showPortalCube = false;
-    bool groundCollision = false;
+    bool showPortalCube = true;
+    bool groundCollision = true;
     PointLightUBO testLight;
 
     // scene / level

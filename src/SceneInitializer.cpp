@@ -552,7 +552,8 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
     loadMapGeom(resourceDirectory, "/scene/vertical_and_stair_chamber_3.obj", mapGeom);
 
-    // light
+    // camera and player starting data
+    mainCamera->eye = playerCamera->spawnLocation;
 
     // skybox
     skybox->scale = vec3(5000.0f);
@@ -581,8 +582,8 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     shape_performance_test->position = vec3(50.0f, 0.0f, 50.0f);
 
     testLight.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
-    testLight.position = glm::vec4(10.0f, 10.0f, 10.0f, 0.0f);
-    testLight.intensity = glm::vec4(1.0f);
+    testLight.position = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+    testLight.intensity = glm::vec4(0.5f);
 
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();

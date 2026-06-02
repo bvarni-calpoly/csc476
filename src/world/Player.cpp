@@ -159,6 +159,7 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
     scene->pawn->position += direction * 1.0f * deltaTime;
 
     airborne = true;
+    // --- TEST COLLISIONS  ---
     for (auto &mapGeomChild : scene->mapGeom->children)
     {
         // Check player collisions between portal or map
@@ -182,11 +183,16 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         // Check collision against rest of the map
         else
         {
-            CollisionPlaneResult collisionInfo = CollisionSolver::solvePlayerVsConvex(scene, *mapGeomChild);
-
-            if (collisionInfo.collided)
+            // Broad Phase (AABB)
+            if (CollisionSolver::testPlayerVsAABB(scene, *mapGeomChild))
             {
-                scene->playerCamera->resolveCollision(scene, collisionInfo);
+                // Narrow Phase (Convex Plane Shape)
+                CollisionPlaneResult collisionInfo = CollisionSolver::solvePlayerVsConvex(scene, *mapGeomChild);
+
+                if (collisionInfo.collided)
+                {
+                    scene->playerCamera->resolveCollision(scene, collisionInfo);
+                }
             }
         }
 
@@ -196,9 +202,9 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
             Camera &cam = *(scene->mainCamera);
             Player &player = *(scene->playerCamera);
 
-            cam.eye.y = scene->texture_cube->max.y + player.playerHeight;
-            player.velocity.y = 0;
-            player.airborne = false;
+            cam.eye.y = scene->texture_cube->max.y + player.playerHeight + player.playerRadius;
+
+            airborne = false;
         }
 
         // Player collision against single shape
@@ -213,21 +219,19 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         // }
 
         // Check projectile collisions on map
+        // Broad Phase (AABB)
         if (CollisionSolver::testAABBvsAABB(*scene->projectile, *mapGeomChild))
         {
-            scene->projectile->velocity = glm::reflect(scene->projectile->velocity, mapGeomChild->planes[0].normal);
-            mapGeomChild->collided = (mapGeomChild->collided % 2) + 1;
-
-            if (scene->projectile->collided > 5)
-            {
-                // scene->projectile->active = false; // reset projectile
-                scene->projectile->collided = 0;
-            }
-            else
-                scene->projectile->collided++;
+            // Narrow Phase (Convex Plane Shape)
+            CollisionPlaneResult collisionInfo = CollisionSolver::solvePointVsConvex(scene->projectile->position, *mapGeomChild);
 
             // rocket jump
             // velocity.y += 10.0f;
+            // if (collisionInfo.collided)
+            // {
+            scene->projectile->velocity = glm::reflect(scene->projectile->velocity, collisionInfo.normal);
+            // mapGeomChild->collided = (mapGeomChild->collided % 2) + 1;
+            // }
         }
 
         // Check pawn collisions on map

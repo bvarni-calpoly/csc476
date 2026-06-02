@@ -8,7 +8,7 @@ int CollisionSolver::testPlayerVsAABB(std::shared_ptr<SceneInitializer> &scene, 
     Player &player = *(scene->playerCamera);
 
     // adjust for player height
-    float camHeight = cam.eye.y - player.playerHeight;
+    float camHeight = cam.eye.y - player.playerHeight - player.playerRadius;
 
     // check each axis for collision
     bool xCollision = (cam.eye.x > obj.min.x) && (cam.eye.x < obj.max.x);

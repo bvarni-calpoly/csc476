@@ -26,7 +26,7 @@ public:
     void updateUsingCameraPath(float frametime, Spline *splinepath);
 
     glm::vec3 view = glm::vec3(0, 0, 1);
-    glm::vec3 eye = glm::vec3(0, 150.0f, 0); // player starting position
+    glm::vec3 eye = glm::vec3(0, 0, 0);
     glm::vec3 eye_prev = glm::vec3(0, 1, 0);
     glm::vec3 strafe = glm::vec3(1, 0, 0);
     glm::vec3 up = glm::vec3(0, 1, 0);

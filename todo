@@ -26,17 +26,15 @@ known issues
 - reload animations
 - if there is no skybox all the rendered portals scene show
 - currently framebuffers are having the window dimensions multiplied by 2 to fit 2k displays
+- portal_entrance_n must come before portal_exit_n in obj file
 
 collision
-- add broadphase and narrowphase collision type (aabb to plane)
 - currently convex hull is checking every vector four times...
 
 for portal collision check if the plane is vertical for the threshold
 
--- FOR ANOTHER DAY --
 change functions to iterate by reference and not value
 
-move camera player movements into player class
 frustrum culling
 lookat function/matrix
 
