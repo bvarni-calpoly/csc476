@@ -110,6 +110,13 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         }
     }
 
+    // Reset position
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+    {
+        velocity = glm::vec3(0.0f);
+        scene->mainCamera->eye = spawnLocation;
+    }
+
     // Normalize input
     if (glm::length(wishDir) > 0.001f)
         wishDir = glm::normalize(wishDir);

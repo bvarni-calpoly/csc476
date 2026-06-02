@@ -409,7 +409,7 @@ void drawGameHUD(ImGuiIO &io, float deltaTime)
 
 	// Draw crosshair
 	float crosshairSize = 8.0f;
-	ImU32 crosshairColor = IM_COL32(255, 255, 255, 200);
+	ImU32 crosshairColor = IM_COL32(255, 255, 255, 150);
 
 	ImVec2 line1Start(screenCenter.x - crosshairSize, screenCenter.y);
 	ImVec2 line1End(screenCenter.x + crosshairSize, screenCenter.y);
@@ -422,13 +422,36 @@ void drawGameHUD(ImGuiIO &io, float deltaTime)
 	char timerBuffer[32];
 	sprintf(timerBuffer, "TIME: %.3f", glfwGetTime());
 
-	ImVec2 textSize = ImGui::CalcTextSize(timerBuffer);
+	ImVec2 timerTextSize = ImGui::CalcTextSize(timerBuffer);
 	ImU32 timerColor = IM_COL32(0, 200, 255, 200);
-	ImVec2 timerPos(io.DisplaySize.x / 2.0f, textSize.y + 10.0f);
-	ImVec2 timerShadowPos(timerPos.x + 2.0f, timerPos.y + 2.0f);
+	ImVec2 timerPos((io.DisplaySize.x - timerTextSize.x) / 2.0f, timerTextSize.y + 10.0f); // Center x
+	ImVec2 timerShadowPos(timerTextSize.x + 2.0f, timerTextSize.y + 2.0f);
 
 	drawList->AddText(timerShadowPos, IM_COL32(0, 0, 0, 200), timerBuffer); // shadow
 	drawList->AddText(timerPos, timerColor, timerBuffer);
+
+	// Draw tutorial message
+	const char *tutorialTextBuffer = R"(
+	MOVEMENT CONTROLS
+	[W][A][S][D]    -> Move Around
+	[Space]         -> Jump, can be held
+	[Shift]         -> Sprint
+	[L-Click]       -> Fire
+	[R-Click]       -> Reload
+	[HOLD R-Click]  -> Charge
+	[R]             -> Reset position
+	[ESC]           -> Exit
+	
+	Press [~] to unlock mouse cursor)";
+
+	float alphaFade = 255 - glfwGetTime() * 20.0f;
+	ImVec2 tutorialTextSize = ImGui::CalcTextSize(tutorialTextBuffer);
+	ImU32 tutorialColor = IM_COL32(255, 255, 255, alphaFade);
+	ImVec2 tutorialPos((io.DisplaySize.x - tutorialTextSize.x) / 2.0f, tutorialTextSize.y + 10.0f);
+	ImVec2 tutorialShadowPos(tutorialPos.x + 2.0f, tutorialPos.y + 2.0f);
+
+	drawList->AddText(tutorialShadowPos, IM_COL32(0, 0, 0, alphaFade), tutorialTextBuffer); // shadow
+	drawList->AddText(tutorialPos, tutorialColor, tutorialTextBuffer);
 
 	ImGui::End();
 }
