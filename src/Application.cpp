@@ -175,7 +175,8 @@ void Application::render(float frametime)
     // scene->Projection->perspective(45.0f, aspect, 0.01f, 2000.0f);
     // FIXME
     float FOV = 45.0f;
-    FOV += glm::length(scene->playerCamera->velocity) / 1000.0f;
+    if (glm::length(scene->playerCamera->velocity) > 150.0f)
+        FOV += glm::length(scene->playerCamera->velocity) / 1000.0f;
 
     scene->Projection->perspective(FOV, aspect, 0.1f, 5000.0f); // FIXME, was 100
     scene->ProjectionPortal->pushMatrix();

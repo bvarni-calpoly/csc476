@@ -412,7 +412,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     rainbowLight1.color = glm::vec4(rainbowColor1, 0.0f);
     rainbowLight1.intensity = glm::vec4(10.0f);
 
-    lightData.lights[0] = scene->testLight;
+    lightData.lights[0] = scene->debugLight;
     lightData.lights[1] = playerLight;
     lightData.lights[2] = projectileLight;
     lightData.lights[3] = redLight;

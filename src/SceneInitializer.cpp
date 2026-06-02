@@ -581,9 +581,9 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     shape_performance_test->scale = vec3(100.0f, 100.0f, 100.0f);
     shape_performance_test->position = vec3(50.0f, 0.0f, 50.0f);
 
-    testLight.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
-    testLight.position = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-    testLight.intensity = glm::vec4(0.5f);
+    debugLight.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+    debugLight.position = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+    debugLight.intensity = glm::vec4(0.5f);
 
     // code to load in the ground plane (CPU defined data passed to GPU)
     // initGround();

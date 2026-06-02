@@ -96,10 +96,11 @@ using namespace std;
 using namespace glm;
 
 void drawMovementGraph(Application *application);
-void drawImGuizmoMenu(Application *application, WindowManager *windowManager, ImGuiIO &io, int &activeSelection);
-void drawFramerateGraph(ImGuiIO &io);
+void drawImGuizmoMenu(Application *application, WindowManager *windowManager, int &activeSelection);
+void drawFramerateGraph();
 void drawDebugMenu(Application *application, WindowManager *windowManager, int &activeSelection);
-void drawGameHUD(ImGuiIO &io, float deltaTime);
+void drawGameHUD(float deltaTime);
+void drawBillboardedText(Application *application, WindowManager *windowManager, TextBillboard text);
 
 int main(int argc, char *argv[])
 {
@@ -162,9 +163,15 @@ int main(int argc, char *argv[])
 
 		// Debug menu
 		static int activeSelection = 1;
-		drawImGuizmoMenu(application, windowManager, io, activeSelection);
-		drawFramerateGraph(io);
+		drawImGuizmoMenu(application, windowManager, activeSelection);
+		drawFramerateGraph();
 		drawDebugMenu(application, windowManager, activeSelection);
+
+		drawBillboardedText(application, windowManager, application->scene->debugText);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextIntro);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextMove);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextJump);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextBHop);
 
 		// save current time for next frame
 		auto nextLastTime = chrono::high_resolution_clock::now();
@@ -186,7 +193,7 @@ int main(int argc, char *argv[])
 		application->deltaTime = deltaTime;
 
 		// Render HUD
-		drawGameHUD(io, deltaTime);
+		drawGameHUD(deltaTime);
 
 		// imgui Rendering
 		// (Your code clears your framebuffer, renders your other stuff etc.)
@@ -221,10 +228,12 @@ void drawMovementGraph(Application *application)
 
 		// Graph movement
 		glm::vec3 vel = application->scene->playerCamera->velocity;
+		// float velLength = glm::length(vel);
 		float velX[2] = {0.0f, vel.x};
 		float velY[2] = {0.0f, vel.z}; // swap y and z
 		float velZ[2] = {0.0f, vel.y}; // swap y and z
 		ImPlot3D::PlotLine("velocity", velX, velY, velZ, 2);
+		// ImPlot3D::PlotText(glm::length(vel), vel.x, vel.y, vel.z);
 
 		// Graph wishDir
 		glm::vec3 wish = application->scene->playerCamera->wishDir;
@@ -244,8 +253,10 @@ void drawMovementGraph(Application *application)
 	}
 }
 
-void drawImGuizmoMenu(Application *application, WindowManager *windowManager, ImGuiIO &io, int &activeSelection)
+void drawImGuizmoMenu(Application *application, WindowManager *windowManager, int &activeSelection)
 {
+	ImGuiIO &io = ImGui::GetIO();
+
 	// Start the ImGuizmo frame
 	ImGuizmo::BeginFrame();
 	ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
@@ -261,7 +272,7 @@ void drawImGuizmoMenu(Application *application, WindowManager *windowManager, Im
 	// Update objects with ImGuizmo
 	if (activeSelection == 1)
 	{
-		glm::vec4 &lightPos = application->scene->testLight.position;
+		glm::vec4 &lightPos = application->scene->debugLight.position;
 		glm::mat4 lightMat = glm::translate(glm::mat4(1.0f), glm::vec3(lightPos));
 
 		ImGuizmo::Manipulate(glm::value_ptr(view),
@@ -303,11 +314,12 @@ void drawImGuizmoMenu(Application *application, WindowManager *windowManager, Im
 	}
 }
 
-void drawFramerateGraph(ImGuiIO &io)
+void drawFramerateGraph()
 {
 	// plot framerate - https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp
 	ImGui::Text("Performance:");
 
+	ImGuiIO &io = ImGui::GetIO();
 	static bool animate = true;
 
 	// static float values[90] = {};
@@ -379,9 +391,9 @@ void drawDebugMenu(Application *application, WindowManager *windowManager, int &
 	if (ImGui::TreeNode("Debug Objects"))
 	{
 		ImGui::Text("Debug Light");
-		ImGui::SliderFloat3("color", &application->scene->testLight.color.x, -1.0f, 1.0f);
-		ImGui::SliderFloat3("intensity", &application->scene->testLight.intensity.x, 0.0f, 10.0f);
-		ImGui::SliderFloat3("position", &application->scene->testLight.position.x, -100.0f, 100.0f);
+		ImGui::SliderFloat3("color", &application->scene->debugLight.color.x, -1.0f, 1.0f);
+		ImGui::SliderFloat3("intensity", &application->scene->debugLight.intensity.x, 0.0f, 10.0f);
+		ImGui::SliderFloat3("position", &application->scene->debugLight.position.x, -100.0f, 100.0f);
 
 		ImGui::Separator();
 		ImGui::SliderFloat("g_Spin", &application->g_Spin, 0.0f, 20.0f);
@@ -392,8 +404,10 @@ void drawDebugMenu(Application *application, WindowManager *windowManager, int &
 		ImGui::ShowDemoWindow(); // Show demo window! :)
 }
 
-void drawGameHUD(ImGuiIO &io, float deltaTime)
+void drawGameHUD(float deltaTime)
 {
+	ImGuiIO &io = ImGui::GetIO();
+
 	// Set window size to be screen
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(io.DisplaySize);
@@ -454,4 +468,68 @@ void drawGameHUD(ImGuiIO &io, float deltaTime)
 	drawList->AddText(tutorialPos, tutorialColor, tutorialTextBuffer);
 
 	ImGui::End();
+}
+
+void drawBillboardedText(Application *application, WindowManager *windowManager, TextBillboard text)
+{
+	// Fallback to static position otherwise
+	glm::vec3 worldPos = glm::vec3(0);
+	if (text.dynamicWorldPos != nullptr)
+		worldPos = glm::vec3(*text.dynamicWorldPos);
+	else
+		worldPos = text.worldPos;
+
+	ImGuiIO &io = ImGui::GetIO();
+
+	// check if behind the camera
+	glm::vec3 cameraToPos = worldPos - application->scene->mainCamera->eye; // vector point from camera to worldPos
+	glm::vec3 cameraForward = application->scene->mainCamera->forward;
+
+	// if dot product is negative, vectors are pointing in opposite directions
+	if (glm::dot(cameraToPos, cameraForward) <= 0.0f)
+	{
+		return; // do not render text
+	}
+
+	// fade text from distance
+	float currAlpha = text.baseAlpha;
+	float distanceFromCamera = glm::length(cameraToPos);
+
+	if (distanceFromCamera > text.minFadeDistance)
+	{
+		if (distanceFromCamera > text.maxFadeDistance)
+			return;
+
+		float fadePercentage = 1.0f - ((distanceFromCamera - text.minFadeDistance) / (text.maxFadeDistance - text.minFadeDistance));
+
+		currAlpha = glm::clamp(text.baseAlpha * fadePercentage, 0.0f, 255.0f);
+	}
+
+	// screen size
+	int width, height;
+	glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
+	float aspect = width / (float)height;
+
+	// matrices for positioning the text
+	glm::mat4 view = lookAt(application->scene->mainCamera->eye, application->scene->mainCamera->lookAtTarget, glm::vec3(0, 1, 0));
+	glm::mat4 proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 1000.0f);
+
+	// bounding box of screen
+	glm::vec4 viewport(0.0f, 0.0f, io.DisplaySize.x, io.DisplaySize.y);
+
+	// map 3d space to 2d pixel on screen
+	glm::vec3 screenSpacePos = glm::project(worldPos, view, proj, viewport);
+
+	// Use background instead of imguiWindow to map to engine window
+	ImDrawList *drawList = ImGui::GetBackgroundDrawList();
+
+	ImVec2 labelTextSize = ImGui::CalcTextSize(text.label);
+
+	// center text on screen
+	// y calculation is inverted because OpenGL y axis starts at bottom while ImGui starts at top of screen
+	ImVec2 labelPos(screenSpacePos.x - labelTextSize.x / 2.0f, io.DisplaySize.y - screenSpacePos.y);
+	ImVec2 labelShadowPos(labelPos.x + 2.0f, labelPos.y + 2.0f);
+
+	drawList->AddText(labelShadowPos, IM_COL32(0, 0, 0, currAlpha), text.label); // shadow
+	drawList->AddText(labelPos, IM_COL32(text.rgb.x, text.rgb.y, text.rgb.z, currAlpha), text.label);
 }

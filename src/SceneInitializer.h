@@ -8,6 +8,7 @@
 #include "world/GameObject.h"
 #include "world/Camera.h"
 #include "world/Player.h"
+#include "world/ScreenText.h"
 
 struct PointLightUBO
 {
@@ -98,7 +99,34 @@ public:
     // Testing
     bool showPortalCube = true;
     bool groundCollision = true;
-    PointLightUBO testLight;
+    PointLightUBO debugLight;
+
+    // Text
+    TextBillboard debugText{
+        .label = "debug text",
+        .dynamicWorldPos = &debugLight.position,
+        .color = IM_COL32(255, 50, 50, 250)};
+
+    TextBillboard tutorialTextIntro{
+        .label = R"(Welcome!)",
+        .worldPos = glm::vec3(100, 0, 1000),
+        .color = IM_COL32(255, 255, 255, 250)};
+
+    TextBillboard tutorialTextMove{
+        .label = R"(MOVEMENT CONTROLS
+			[W][A][S][D]    -> Move Around)",
+        .worldPos = glm::vec3(300, 0, 1000),
+        .color = IM_COL32(255, 255, 255, 250)};
+
+    TextBillboard tutorialTextJump{
+        .label = R"([Space]         -> Jump)",
+        .worldPos = glm::vec3(500, 0, 1000),
+        .color = IM_COL32(255, 255, 255, 250)};
+
+    TextBillboard tutorialTextBHop{
+        .label = R"([HOLD Space]         -> Jump, can be held)",
+        .worldPos = glm::vec3(700, 0, 1000),
+        .color = IM_COL32(255, 255, 255, 250)};
 
     // scene / level
     std::shared_ptr<GameObject> player;
