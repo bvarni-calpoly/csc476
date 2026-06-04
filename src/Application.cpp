@@ -175,8 +175,8 @@ void Application::render(float frametime)
     // scene->Projection->perspective(45.0f, aspect, 0.01f, 2000.0f);
     // FIXME
     float FOV = 45.0f;
-    if (glm::length(scene->playerCamera->velocity) > 150.0f)
-        FOV += glm::length(scene->playerCamera->velocity) / 1000.0f;
+    // if (glm::length(scene->playerCamera->velocity) > 200.0f)
+    FOV += glm::length(scene->playerCamera->velocity) / 5000.0f;
 
     scene->Projection->perspective(FOV, aspect, 0.1f, 5000.0f); // FIXME, was 100
     scene->ProjectionPortal->pushMatrix();
@@ -204,7 +204,7 @@ void Application::render(float frametime)
     if (callbacks->freeCamera)                                                                        // FIXME MOVE TO BEGINNING
         scene->mainCamera->cameraMovement(windowManager->getHandle(), scene->cameraSpeed, deltaTime); // smooth camera movements
     else
-        scene->playerCamera->playerMovement(windowManager->getHandle(), scene, 200.0, deltaTime); // control the player
+        scene->playerCamera->playerMovement(windowManager->getHandle(), scene, 250.0, deltaTime); // control the player
 
     scene->mainCamera->lookAtTarget = scene->mainCamera->eye + scene->mainCamera->forward; // FIXME, put this before?
 

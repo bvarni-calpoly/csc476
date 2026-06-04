@@ -167,11 +167,20 @@ int main(int argc, char *argv[])
 		drawFramerateGraph();
 		drawDebugMenu(application, windowManager, activeSelection);
 
+		// FIXME make a loop instead
 		drawBillboardedText(application, windowManager, application->scene->debugText);
 		drawBillboardedText(application, windowManager, application->scene->tutorialTextIntro);
 		drawBillboardedText(application, windowManager, application->scene->tutorialTextMove);
 		drawBillboardedText(application, windowManager, application->scene->tutorialTextJump);
 		drawBillboardedText(application, windowManager, application->scene->tutorialTextBHop);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextBHopRamp);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextReset);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextResetCheckpoint1);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextResetCheckpoint2);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextResetFall);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextSurfRamp);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextBranchingPath);
+		drawBillboardedText(application, windowManager, application->scene->tutorialTextCongratulations);
 
 		// save current time for next frame
 		auto nextLastTime = chrono::high_resolution_clock::now();
@@ -376,7 +385,7 @@ void drawDebugMenu(Application *application, WindowManager *windowManager, int &
 
 	ImGui::Separator();
 	ImGui::Text("Camera");
-	ImGui::SliderFloat("Noclip speed", &application->scene->cameraSpeed, -5.0f, 1000.0f);
+	ImGui::SliderFloat("Noclip speed", &application->scene->cameraSpeed, -5.0f, 2000.0f);
 	ImGui::SliderFloat3("Main Camera position", &application->scene->mainCamera->eye.x, -100.0f, 100.0f);
 	ImGui::SliderFloat3("Portal Camera position", &application->scene->portalCamera->eye.x, -10.0f, 10.0f);
 
@@ -464,8 +473,8 @@ void drawGameHUD(float deltaTime)
 	ImVec2 tutorialPos((io.DisplaySize.x - tutorialTextSize.x) / 2.0f, tutorialTextSize.y + 10.0f);
 	ImVec2 tutorialShadowPos(tutorialPos.x + 2.0f, tutorialPos.y + 2.0f);
 
-	drawList->AddText(tutorialShadowPos, IM_COL32(0, 0, 0, alphaFade), tutorialTextBuffer); // shadow
-	drawList->AddText(tutorialPos, tutorialColor, tutorialTextBuffer);
+	// drawList->AddText(tutorialShadowPos, IM_COL32(0, 0, 0, alphaFade), tutorialTextBuffer); // shadow
+	// drawList->AddText(tutorialPos, tutorialColor, tutorialTextBuffer);
 
 	ImGui::End();
 }

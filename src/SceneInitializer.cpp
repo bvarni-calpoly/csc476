@@ -550,13 +550,16 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/cube.obj", pawn);
     loadGeom(resourceDirectory, "/objects/wedge.obj", arrow);
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
-    loadMapGeom(resourceDirectory, "/scene/vertical_and_stair_chamber_3.obj", mapGeom);
+    // loadMapGeom(resourceDirectory, "/scene/vertical_and_stair_chamber_3.obj", mapGeom);
+    // loadMapGeom(resourceDirectory, "/scene/test_chamber.obj", mapGeom);
+    // loadMapGeom(resourceDirectory, "/scene/TutorialChamber.obj", mapGeom);
+    loadMapGeom(resourceDirectory, "/scene/TutorialChamberTEST.obj", mapGeom);
 
     // camera and player starting data
     mainCamera->eye = playerCamera->spawnLocation;
 
     // skybox
-    skybox->scale = vec3(5000.0f);
+    skybox->scale = vec3(10000.0f);
     skybox->position = vec3(0.0f, -100.0f, 0.0f);
 
     projectile->scale = vec3(2.0f);
@@ -576,7 +579,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     portalcube->scale = vec3(200.0f);
 
     texture_cube->scale = vec3(10000.0f, 1.0f, 10000.0f);
-    texture_cube->position = vec3(0, -100.0f, 0);
+    texture_cube->position = vec3(0, -900.0f, 0);
 
     shape_performance_test->scale = vec3(100.0f, 100.0f, 100.0f);
     shape_performance_test->position = vec3(50.0f, 0.0f, 50.0f);

@@ -19,7 +19,7 @@ struct PointLightUBO
 
 struct LightBlockUBO
 {
-    PointLightUBO lights[10];
+    PointLightUBO lights[20]; // max lights
     glm::ivec4 numActiveLights;
 };
 
@@ -93,7 +93,7 @@ public:
     std::shared_ptr<Camera> portalCamera = std::make_shared<Camera>();
     std::shared_ptr<Camera> tempCamera = std::make_shared<Camera>();
 
-    float cameraSpeed = 500.0;
+    float cameraSpeed = 1000.0;
     Spline splinepath[4];
 
     // Testing
@@ -107,25 +107,110 @@ public:
         .dynamicWorldPos = &debugLight.position,
         .color = IM_COL32(255, 50, 50, 250)};
 
+    TextBillboard tutorialTextControls{
+        .label = R"(CONTROLS LIST
+                [MOUSE]         -> Look Around
+                [W][A][S][D]    -> Move Around
+                [Space]         -> Jump, can be held
+                [Shift]         -> Sprint
+                [L-Click]       -> Fire
+                [R-Click]       -> Reload
+                [HOLD R-Click]  -> Charge
+                [R]             -> Reset position
+                [ESC]           -> Exit
+                
+                Press [~] to unlock mouse cursor)",
+        .worldPos = glm::vec3(0.0f, 40.0f, 580.0f),
+        .color = IM_COL32(255, 255, 255, 250)};
+
     TextBillboard tutorialTextIntro{
-        .label = R"(Welcome!)",
-        .worldPos = glm::vec3(100, 0, 1000),
+        .minFadeDistance = 200.0f,
+        .maxFadeDistance = 300.0f,
+        .label = R"(Welcome!
+[MOUSE]         -> Look Around)",
+        .worldPos = glm::vec3(0.0f, 50.0f, 1010.0f),
         .color = IM_COL32(255, 255, 255, 250)};
 
     TextBillboard tutorialTextMove{
+        .minFadeDistance = 200.0f,
+        .maxFadeDistance = 300.0f,
         .label = R"(MOVEMENT CONTROLS
-			[W][A][S][D]    -> Move Around)",
-        .worldPos = glm::vec3(300, 0, 1000),
+			[W][A][S][D]    -> Move Around
+    [Shift]         -> Sprint)",
+        .worldPos = glm::vec3(0, 50.0f, 900),
         .color = IM_COL32(255, 255, 255, 250)};
 
     TextBillboard tutorialTextJump{
+        .minFadeDistance = 200.0f,
+        .maxFadeDistance = 300.0f,
         .label = R"([Space]         -> Jump)",
-        .worldPos = glm::vec3(500, 0, 1000),
+        .worldPos = glm::vec3(0, 50.0f, 580),
         .color = IM_COL32(255, 255, 255, 250)};
 
     TextBillboard tutorialTextBHop{
+        .minFadeDistance = 200.0f,
+        .maxFadeDistance = 300.0f,
         .label = R"([HOLD Space]         -> Jump, can be held)",
-        .worldPos = glm::vec3(700, 0, 1000),
+        .worldPos = glm::vec3(0, 50.0f, 100),
+        .color = IM_COL32(255, 255, 255, 250)};
+
+    TextBillboard tutorialTextBHopRamp{
+        .minFadeDistance = 200.0f,
+        .maxFadeDistance = 300.0f,
+        .label = R"([HOLD Space]         -> Jump, can be held on ramps)",
+        .worldPos = glm::vec3(0, 50.0f, -425),
+        .color = IM_COL32(255, 255, 255, 250)};
+
+    TextBillboard tutorialTextSurfRamp{
+        .minFadeDistance = 200.0f,
+        .maxFadeDistance = 300.0f,
+        .label = R"([HOLD Space]         -> Surf, can be held on surfing ramps)",
+        .worldPos = glm::vec3(950, -10.0f, -3100),
+        .color = IM_COL32(255, 255, 255, 250)};
+
+    TextBillboard tutorialTextReset{
+        .minFadeDistance = 200.0f,
+        .maxFadeDistance = 300.0f,
+        .label = R"([R]             -> Reset position)",
+        .worldPos = glm::vec3(0, 50.0f, -950),
+        .color = IM_COL32(255, 255, 255, 250)};
+
+    TextBillboard tutorialTextResetCheckpoint1{
+        .minFadeDistance = 200.0f,
+        .maxFadeDistance = 300.0f,
+        .label = R"([1]             -> Reset position)",
+        .worldPos = glm::vec3(700.0f, -10.0f, -3250.0f),
+        .color = IM_COL32(255, 255, 255, 250)};
+
+    TextBillboard tutorialTextResetCheckpoint2{
+        .minFadeDistance = 200.0f,
+        .maxFadeDistance = 300.0f,
+        .label = R"([2]             -> Reset position)",
+        .worldPos = glm::vec3(0, 50.0f, -950),
+        .color = IM_COL32(255, 255, 255, 250)};
+
+    TextBillboard tutorialTextResetFall{
+        .minFadeDistance = 400.0f,
+        .maxFadeDistance = 500.0f,
+        .label = R"([R]             -> Reset position)",
+        .worldPos = glm::vec3(0, -460.0f, -1000),
+        .color = IM_COL32(255, 255, 255, 250)};
+
+    TextBillboard tutorialTextBranchingPath{
+        .minFadeDistance = 500.0f,
+        .maxFadeDistance = 1000.0f,
+        .label = R"(LEFT - Easier   RIGHT - Harder
+Remember to hold [SHIFT] to go faster
+    
+Checkpoint unlocked, press [2])",
+        .worldPos = glm::vec3(770, -400.0f, -600),
+        .color = IM_COL32(255, 255, 255, 250)};
+
+    TextBillboard tutorialTextCongratulations{
+        .minFadeDistance = 500.0f,
+        .maxFadeDistance = 800.0f,
+        .label = R"(Congratulations on beating the tutorial!)",
+        .worldPos = glm::vec3(770, -490.0f, -4350),
         .color = IM_COL32(255, 255, 255, 250)};
 
     // scene / level

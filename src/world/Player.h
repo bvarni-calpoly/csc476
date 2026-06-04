@@ -14,13 +14,15 @@ public:
     void resolveCollision(std::shared_ptr<SceneInitializer> &scene, CollisionPlaneResult collisionInfo);
 
     // position data
-    float playerHeight = 40.0f;
+    float playerHeight = 46.0f;
     float playerRadius = 4.0f;
-    glm::vec3 spawnLocation = glm::vec3(250.0f, playerHeight + 150.0f, 0.0f);
+    glm::vec3 spawnLocation = glm::vec3(0.0f, playerHeight + 50.0f, 1000.0f);
+    glm::vec3 checkPoint1 = glm::vec3(700.0f, playerHeight + 50.0f, -3250.0f);
+    glm::vec3 checkPoint2 = glm::vec3(770.0f, -400.0f + playerHeight + 50.0f, -600.0f);
 
     // physics data
     bool airborne = false;
-    float gravity = 400.0f;
+    float gravity = 800.0f;
     glm::vec3 wishDir = glm::vec3(0.0f);
     glm::vec3 velocity = glm::vec3(0.0f);
 

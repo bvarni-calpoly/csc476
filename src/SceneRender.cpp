@@ -119,12 +119,17 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, std::shared_ptr<
                 scene->textureBlackStripeTile->bind(scene->texProg->getUniform("Texture0"));
             else if (part->objName.find("blackwhite") != string::npos)
                 scene->textureBlackWhiteTile->bind(scene->texProg->getUniform("Texture0"));
-            if (part->objName.find("white") != string::npos)
+            else if (part->objName.find("trophy") != string::npos)
+                scene->texture0->bind(scene->texProg->getUniform("Texture0"));
+            else if (part->objName.find("trophy") != string::npos)
+                scene->textureTile->bind(scene->texProg->getUniform("Texture0"));
+            else if (part->objName.find("white") != string::npos)
                 scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
             else if (part->objName.find("black") != string::npos)
-                scene->textureBlackTile->bind(scene->texProg->getUniform("Texture0"));
-            else
                 scene->textureBlackStripeTile->bind(scene->texProg->getUniform("Texture0"));
+            else
+                scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
+            // scene->textureBlackStripeTile->bind(scene->texProg->getUniform("Texture0"));
 
             if (part->objName.find("collide") != string::npos)
             {
@@ -362,7 +367,7 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     PointLightUBO projectileLight;
     projectileLight.position = glm::vec4(scene->projectile->position, 0.0f);
     projectileLight.color = glm::vec4(1.0f, 1.0f, 0.5f, 0.0f);
-    projectileLight.intensity = glm::vec4(0.5f);
+    projectileLight.intensity = glm::vec4(0.2f);
 
     PointLightUBO redLight;
     redLight.position = glm::vec4(300.0f, 100.0f, 300.0f, 0.0f);
@@ -390,13 +395,44 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     float speed = 1.0f;
     float radius = 750.0f;
 
+    PointLightUBO light0;
+    light0.position = glm::vec4(0.0f, 50.0f, -1220.0f, 0.0f);
+    light0.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+    light0.intensity = glm::vec4(0.5f);
+
+    PointLightUBO light1;
+    light1.position = glm::vec4(0.0f, 50.0f, -1500.0f, 0.0f);
+    light1.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+    light1.intensity = glm::vec4(0.5f);
+
+    PointLightUBO light2;
+    light2.position = glm::vec4(0.0f, -70.0f, -2500.0f, 0.0f);
+    light2.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    light2.intensity = glm::vec4(1.0f);
+
+    PointLightUBO lightCheckpoint1;
+    lightCheckpoint1.position = glm::vec4(glm::vec3(scene->playerCamera->checkPoint1), 0.0f);
+    lightCheckpoint1.color = glm::vec4(0.5f, 0.5f, 1.0f, 0.0f);
+    lightCheckpoint1.intensity = glm::vec4(1.0f);
+
+    PointLightUBO lightCheckpoint2;
+    lightCheckpoint2.position = glm::vec4(glm::vec3(scene->playerCamera->checkPoint2), 0.0f);
+    lightCheckpoint2.color = glm::vec4(0.5f, 0.5f, 1.0f, 0.0f);
+    lightCheckpoint2.intensity = glm::vec4(1.0f);
+
+    glm::vec3 trophyPos = glm::vec3(770.0f, -510.0f, -4450.0f);
+    PointLightUBO lightTrophy;
+    lightTrophy.position = glm::vec4(trophyPos + glm::vec3(0, 100.0f, 0), 0.0f);
+    lightTrophy.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+    lightTrophy.intensity = glm::vec4(0.5f);
+
     glm::vec3 rainbowColor = glm::vec3( // 2pi/3 = 6.28/3 = 2.093
         glm::sin((time + 0.0f) + 1.0f) / 2.0f,
         glm::sin((time + 2.093f) + 1.0f) / 2.0f,
         glm::sin((time + 4.18f) + 1.0f) / 2.0f);
     rainbowLight.position = glm::vec4(glm::sin(time * speed) * radius, 10.0f, glm::cos(time * speed) * radius, 1.0f);
     rainbowLight.color = glm::vec4(rainbowColor, 0.0f);
-    rainbowLight.intensity = glm::vec4(5.0f);
+    rainbowLight.intensity = glm::vec4(2.0f);
 
     // Follows a circular path
     PointLightUBO rainbowLight1;
@@ -412,6 +448,21 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     rainbowLight1.color = glm::vec4(rainbowColor1, 0.0f);
     rainbowLight1.intensity = glm::vec4(10.0f);
 
+    // Follows a circular path
+    PointLightUBO rainbowLightTrophy;
+    float timeTrophyLight = glfwGetTime();
+    float speedTrophyLight = 1.0f;
+    float radiusTrophyLight = 50.0f;
+
+    glm::vec3 rainbowColorTrophy = glm::vec3( // 2pi/3 = 6.28/3 = 2.093
+        glm::sin((timeTrophyLight + 0.0f) + 1.0f) / 2.0f,
+        glm::sin((timeTrophyLight + 2.093f) + 1.0f) / 2.0f,
+        glm::sin((timeTrophyLight + 4.18f) + 1.0f) / 2.0f);
+    rainbowLightTrophy.position =
+        glm::vec4(glm::sin(timeTrophyLight * speedTrophyLight) * radiusTrophyLight, 0.0f, glm::cos(timeTrophyLight * speedTrophyLight) * radiusTrophyLight, 1.0f) + glm::vec4(trophyPos, 0.0f);
+    rainbowLightTrophy.color = glm::vec4(rainbowColorTrophy, 0.0f);
+    rainbowLightTrophy.intensity = glm::vec4(2.0f);
+
     lightData.lights[0] = scene->debugLight;
     lightData.lights[1] = playerLight;
     lightData.lights[2] = projectileLight;
@@ -421,7 +472,14 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     lightData.lights[6] = pinkLight;
     lightData.lights[7] = rainbowLight;
     lightData.lights[8] = rainbowLight1;
-    lightData.numActiveLights = glm::ivec4(9);
+    lightData.lights[9] = light0;
+    lightData.lights[10] = light1;
+    lightData.lights[11] = light2;
+    lightData.lights[12] = lightCheckpoint1;
+    lightData.lights[13] = lightCheckpoint2;
+    lightData.lights[14] = lightTrophy;
+    lightData.lights[15] = rainbowLightTrophy;
+    lightData.numActiveLights = glm::ivec4(16);
 
     // fixme
     glBindBuffer(GL_UNIFORM_BUFFER, scene->uboLightBlock);
@@ -445,11 +503,11 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     scene->texture1->bind(scene->texProg->getUniform("Texture0")); // reset texture
 
     // Draw projectile
+    scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
     glUniform1f(scene->texProg->getUniform("glowIntensity"), 2.0f); // add glow
     sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->projectile);
 
     // Draw pawn
-    scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
     // if (scene->pawn->collided % 2 == 1)
     //     scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
     // else

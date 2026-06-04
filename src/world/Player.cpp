@@ -47,7 +47,7 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         wishDir += strafe;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         if (!airborne)
-            velocity.y = 200;
+            velocity.y = 300;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         speedMult = 2;
     else
@@ -117,12 +117,27 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         scene->mainCamera->eye = spawnLocation;
     }
 
+    // Reset position
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+    {
+        velocity = glm::vec3(0.0f);
+        scene->mainCamera->eye = checkPoint1;
+    }
+
+    // Reset position
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+    {
+        velocity = glm::vec3(0.0f);
+        scene->mainCamera->eye = checkPoint2;
+    }
+
     // Normalize input
     if (glm::length(wishDir) > 0.001f)
         wishDir = glm::normalize(wishDir);
 
     wishSpeed = maxSpeed * speedMult;
     wishDir.y = 0;
+    // Ground friction
     if (!airborne)
     {
         speed = glm::length(velocity);
@@ -253,8 +268,8 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
         scene->pawn->collided = (scene->pawn->collided % 2) + 1;
     }
 
-    if (eye.y < -750.0f)
-        eye = glm::vec3(0, 50.0f, 0);
+    if (eye.y < -1000.0f)
+        eye = spawnLocation;
 }
 
 void Player::reloadAnimation(std::shared_ptr<SceneInitializer> &scene, float deltaTime)
