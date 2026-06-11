@@ -120,8 +120,8 @@ void SceneRender::drawTextureHierMesh(shared_ptr<Program> curS, std::shared_ptr<
             else if (part->objName.find("blackwhite") != string::npos)
                 scene->textureBlackWhiteTile->bind(scene->texProg->getUniform("Texture0"));
             else if (part->objName.find("trophy") != string::npos)
-                scene->texture0->bind(scene->texProg->getUniform("Texture0"));
-            else if (part->objName.find("trophy") != string::npos)
+                scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
+            else if (part->objName.find("stand") != string::npos)
                 scene->textureTile->bind(scene->texProg->getUniform("Texture0"));
             else if (part->objName.find("white") != string::npos)
                 scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
@@ -463,6 +463,15 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     rainbowLightTrophy.color = glm::vec4(rainbowColorTrophy, 0.0f);
     rainbowLightTrophy.intensity = glm::vec4(2.0f);
 
+    // Follows a circular path
+    PointLightUBO lightPortalRoom;
+    glm::vec3 lightPortalRoomPos = glm::vec3(-800.0f, 10.0f, 600.0f);
+
+    lightPortalRoom.position =
+        glm::vec4(glm::sin(timeTrophyLight * speedTrophyLight) * radiusTrophyLight, 0.0f, glm::cos(timeTrophyLight * speedTrophyLight) * radiusTrophyLight, 1.0f) + glm::vec4(lightPortalRoomPos, 0.0f);
+    lightPortalRoom.color = glm::vec4(rainbowColorTrophy, 0.0f);
+    lightPortalRoom.intensity = glm::vec4(1.0f);
+
     lightData.lights[0] = scene->debugLight;
     lightData.lights[1] = playerLight;
     lightData.lights[2] = projectileLight;
@@ -479,7 +488,8 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
     lightData.lights[13] = lightCheckpoint2;
     lightData.lights[14] = lightTrophy;
     lightData.lights[15] = rainbowLightTrophy;
-    lightData.numActiveLights = glm::ivec4(16);
+    lightData.lights[16] = lightPortalRoom;
+    lightData.numActiveLights = glm::ivec4(17);
 
     // fixme
     glBindBuffer(GL_UNIFORM_BUFFER, scene->uboLightBlock);
@@ -524,11 +534,20 @@ void SceneRender::drawNonPortals(std::shared_ptr<SceneInitializer> scene, std::s
 
     // Send portal normal and cube position to frag shader
     scene->texture1->bind(scene->texProg->getUniform("Texture0"));
-    glUniform3fv(scene->texProg->getUniform("portalNormal"), 1, glm::value_ptr(glm::vec3(0, 0, 1))); // FIXME hardcoded
-    glUniform3fv(scene->texProg->getUniform("portalPos"), 1, glm::value_ptr(glm::vec3(0.0f)));       // FIXME hardcoded
+    glUniform3fv(scene->texProg->getUniform("portalNormal"), 1, glm::value_ptr(glm::vec3(0, 0, 1)));      // FIXME hardcoded
+    glUniform3fv(scene->texProg->getUniform("portalPos"), 1, glm::value_ptr(scene->debugLight.position)); // FIXME hardcoded
     glUniform1i(scene->texProg->getUniform("useSlicing"), 1);
     if (scene->showPortalCube)
         sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->portalcube);
+    glUniform1i(scene->texProg->getUniform("useSlicing"), 0);
+
+    // Send portal normal and cube position to frag shader
+    scene->textureWhiteTile->bind(scene->texProg->getUniform("Texture0"));
+    glUniform3fv(scene->texProg->getUniform("portalNormal"), 1, glm::value_ptr(glm::vec3(0, 1, 0))); // FIXME hardcoded
+    glUniform3fv(scene->texProg->getUniform("portalPos"), 1, glm::value_ptr(glm::vec3(0, 10, 0)));   // FIXME hardcoded
+    glUniform1i(scene->texProg->getUniform("useSlicing"), 1);
+    if (scene->showPortalCube)
+        sceneRender->drawTextureMesh(scene->texProg, scene->Model, scene->portalcubeMirror);
     glUniform1i(scene->texProg->getUniform("useSlicing"), 0);
 
     sceneRender->drawTextureMeshNoScale(scene->texProg, scene->Model, scene->testcube);

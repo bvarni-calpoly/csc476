@@ -17,7 +17,7 @@
 
 #define PI 3.1415927
 
-Callbacks::Callbacks(Camera *cam): camera(cam) {}
+Callbacks::Callbacks(Camera *cam) : camera(cam) {}
 
 Callbacks::~Callbacks()
 {
@@ -73,7 +73,7 @@ void Callbacks::keyCallback(GLFWwindow *window, int key, int scancode, int actio
 }
 
 void Callbacks::mouseCallback(GLFWwindow *window, int button, int action, int mods)
-{    
+{
     double posX, posY;
 
     // if (action == GLFW_PRESS)

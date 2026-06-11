@@ -12,6 +12,7 @@ public:
     void playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer> &scene, float maxSpeed, float deltaTime);
     void reloadAnimation(std::shared_ptr<SceneInitializer> &scene, float deltaTime);
     void resolveCollision(std::shared_ptr<SceneInitializer> &scene, CollisionPlaneResult collisionInfo);
+    void wallWalk(std::shared_ptr<SceneInitializer> &scene, CollisionPlaneResult collisionInfo);
 
     // position data
     float playerHeight = 46.0f;
@@ -25,6 +26,14 @@ public:
     float gravity = 800.0f;
     glm::vec3 wishDir = glm::vec3(0.0f);
     glm::vec3 velocity = glm::vec3(0.0f);
+
+    // Obj interaction
+    bool pickupObj = false;
+    bool objRaycastHit = false;
+    float pickupDist = 0.0f;
+
+    // input
+    bool wasLeftMousePressed = false;
 
     // tool data
     bool overheating = false;

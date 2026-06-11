@@ -34,6 +34,30 @@ int CollisionSolver::testAABBvsAABB(const GameObject &obj1, const GameObject &ob
     return 0; // no collision
 }
 
+float CollisionSolver::solveRaycastVsAABB(const glm::vec3 &rayOrigin, const glm::vec3 &rayDir, const GameObject &obj)
+{
+
+    // P(t) = RayOrigin + t * RayDir
+    // xmin = RayOrigin.x + t * RayDir.x
+
+    // distance from ray origin to obj, divide by rayDir to project vector against rayDir
+    glm::vec3 t1 = (obj.min - rayOrigin) / rayDir;
+    glm::vec3 t2 = (obj.max - rayOrigin) / rayDir;
+
+    // Sort entry and exit of ray
+    glm::vec3 tNear = glm::min(t1, t2);
+    glm::vec3 tFar = glm::max(t1, t2);
+
+    float tMin = glm::max(glm::max(tNear.x, tNear.y), tNear.z);
+    float tMax = glm::min(glm::min(tFar.x, tFar.y), tFar.z);
+
+    if (tMin <= tMax && tMax >= 0.0f)
+        return tMin; // distance from rayOrigin
+
+    return -1.0f;
+    // return tMin <= tMax && tMax >= 0.0f; // distance from rayOrigin
+}
+
 int CollisionSolver::testPlayerVsPlane(std::shared_ptr<SceneInitializer> &scene, const GameObject &obj) // FIXME optimize this, check godot docs
 {
     Camera &cam = *(scene->mainCamera);
@@ -56,8 +80,8 @@ int CollisionSolver::testPlayerVsPlane(std::shared_ptr<SceneInitializer> &scene,
     // float threshold = 10.0f; // threshold to check inbetween distances
     // if (obj.horizontal)
     //     threshold = 100.0f;
-    float threshold = 10.0f; // threshold to check inbetween distances
-    if (obj.portal->portalID <= 4)
+    float threshold = 10.0f;       // threshold to check inbetween distances
+    if (obj.portal->portalID <= 2) // FIXME HARDCODED - horizontal (falling) portal
         threshold = 1000.0f;
     if (distance <= 0.0f && distance >= -threshold)
     {
@@ -65,6 +89,37 @@ int CollisionSolver::testPlayerVsPlane(std::shared_ptr<SceneInitializer> &scene,
 
         if (testPlayerVsAABB(scene, obj))
             return 1; // collision detected
+    }
+
+    return 0; // no collision
+}
+
+int CollisionSolver::testObjVsPlane(const GameObject &obj, const GameObject &objPortal)
+{
+    // vertex normal
+    glm::vec3 normal = glm::normalize(objPortal.normals[0]);
+
+    // --- distance = (N * P) + d ---
+    // Calculate position of plane relative to normal
+    float d = -glm::dot(normal, objPortal.position);
+
+    // adjust for player height
+    glm::vec3 height = glm::vec3(0, obj.max.y - obj.min.y, 0);
+
+    // Distance from camera to plane
+    float distance = glm::dot(normal, height) + d;
+
+    // check if on other side of plane
+    // float threshold = 10.0f; // threshold to check inbetween distances
+    // if (obj.horizontal)
+    //     threshold = 100.0f;
+    float threshold = 10.0f; // threshold to check inbetween distances
+    if (distance <= 0.0f && distance >= -threshold)
+    {
+        // std::cout << "infinite plane collision detected" << std::endl;
+
+        // if (testPlayerVsAABB(scene, obj))
+        return 1; // collision detected
     }
 
     return 0; // no collision

@@ -1,13 +1,34 @@
-TODO TODAY
-- add another function for checking obj to obj collision with the planes
-- do an art pass and make a new level
-- add texture mapping / loading
+TODAY
+rocket jumper
+teleport objects
 
-- fix proj matrix for portals
+MONDAY
+add recoil animation
+sensitivity of mouse
+moving platforms
+moving portals
+
+TUESDAY
+backface culling
+fix collision tunneling
+add turrets / enemies that respond to rockets
+have enemies face direction of player
+fan movement
+chainsaw
+fix proj matrix for portals
+
+WEDNESDAY
+make map
+refine jumps
+surf through portal
+wall
+
+-normal vec wall walking
+
+- add texture mapping / loading
 - fix which portaldrawframe function to use (automate portal rendering placement)
 - add animation through multiple obj files
     - using a vertex shader to lerp / mix
-- add a rocket jumper
 - add raycasts?
 - add enemy
 - add backface culling or frustrum culling or whatever the single opengl command is
@@ -18,10 +39,7 @@ attributes versus uniforms
 
 add backface culling <<<
 
-ADD 3D VECTOR VISUALIZER
-
 known issues
-- portal vertical is hardcoded to <=4 id
 - fov calculations
 - reload animations
 - if there is no skybox all the rendered portals scene show

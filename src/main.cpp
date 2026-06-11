@@ -448,7 +448,7 @@ void drawGameHUD(float deltaTime)
 	ImVec2 timerTextSize = ImGui::CalcTextSize(timerBuffer);
 	ImU32 timerColor = IM_COL32(0, 200, 255, 200);
 	ImVec2 timerPos((io.DisplaySize.x - timerTextSize.x) / 2.0f, timerTextSize.y + 10.0f); // Center x
-	ImVec2 timerShadowPos(timerTextSize.x + 2.0f, timerTextSize.y + 2.0f);
+	ImVec2 timerShadowPos(timerPos.x + 2.0f, timerPos.y + 2.0f);
 
 	drawList->AddText(timerShadowPos, IM_COL32(0, 0, 0, 200), timerBuffer); // shadow
 	drawList->AddText(timerPos, timerColor, timerBuffer);

@@ -543,6 +543,7 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/plane_performance_test.obj", shape_performance_test);
     loadGeom(resourceDirectory, "/objects/angled_plane.obj", angledplane);
     loadGeom(resourceDirectory, "/objects/testcube.obj", portalcube);
+    loadGeom(resourceDirectory, "/objects/testcube.obj", portalcubeMirror);
     loadGeom(resourceDirectory, "/objects/testcube.obj", testcube);
     loadGeom(resourceDirectory, "/objects/texture_cube.obj", texture_cube);
     loadGeom(resourceDirectory, "/objects/rocket-jumper.obj", tool);
@@ -550,10 +551,9 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
     loadGeom(resourceDirectory, "/objects/cube.obj", pawn);
     loadGeom(resourceDirectory, "/objects/wedge.obj", arrow);
     loadGeom(resourceDirectory, "/scene/Untitled.obj", mapGeomNoHier);
-    // loadMapGeom(resourceDirectory, "/scene/vertical_and_stair_chamber_3.obj", mapGeom);
-    // loadMapGeom(resourceDirectory, "/scene/test_chamber.obj", mapGeom);
-    // loadMapGeom(resourceDirectory, "/scene/TutorialChamber.obj", mapGeom);
-    loadMapGeom(resourceDirectory, "/scene/TutorialChamberTEST.obj", mapGeom);
+    // loadMapGeom(resourceDirectory, "/scene/TutorialChamberTEST.obj", mapGeom);
+    // loadMapGeom(resourceDirectory, "/scene/Untitled.obj", mapGeom);
+    loadMapGeom(resourceDirectory, "/scene/TutorialChamberPortals.obj", mapGeom);
 
     // camera and player starting data
     mainCamera->eye = playerCamera->spawnLocation;
@@ -576,7 +576,9 @@ void SceneInitializer::initGeom(const std::string &resourceDirectory)
 
     // Debug objects
     testcube->position = vec3(0.0f);
-    portalcube->scale = vec3(200.0f);
+    portalcube->position = vec3(-400.0f, 0, 600.0f);
+    portalcube->scale = vec3(50.0f);
+    portalcubeMirror->scale = vec3(50.0f);
 
     texture_cube->scale = vec3(10000.0f, 1.0f, 10000.0f);
     texture_cube->position = vec3(0, -900.0f, 0);

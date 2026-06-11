@@ -63,7 +63,8 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
     }
 
     // Projectile
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+    bool isLeftMousePressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+    if (isLeftMousePressed && !wasLeftMousePressed)
     {
         if (!scene->projectile->active)
         {
@@ -88,7 +89,37 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
             glm::vec3 right = glm::cross(forward, up);
             scene->projectile->velocity = forward * rocketSpeed;
             scene->projectile->position = (eye + forward * (-rocketSpeed + forwardOffset) + up * upOffset + right * rightOffset + scene->projectile->velocity);
+
+            // Rocket jump
+            velocity += -750.0f * scene->mainCamera->forward;
         }
+
+        pickupObj = !pickupObj;
+    }
+
+    wasLeftMousePressed = isLeftMousePressed;
+    if (!pickupObj)
+    {
+        float objRaycast = CollisionSolver::solveRaycastVsAABB(eye, forward, *scene->portalcube);
+        if (objRaycast > 0.0f)
+        {
+            objRaycastHit = true;
+            pickupDist = objRaycast;
+        }
+        else
+        {
+            objRaycastHit = false;
+            pickupObj = false; // prevent picking up object state without looking at it
+        }
+    }
+
+    if (pickupObj)
+    {
+        if (pickupDist < 50.0f)
+            pickupDist = 50.0f;
+
+        scene->portalcube->position = eye + (forward * pickupDist);
+        scene->portalcube->updateBounds();
     }
 
     // Reload
@@ -137,6 +168,7 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 
     wishSpeed = maxSpeed * speedMult;
     wishDir.y = 0;
+
     // Ground friction
     if (!airborne)
     {
@@ -201,6 +233,19 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
                 glm::vec3 offset = eye - A->position;
                 eye = B->position + offset;
             }
+            // portal cube teleporation
+            if (CollisionSolver::testObjVsPlane(*scene->portalcube, *mapGeomChild))
+            {
+                std::cout << "portalcube collision with portal" << std::endl;
+                // Teleport to other portal
+                int currPortal = mapGeomChild->portal->portalID;
+                GameObject *A = scene->portals[currPortal]->portal->source;
+                GameObject *B = scene->portals[currPortal]->portal->destination;
+
+                // Teleport to the same position on the other portal (relative to the plane)
+                glm::vec3 offset = scene->portalcubeMirror->position - A->position;
+                scene->portalcubeMirror->position = B->position + offset;
+            }
         }
         // Check collision against rest of the map
         else
@@ -213,6 +258,7 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
 
                 if (collisionInfo.collided)
                 {
+                    // scene->playerCamera->wallWalk(scene, collisionInfo);
                     scene->playerCamera->resolveCollision(scene, collisionInfo);
                 }
             }
@@ -247,12 +293,31 @@ void Player::playerMovement(GLFWwindow *window, std::shared_ptr<SceneInitializer
             // Narrow Phase (Convex Plane Shape)
             CollisionPlaneResult collisionInfo = CollisionSolver::solvePointVsConvex(scene->projectile->position, *mapGeomChild);
 
-            // rocket jump
-            // velocity.y += 10.0f;
             // if (collisionInfo.collided)
-            // {
             scene->projectile->velocity = glm::reflect(scene->projectile->velocity, collisionInfo.normal);
-            // mapGeomChild->collided = (mapGeomChild->collided % 2) + 1;
+        }
+
+        // Check portal cubes collisions on map
+        // Broad Phase (AABB)
+        if (CollisionSolver::testAABBvsAABB(*scene->portalcube, *mapGeomChild))
+        {
+            // Narrow Phase (Convex Plane Shape)
+            CollisionPlaneResult collisionInfo = CollisionSolver::solvePointVsConvex(scene->portalcube->position, *mapGeomChild);
+
+            // if (collisionInfo.collided)
+            const glm::vec3 &pushDir = collisionInfo.normal;
+            float closestPlaneDistance = collisionInfo.planeDistance;
+
+            // offset position to be on correct side of the closest plane that was passed
+            // float epsilon = 0.01;
+            // glm::vec3 correction = pushDir * (glm::abs(closestPlaneDistance) + epsilon);
+            // scene->portalcube->position += correction * 10.0f;
+
+            // only on floors
+            // if (pushDir.y < 0.7f)
+            // {
+            float height = scene->portalcube->max.y - scene->portalcube->min.y;
+            scene->portalcube->position.y = mapGeomChild->max.y + height / 2.0f;
             // }
         }
 
@@ -336,3 +401,15 @@ void Player::resolveCollision(std::shared_ptr<SceneInitializer> &scene, Collisio
         // wall
     }
 }
+
+// void Player::wallWalk(std::shared_ptr<SceneInitializer> &scene, CollisionPlaneResult collisionInfo)
+// {
+//     Camera &cam = *(scene->mainCamera);
+//     Player &player = *(scene->playerCamera);
+//     const glm::vec3 &floorUp = collisionInfo.normal;
+//     float closestPlaneDistance = collisionInfo.planeDistance;
+
+//     cam.up = glm::normalize(floorUp);
+//     cam.strafe = glm::cross(cam.forward, cam.up);
+//     cam.forward = glm::cross(cam.up, cam.strafe);
+// }

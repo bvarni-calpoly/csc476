@@ -65,6 +65,13 @@ void Camera::cameraMovement(GLFWwindow *window, float cameraSpeed, float deltaTi
 	}
 }
 
+// void Camera::SetView(std::shared_ptr<Program> shader)
+// {
+// 	lookAtTarget = eye + forward; // FIXME <<<
+// 	glm::mat4 Cam = glm::lookAt(eye, lookAtTarget, up);
+// 	glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, glm::value_ptr(Cam));
+// }
+
 void Camera::SetView(std::shared_ptr<Program> shader)
 {
 	lookAtTarget = eye + forward; // FIXME <<<
