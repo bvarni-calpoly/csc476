@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quake-style movement that has portals as well in OpenGL</title>
+    <style>
+    body {
+        background-color: #0d0d0d;
+        color: whitesmoke;
+        display: flex;
+        font-family: Arial, sans-serif;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    hr {
+        width: 50%;
+        border: 1px solid whitesmoke;
+        margin: 20px 0;
+    }
+
+    h1, h2, p {
+        text-align: center;
+    }
+    </style>
+</head>
+<body>
+<h1>Quake-style movement that has portals as well in OpenGL</h1>
+<p>This was a solo project made by Ben Varni that mainly focused on implementing portals and Quake-style movement in OpenGL.<br>
+This project was made as a learning experience, and as such, most systems were written manually without external libraries (such as the physics and collision system).</p>
+ 
+<hr>
+
+<h2>Main Gameplay</h2>
+<p>Reach the trophy at the end of the corridors by moving through the platforms and ramps.<br>
+    The level features alternate routes that are significantly faster, achievable by using movement tech.<br><br>
+
+    There is also a portal room left of the starting location<br>
+    with an interactable cube.
+</p>
+<pre style="background: #1a1a1a; border-radius: 5px; padding: 10px;">
+MOVEMENT CONTROLS
+[W][A][S][D]    -> Move Around
+[Space]         -> Jump, can be held
+[Shift]         -> Sprint
+[L-Click]       -> Fire / Pickup PortalCube
+[R-Click]       -> Reload
+[HOLD R-Click]  -> Charge
+[R]             -> Reset position
+[ESC]           -> Exit
+	
+Press [~] to unlock mouse cursor
+
+MAIN MOVEMENT TECHNIQUES
+B-Hopping, Rocket Jumping, Surfing
+</pre>
+
+<video style="max-width: 50%;" controls autoplay muted loop>
+    <source src="files/demo.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+
+<hr>
+
+<h2>Movement</h2>
+<p>The movement is based on Quake I's movement system,<br>
+    which notably uses a wish vector to differentiate between user input and their actual velocity.<br>
+    The official source code of Quake I is released on GitHub and<br>
+    provides a great starting point for learning about the math behind the movement!<br><br>
+
+    The video demonstrates B-Hopping, Surfing, and Rocket Jumping<br>
+    Fun fact: the direction the bullet bounces can be calculated in one line with glm::reflect.</p>
+<video style="max-width: 50%;" controls autoplay muted loop>
+    <source src="files/movement.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+
+<hr>
+
+<h2>Bloom</h2>
+<p>Followed the tutorial on FBOs and bloom from <a href="https://learnopengl.com/Advanced-Lighting/Bloom" style="color: #4ba3ff;" target="_blank">LearnOpenGL</a>,<br>
+    The article does a great job of explaining it. I would recommend visiting it.<br>
+
+    The video shows an old build where bloom was much more intense</p>
+<video style="max-width: 50%;" autoplay muted loop>
+    <source src="files/bloom.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+
+<hr>
+
+<h2>ImGui</h2>
+<p>ImGui is very configurable, even is able to create<br>
+billboarded text in the world using the view and proj matrices<br><br>
+
+I used ImGui for the HUD and debug tools,<br>
+ImPlot3D to visualize the movement vectors,<br>
+and ImGuizmo to move debug objects around the world<br><br> 
+
+As seen in the main video as well, the text fades out after a certain distance.</p>
+<img src="files/billboarded_text.png" style="max-width: 50%;">
+
+<hr>
+
+<h2>PortalCube Interaction</h2>
+<p>Uses a raycast to find the distance from player to cube<br>
+
+    Also uses a discard shader to show how the cube can be split</p>
+<video style="max-width: 50%;" autoplay muted loop>
+    <source src="files/portalcube.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+
+<hr>
+
+<h2>Portals</h2>
+<p>Portals use stencil buffers, following <a href="https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/" style="color: #4ba3ff;" target="_blank">Thomas Rinsma's implementation</a><br><br>
+Sebastian Lague also has a great video on implementing portals,<br>
+which also discusses how to write object teleportation and the discard shader.</p>
+
+<div style="max-width: 50%; display: flex; flex-direction: column; align-items: center">
+    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 10px;">
+        <img src="files/portal0.png" style="width: calc(50% - 5px);">
+        <img src="files/portal1.png" style="width: calc(50% - 5px);">
+    </div>
+    <video style="width: 100%;" autoplay muted loop>
+        <source src="files/portal.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+</div>
+
+<hr>
+
+<h2>Useful Sources and Tools</h2>
+<div style="display: grid; grid-template-columns: auto 1fr; gap: 8px 15px; max-width: 50%;">
+    
+    <div>Trenchbroom</div>
+    <div>convex shape level editor</div>
+    
+    <div>Blender</div>
+    <div>converted the .obj from Trenchbroom</div>
+    
+    <div>Textures</div>
+    <a href="https://ambientcg.com/" style="color: #4ba3ff;" target="_blank">https://ambientcg.com/</a>
+    
+    <div>Portals</div>
+    <a href="https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/" style="color: #4ba3ff;" target="_blank">https://th0mas.nl/2013/05/19/rendering-recursive-portals-with-opengl/</a>
+
+    <div>Bloom</div>
+    <a href="https://learnopengl.com/Advanced-Lighting/Bloom" style="color: #4ba3ff;" target="_blank">https://learnopengl.com/Advanced-Lighting/Bloom</a>
+
+    <div>Quake I Source Code</div>
+    <a href="https://github.com/id-Software/Quake" style="color: #4ba3ff;" target="_blank">https://github.com/id-Software/Quake</a>
+
+    <div>Godot Source Code</div>
+    <a href="https://github.com/godotengine/godot" style="color: #4ba3ff;" target="_blank">https://github.com/godotengine/godot</a>
+
+    <div>ImGui Explorer (interactive website)</div>
+    <a href="https://pthom.github.io/imgui_explorer/" style="color: #4ba3ff;" target="_blank">https://pthom.github.io/imgui_explorer/</a>
+
+</div>
+</body>
+</html>
+
